@@ -1,6 +1,6 @@
 #-- copyright
-#OpenProject is a project management system.
-#Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+#OpenProject is an open source project management software.
+#Copyright (C) 2012-2020 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
@@ -28,29 +28,51 @@ pl:
     plugins:
       no_results_title_text: Aktualnie nie ma dostępnych żadnych dodatków.
     custom_styles:
+      color_theme: "Kolor motywu"
+      color_theme_custom: "(Niestandardowe)"
+      colors:
+        alternative-color: "Alternatywny"
+        content-link-color: "Czcionka linków"
+        primary-color: "Główny"
+        primary-color-dark: "Główny (ciemny)"
+        header-bg-color: "Tło nagłówka"
+        header-item-bg-hover-color: "Tło nagłowka po najechaniu myszą"
+        header-item-font-color: "Czcionka nagłówka"
+        header-item-font-hover-color: "Czcionka nagłówka po najechaniu myszą"
+        header-border-bottom-color: "Obramowanie nagłówka"
+        main-menu-bg-color: "Tło menu głównego"
+        main-menu-bg-selected-background: "Menu główne po wybraniu"
+        main-menu-bg-hover-background: "Menu główne po najechaniu myszą"
+        main-menu-font-color: "Czcionka menu głównego"
+        main-menu-selected-font-color: "Czcionka menu głównego po wybraniu"
+        main-menu-hover-font-color: "Czcionka menu głównego po najechaniu myszą"
+        main-menu-border-color: "Obramowanie menu głównego"
       custom_colors: "Kolory użytkownika"
       customize: "Dostosuj instalacje OpenProject ze swoim własnym logiem. Uwaga: To logo będzie publicznie dostępne."
       enterprise_notice: "Jako specjalne 'dziękuje!' za ich wkład finansowy który umożliwia rozwijanie OpenProject, ten mały dodatek jest dostępny tylko dla subskrybentów Enterprise Edition."
       manage_colors: "Edytuj kolor wybranych opcji"
       instructions:
-        alternative_color: "Silnie zaakcentowany kolor, przeważnie używany dla najważniejszego przycisku na ekranie."
-        content_link_color: "Kolor czcionki większości linków."
-        primary_color: "Główny kolor."
-        primary_color_dark: "Zwykle ciemniejsza wersja głównego koloru, używana dla efektów po najechaniu kursorem."
-        header_bg_color: "Kolor tła nagłówka."
-        header_item_bg_hover_color: "Kolor tła nagłówkowych elementów po najechaniu myszą."
-        header_item_font_color: "Kolor czcionki elementów nagłówkowych."
-        header_item_font_hover_color: "Kolor czcionki elementów nagłówkowych po najechaniu myszą."
-        header_border_bottom_color: "Linia pod nagłówkiem. Zostaw puste, jeśli nie chcesz wyświetlać linii."
-        main_menu_bg_color: "Kolor tła lewego menu."
+        alternative-color: "Silnie zaakcentowany kolor, zazwyczaj stosowany do najważniejszego przycisku na ekranie."
+        content-link-color: "Kolor czcionki większości linków."
+        primary-color: "Główny kolor."
+        primary-color-dark: "Zwykle ciemniejsza wersja głównego koloru, używana dla efektów po najechaniu kursorem."
+        header-item-bg-hover-color: "Kolor tła nagłówkowych elementów po najechaniu myszą."
+        header-item-font-color: "Kolor czcionki elementów nagłówkowych."
+        header-item-font-hover-color: "Kolor czcionki elementów nagłówkowych po najechaniu myszą."
+        header-border-bottom-color: "Linia pod nagłówkiem. Zostaw puste, jeśli nie chcesz wyświetlać linii."
+        main-menu-bg-color: "Kolor tła lewego menu."
+      theme_warning: Zmiana motywu poskutkuje zastąpieniem stylu niestandardowego. Projekt zostanie wówczas utracony. Czy na pewno chcesz kontynuować?
     enterprise:
-      upgrade_to_ee: "Aktualizuj do wersji Enterprise"
+      upgrade_to_ee: "Uaktualnij do wersji Enterprise"
       add_token: "Wyślij swój token wsparcia edycji Enterprise"
       replace_token: "Wymień swój obecny token wsparcia"
       order: "Zamów edycję Enterprise"
       paste: "Wklej swój token wsparcia edycji Enterprise"
       required_for_feature: "Ta funkcja jest dostępna tylko z aktywnym tokenem wsparcia wersji Enterprise."
       enterprise_link: "Aby uzyskać więcej informacji, kliknij tutaj."
+      start_trial: 'Rozpocznij bezpłatny okres próbny'
+      book_now: 'Zarezerwuj teraz'
+      get_quote: 'Uzyskaj wycenę'
   announcements:
     show_until: Pokazuj do
     is_active: obecnie wyświetlane
@@ -66,7 +88,37 @@ pl:
       no_results_content_title: Nie ma jeszcze żadnych trybów autoryzacji.
       no_results_content_text: Utwórz nowy tryb autoryzacji
   ldap_auth_sources:
+    technical_warning_html: |
+      Ten formularz LDAP wymaga wiedzy technicznej na temat konfiguracji usługi LDAP / Active Directory.
+      <br/>
+      <a href="https://www.openproject.org/help/administration/manage-ldap-authentication/">Szczegółowe instrukcje można znaleźć w naszej dokumentacji</a>.
+    attribute_texts:
+      name: Dowolna nazwa połączenia LDAP
+      host: Nazwa hosta LDAP lub adres IP
+      login_map: Klucz atrybutu w usłudze LDAP używany do identyfikacji unikalnego loginu użytkownika. Zazwyczaj `uid` lub `samAccountName`.
+      generic_map: Klucz atrybutu w LDAP mapowany na atrybut `%{attribute}`
+      admin_map_html: "Opcjonalnie: klucz atrybutu w usłudze LDAP który, <strong>jeśli jest obecny</strong>, oznacza użytkownika OpenProject jako administratora. W razie wątpliwości pozostaw pusty."
+      system_user_dn_html: |
+        Wprowadzić nazwę wyróżniającą użytkownika systemu służącą do dostępu w trybie tylko do odczytu.
+        <br/>
+        Przykład: uid=openproject,ou=system,dc=example,dc=com
+      system_user_password: Wprowadź powiązane hasło użytkownika systemu
+      base_dn: |
+        Wprowadź bazową nazwę wyróżniającą poddrzewa w LDAP, w którym OpenProject ma szukać użytkowników i grup.
+        OpenProject będzie filtrować w celu wyszukania podanych nazw użytkowników tylko w tym poddrzewie.
+        Przykład: ou=users,dc=example,dc=com
+      onthefly_register: |
+        Jeśli zaznaczysz to pole, OpenProject będzie automatycznie tworzyć nowych użytkowników z ich wpisów LDAP przy pierwszym uwierzytelnieniu za pomocą OpenProject.
+        Pozostaw to pole niezaznaczone, aby tylko istniejące konta w OpenProject mogły się uwierzytelniać za pomocą LDAP!
     connection_encryption: 'Szyfrowanie połączenia'
+    system_account: 'Konto systemowe'
+    system_account_legend: |
+      OpenProject do wyszukiwania użytkowników i grup w drzewie LDAP wymaga dostępu tylko do odczytu poprzez konto systemowe.
+      Podaj powiązane poświadczenia tego użytkownika systemu w poniższej sekcji.
+    ldap_details: 'Szczegóły LDAP'
+    user_settings: 'Mapowanie atrybutów'
+    user_settings_legend: |
+      Poniższe pola odnoszą się do sposobu tworzenia użytkowników w OpenProject z wpisów LDAP oraz tego, które atrybuty LDAP są używane do definiowania atrybutów użytkownika OpenProject (mapowania atrybutów).
     tls_mode:
       plain: 'Brak'
       simple_tls: 'simple_tls'
@@ -350,7 +402,7 @@ pl:
         types: "Typy"
         versions: "Wersje"
         work_packages: "Zadania"
-      project/status:
+      projects/status:
         code: 'Status'
         explanation: 'Opis statusu'
         codes:
@@ -415,7 +467,7 @@ pl:
         done_ratio: "Postęp (%)"
         end_insertion: "Koniec wstawiania"
         end_deletion: "Koniec usuwania"
-        fixed_version: "Wersja"
+        version: "Wersja"
         parent: "Rodzic"
         parent_issue: "Rodzic"
         parent_work_package: "Rodzic"
@@ -448,8 +500,8 @@ pl:
         confirmation: "nie pasuje do %{attribute}."
         could_not_be_copied: "nie można skopiować (w całości)."
         does_not_exist: "nie istnieje."
-        error_unauthorized: "may not be accessed."
-        error_readonly: "is not writable."
+        error_unauthorized: "— nie można uzyskac dostępu."
+        error_readonly: "— podjęto próbę zapisu, ale nie jest zapisywalny."
         empty: "nie może być puste."
         even: "musi być takie samo."
         exclusion: "jest już zajęte."
@@ -548,6 +600,10 @@ pl:
         role:
           permissions:
             dependency_missing: "musi również uwzględniać wybór '%{dependency}' jako '%{permission}'."
+        time_entry:
+          attributes:
+            hours:
+              day_limit: "jest zbyt wysoki, ponieważ pod jedną datą można zarejestrować maksymalnie 24 godziny."
         work_package:
           is_not_a_valid_target_for_time_entries: "Zadanie #%{id} jest niepoprawnym celem do ponownego rozpisania czasu."
           attributes:
@@ -703,10 +759,12 @@ pl:
     type: "Typ"
     updated_at: "Aktualizacja"
     updated_on: "Aktualizacja"
+    uploader: "Osoba przesyłająca"
     user: "Użytkownik"
     version: "Wersja"
     work_package: "Zadanie"
   button_add: "Dodaj"
+  button_add_comment: "Dodaj komentarz"
   button_add_member: Dodaj członka projektu
   button_add_watcher: "Dodaj obserwatora"
   button_annotate: "Adnotacja"
@@ -1011,10 +1069,9 @@ pl:
         add_groups: "Dodaj nowe grupy atrybutów"
         rename_groups: "Zmień grupy atrybutów"
       project_filters:
-        description_html: "Filtering and sorting on custom fields is an enterprise edition feature."
-  enumeration_activities: "Działania"
+        description_html: "Filtrowanie i sortowanie pól niestandardowych jest funkcją edycji enterprise."
+  enumeration_activities: "Działania śledzenia czasu"
   enumeration_work_package_priorities: "Priorytety pakietów roboczych"
-  enumeration_system_activity: "Aktywność systemu"
   enumeration_reported_project_statuses: "Status zgłoszonego projektu"
   error_auth_source_sso_failed: "Pojedyncze logowanie (SSO) dla użytkownika '%{value}' nie powiodło się"
   error_can_not_archive_project: "Tego projektu nie można zarchiwizować: %{errors}"
@@ -1084,6 +1141,8 @@ pl:
       pdf_with_descriptions: "PDF z opisami"
       pdf_with_descriptions_and_attachments: "Plik PDF z opisami i załącznikami"
       pdf_with_attachments: "Plik PDF z załącznikami"
+    image:
+      omitted: "Nie wyeksportowano obrazu"
   extraction:
     available:
       pdftotext: "Dostępny konwerter Pdftotext (opcjonalny)"
@@ -1114,13 +1173,8 @@ pl:
     blocks:
       community: "Społeczność OpenProject"
       upsale:
-        become_hero: "Zostań bohaterem!"
         title: "Aktualizuj do wersji Enterprise"
-        description: "Jakie są korzyści?"
         more_info: "Więcej informacji"
-        additional_features: "Potężne dodatkowe funkcje premium"
-        professional_support: "Profesjonalne wsparcie od ekspertów OpenProject"
-        you_contribute: "Programiści też muszą płacić rachunki. Z edycją Enterprise znacznie przyczyniasz się do tego wysiłku społeczności Open-Source."
     links:
       upgrade_enterprise_edition: "Aktualizuj do wersji Enterprise"
       postgres_migration: "Migrowanie instalacji do PostgreSQL"
@@ -1131,8 +1185,11 @@ pl:
       blog: "Blog OpenProject"
       forums: "Forum społeczności"
       newsletter: "Powiadomienia bezpieczeństwa / Newsletter"
+  journals:
+    changes_retracted: "Zmiany zostały wycofane."
   links:
     configuration_guide: 'Przewodnik po konfiguracji'
+    get_in_touch: "Masz pytania? Skontaktuj się z nami."
   instructions_after_registration: "Możesz się zalogować w momencie gdy Twoje konto zostanie aktywowane poprzez kliknięcie %{signin}."
   instructions_after_logout: "Możesz zalogować się ponownie klikając %{signin}."
   instructions_after_error: "Można spróbować się zalogować ponownie klikając %{signin}. Jeśli ten błąd będzie się powtarzał, poproś swojego admina o pomoc."
@@ -1422,6 +1479,7 @@ pl:
   label_new: "Nowy"
   label_new_features: "Nowe funkcje"
   label_new_statuses_allowed: "Nowe statusy dozwolone"
+  label_news_singular: "Aktualności"
   label_news_added: "Wiadomość dodana"
   label_news_comment_added: "Komentarz został dodany do wiadomości"
   label_news_latest: "Najnowsze wiadomości"
@@ -1664,52 +1722,31 @@ pl:
   label_workflow_plural: "Przepływ zadań"
   label_workflow_summary: "Podsumowanie"
   label_x_closed_work_packages_abbr:
+    zero: "0 zamknięty"
     one: "1 zamknięty"
     few: "%{count} zamknięte"
     many: "%{count} zamknięte"
     other: "%{count} zamknięte"
   label_x_comments:
+    zero: "brak komentarzy"
     one: "1 komentarz"
     few: "%{count} komentarzy"
     many: "%{count} komentarzy"
     other: "%{count} komentarzy"
   label_x_open_work_packages_abbr:
+    zero: "0 otwarty"
     one: "1 otwarty"
     few: "Otwarte: %{count}"
     many: "Otwarte: %{count}"
     other: "Otwarte: %{count}"
   label_x_projects:
+    zero: "brak projektów"
     one: "%{count} projekt"
     few: "%{count} projekty"
     many: "%{count} projekty"
     other: "%{count} projekty"
   label_year: "Rok"
   label_yesterday: "wczoraj"
-  label_keyboard_function: "Funkcja"
-  label_keyboard_shortcut: "Skrót"
-  label_keyboard_accesskey: "Accesskey"
-  label_keyboard_shortcut_help_heading: "Dostępne skróty klawiaturowe"
-  label_keyboard_shortcut_within_project: "Skróty związane z projektem:"
-  label_keyboard_shortcut_global_shortcuts: "Globalne skróty:"
-  label_keyboard_shortcut_some_pages_only: "Specjalne skróty:"
-  label_keyboard_shortcut_search_global: "Wyszukiwanie globalne"
-  label_keyboard_shortcut_search_project: "Znajdź projekt"
-  label_keyboard_shortcut_go_my_page: "Przejdź do mojej strony"
-  label_keyboard_shortcut_show_help: "Pokaż ten komunikat pomocy"
-  label_keyboard_shortcut_go_overview: "Przejdź do podsumowania projektu"
-  label_keyboard_shortcut_go_work_package: "Przejdź do pakietów roboczych projektu"
-  label_keyboard_shortcut_go_wiki: "Przejdź do wiki projektu"
-  label_keyboard_shortcut_go_activity: "Przejdź działań projeku"
-  label_keyboard_shortcut_go_calendar: "Przejdź do kalendarza projektu"
-  label_keyboard_shortcut_go_news: "Przejdź do wiadomości projektu"
-  label_keyboard_shortcut_go_timelines: "Przejdź do osi czasu"
-  label_keyboard_shortcut_new_work_package: "Utwórz nowy pakiet roboczy"
-  label_keyboard_shortcut_details_package: "Pokaż panel właściwości pakietów roboczych"
-  label_keyboard_shortcut_go_edit: "Przejdź do edycji bieżącej pozycji (tylko na stronach szczegółowych)"
-  label_keyboard_shortcut_open_more_menu: "Open more-menu (on detail pages only)"
-  label_keyboard_shortcut_go_preview: "Go to preview the current edit (on edit pages only)"
-  label_keyboard_shortcut_focus_previous_item: "Focus previous list element (on some lists only)"
-  label_keyboard_shortcut_focus_next_item: "Focus next list element (on some lists only)"
   auth_source:
     using_abstract_auth_source: "Nie można użyć fikcyjnego źródła uwierzytelniania."
     ldap_error: "Błąd LDAP: %{error_message}"
@@ -1933,6 +1970,7 @@ pl:
       title: Zmień identyfikator projektu
     archive:
       are_you_sure: "Jesteś pewien, że chcesz zarchiwizować projekt '%{name}'?"
+      archived: "Zarchiwizowano"
   project_module_activity: "Działanie"
   project_module_forums: "Fora"
   project_module_calendar: "Kalendarz"
@@ -2159,7 +2197,6 @@ pl:
   setting_welcome_text: "Tekst bloku powitalnego"
   setting_welcome_title: "Tytuł bloku powitalnego"
   setting_welcome_on_homescreen: "Wyświetl wiadomość powitalną na ekranie głównym"
-  setting_wiki_compression: "Kompresja historii wiki"
   setting_work_package_group_assignment: "Allow assignment to groups"
   setting_work_package_list_default_highlighting_mode: "Domyślny tryb wyróżniania"
   setting_work_package_list_default_highlighted_attributes: "Domyślnie wyróżniane atrybuty wyświetlane w treści"
@@ -2223,7 +2260,7 @@ pl:
   text_destroy_with_associated: "Istnieją dodatkowe obiekty powiązane z pakietami roboczymi, które będą usunięte. Te obiekty są następujących typów:"
   text_destroy_what_to_do: "Co chcesz zrobić?"
   text_diff_truncated: "... This diff was truncated because it exceeds the maximum size that can be displayed."
-  text_email_delivery_not_configured: "Email delivery is not configured, and notifications are disabled.\nConfigure your SMTP server in config/configuration.yml and restart the application to enable them."
+  text_email_delivery_not_configured: "Dostarczanie poczty elektronicznej nie jest skonfigurowane, a powiadomienia są wyłączone.\nSkonfiguruj swój serwer SMTP, aby je włączyć."
   text_enumeration_category_reassign_to: "Reassign them to this value:"
   text_enumeration_destroy_question: "%{count} objects are assigned to this value."
   text_file_repository_writable: "Można zapisywać do katalogu z załącznikami"
@@ -2236,7 +2273,8 @@ pl:
   text_work_package_category_destroy_question: "Niektóre pakiety robocze (%{count}) są przypisane do tej kategorii. Co chciałbyś zrobić?"
   text_work_package_category_reassign_to: "Przypisz pakiety robocze do tej kategorii"
   text_work_package_updated: "Pakiet roboczy %{id} został zaktualizowany przez %{author}."
-  text_work_package_watcher_added: "Zostałeś dodany jako obserwator do Zespołu zadań %{id} przez %{watcher_setter}."
+  text_work_package_watcher_added: "Zostałeś dodany/zostałaś dodana jako obserwator do pakietu roboczego %{id} przez %{watcher_changer}."
+  text_work_package_watcher_removed: "Zostałeś usunięty/zostałaś usunięta jako obserwator z pakietu roboczego %{id} przez %{watcher_changer}."
   text_work_packages_destroy_confirmation: "Czy na pewno chcesz usunąć wybrane pakiety robocze?"
   text_work_packages_ref_in_commit_messages: "Odwołania i poprawki do pakietów roboczych w wiadomościach o zmianach"
   text_journal_added: "%{label} %{value} added"
@@ -2502,6 +2540,7 @@ pl:
       mail_self_notified: "Chcę być powiadamiany o zmianach, które sam wprowadzam"
     status_user_and_brute_force: "%{user} i %{brute_force}"
     status_change: "Zmiana statusu"
+    text_change_disabled_for_provider_login: "Nazwa jest ustawiana przez dostawcę usług logowania i dlatego nie można jej zmienić."
     unlock: "Odblokuj"
     unlock_and_reset_failed_logins: "Odblokuj i resetuj nieudane logowania"
   version_status_closed: "Zamknięte"
@@ -2520,6 +2559,17 @@ pl:
     Osiągnięto limit użytkowników. Nie możesz aktywować kolejnych użytkowników. <a href="%{upgrade_url}"> uaktualnij swój plan </a> lub zablokuj członków, aby umożliwić korzystanie z dodatkowych użytkowników.
   warning_user_limit_reached_instructions: >
     Osiągnięto limit użytkownika (%{current}/%{max} aktywnych użytkowników). Skontaktuj się z sales@openproject.com do uaktualnienia planu Enterprise Edition i dodać więcej kont użytkowników.
+  0: >
+
+  warning_bar:
+    protocol_mismatch:
+      title: 'Niezgodność ustawienia protokołu'
+      text_html: >
+        Twoja aplikacja jest uruchomiona z ustawieniem protokołu <code>%{set_protocol}</code>, ale żądane jest ustawienie <code>%{actual_protocol}</code>. To doprowadzi do błędów! Przejdź do obszaru <a href="%{setting_path}">Ustawienia</a> i zmień ustawienie Protokół, aby to skorygować.
+    hostname_mismatch:
+      title: 'Niezgodność ustawienia nazwy hosta'
+      text_html: >
+        Twoja aplikacja jest uruchomiona z ustawieniem nazwy hosta <code>%{set_hostname}</code>, ale żądane jest ustawienie <code>%{actual_hostname}</code>. To doprowadzi do błędów! Przejdź do obszaru <a href="%{setting_path}">Ustawienia</a> i zmień ustawienie Nazwa hosta, aby to skorygować.
   menu_item: "Element menu"
   menu_item_setting: "Widoczność"
   wiki_menu_item_for: "Element menu dla strony wiki \"%{title}\""
@@ -2528,6 +2578,7 @@ pl:
     Usuwasz jedyny główny element menu wiki. Teraz musisz wybrać stronę wiki dla których zostanie wygenerowany nowy główny element. Aby usunąć wpis, moduł wiki może zostać dezaktywowany poprzez administratorów projektu.
   wiki_menu_item_delete_not_permitted: Nie można usunąć elementu menu dla jedynej strony wiki.
   query_menu_item_for: "Element menu dla zapytania \"%{title}\""
+  #TODO: merge with work_packages top level key
   work_package:
     updated_automatically_by_child_changes: |
       _Zaktualizowane automatycznie przez zmianę wartości wewnątrz podrzędnego pakietu roboczego %{child}_
@@ -2572,7 +2623,9 @@ pl:
         estimated_hours: "Nie można ustawić szacunku godzinowego dla źródłowych pakietów roboczych."
         invalid_user_assigned_to_work_package: "Wybrany użytkownik nie może być „%{property}” dla tego pakietu roboczego."
         start_date: "Daty rozpoczęcia nie można ustawić na nadrzędnych pakietach roboczych."
-      writing_read_only_attributes: "Nie możesz zapisać atrybutu tylko do odczytu."
+      eprops:
+        invalid_gzip: "jest nieprawidłowym plikiem gzip: %{message}"
+        invalid_json: "jest nieprawidłowym plikiem json: %{message}"
     resources:
       schema: 'Schemat'
   doorkeeper:
@@ -2620,7 +2673,7 @@ pl:
         redirect_uri_html: >
           Dozwolone adresy URL, do których mogą być przekierowywani autoryzowani użytkownicy. Jeden wpis w każdym wierszu. <br/> Jeśli rejestrujesz aplikację komputerową, użyj następującego adresu URL.
         confidential: "Sprawdź, czy aplikacja będzie używana w miejscach, w których tajne hasło klienta może być utrzymane w tajemnicy. Natywne aplikacje mobilne i aplikacje jednostronicowe są uznawane za niepoufne."
-        scopes: "Check the scopes you want the application to grant access to. If no scope is checked, api_v3 is assumed."
+        scopes: "Zaznacz zakresy, do których aplikacja ma przyznawać dostęp. Jeśli nie jest zaznaczony żaden zakres, przyjmuje się api_v3."
         client_credential_user_id: "Opcjonalny identyfikator użytkownika, umożliwiający klientom korzystanie z tej aplikacji. Pozostaw pusty, aby umożliwić jedynie dostęp publiczny"
         register_intro: "Jeśli tworzysz aplikację kliencką interfejsu API OAuth do OpenProject, możesz zarejestrować ją za pomocą tego formularza do użytku wszystkich użytkowników."
         default_scopes: ""
@@ -2635,8 +2688,8 @@ pl:
       wants_to_access_html: >
         Ta aplikacja żąda dostępu do tego konta OpenProject. <br/> <strong>Żąda następujących uprawnień:</strong>
     scopes:
-      api_v3: "Full API v3 access"
-      api_v3_text: "Application will receive full read & write access to the OpenProject API v3 to perform actions on your behalf."
+      api_v3: "Pełny dostęp do interfejsu API v3"
+      api_v3_text: "Aplikacja otrzyma pełny dostęp do interfejsu API v3 OpenProject w celu wykonywania działań w twoim imieniu."
     grants:
       created_date: "Zatwierdzono"
       scopes: "Uprawnienia"
@@ -2644,8 +2697,8 @@ pl:
       none_given: "Żadnym aplikacjom OAuth nie udzielono dostępu do tego konta użytkownika."
     x_active_tokens:
       one: 'jeden aktywny token'
-      few: '%{count} aktywne tokeny'
-      many: '%{count} active token'
+      few: '%{count} aktywnych tokenów'
+      many: '%{count} aktywnych tokenów'
       other: '%{count} aktywnych tokenów'
     flows:
       authorization_code: "Przepływ Kod autoryzacji"

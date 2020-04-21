@@ -1,7 +1,7 @@
 #-- encoding: UTF-8
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
@@ -37,7 +37,7 @@ module API
     #  - APIv3 defines some properties as a different type, which requires a name change
     #     e.g. estimatedTime vs estimated_hours (AR: hours; API: generic duration)
     #  - some names used in AR are even there kind of deprecated
-    #     e.g. fixed_version, which everyone refers to as version
+    #     e.g. version, which everyone refers to as version
     #  - some names in AR are plainly inconsistent, whereas the API tries to be as consistent as
     #    possible, e.g. updated_at vs updated_on
     #

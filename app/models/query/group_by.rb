@@ -1,8 +1,8 @@
 #-- encoding: UTF-8
 
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
@@ -28,7 +28,7 @@
 # See docs/COPYRIGHT.rdoc for more details.
 #++
 
-module ::Query::Grouping
+module ::Query::GroupBy
   # Returns the work package count by group or nil if query is not grouped
   def work_package_count_by_group
     @work_package_count_by_group ||= begin
@@ -55,7 +55,7 @@ module ::Query::Grouping
       .references(:statuses, :projects)
       .where(query.statement)
       .order(order_for_count)
-      .pluck(pluck_for_count)
+      .pluck(*pluck_for_count)
       .to_h
   end
 
@@ -158,14 +158,16 @@ module ::Query::Grouping
   end
 
   def aliased_group_by_sort_order(alias_name, sortable, order = nil)
-    column = if alias_name
+    column = if alias_name && sortable.respond_to?(:call)
+               sortable.call(alias_name)
+             elsif alias_name
                "#{alias_name}.#{sortable}"
              else
                sortable
              end
 
     if order
-      column + " #{order}"
+      column + " #{order} "
     else
       column
     end
@@ -176,6 +178,8 @@ module ::Query::Grouping
   # IF it occurs in the sort criteria
   def order_for_group_by(column)
     sort_entry = query.sort_criteria.detect { |column, _dir| column == query.group_by }
-    sort_entry&.last || column.default_order
+    order = sort_entry&.last || column.default_order
+
+    "#{order} #{column.null_handling(order == 'asc')}"
   end
 end

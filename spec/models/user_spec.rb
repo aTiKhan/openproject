@@ -1,6 +1,6 @@
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
@@ -51,9 +51,13 @@ describe User, type: :model do
     let!(:deleted_user) { FactoryBot.create(:deleted_user) }
     let!(:user) { FactoryBot.create(:user) }
 
-    it 'returns only actual users' do
-      expect(described_class.not_builtin)
-        .to match_array [user]
+    subject { described_class.not_builtin }
+
+    it 'returns only actual users', :aggregate_failures do
+      expect(subject).to include(user)
+      expect(subject).not_to include(anonymous_user)
+      expect(subject).not_to include(system_user)
+      expect(subject).not_to include(deleted_user)
     end
   end
 
@@ -629,12 +633,16 @@ describe User, type: :model do
   end
 
   describe 'scope.newest' do
-    let!(:anonymous) { FactoryBot.create(:anonymous) }
+    let!(:anonymous) { User.anonymous }
     let!(:user1) { FactoryBot.create(:user) }
     let!(:user2) { FactoryBot.create(:user) }
 
-    it 'without anonymous user' do
-      expect(User.newest).to match_array([user1, user2])
+    let(:newest) { User.newest.to_a }
+
+    it 'without anonymous user', :aggregate_failures do
+      expect(newest).to include(user1)
+      expect(newest).to include(user2)
+      expect(newest).not_to include(anonymous)
     end
   end
 

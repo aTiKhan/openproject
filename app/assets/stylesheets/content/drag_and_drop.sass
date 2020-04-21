@@ -1,6 +1,6 @@
 //-- copyright
-// OpenProject is a project management system.
-// Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+// OpenProject is an open source project management software.
+// Copyright (C) 2012-2020 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -31,8 +31,10 @@
 // there is also the 'modifying' grouping, which could serve as the basis for the two.
 
 @mixin modifying--placeholder
-  border: 1px dashed $primary-color
+  border: 1px dashed var(--primary-color)
   pointer-events: none
+  *
+    visibility: hidden
 
 @mixin d_n_d--preview
   box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.1)
@@ -41,3 +43,5 @@
 // added by cdk drag.
 .cdk-drag-preview
   @include d_n_d--preview
+  // Allow dragged items to appear before modals
+  z-index: 10000 !important

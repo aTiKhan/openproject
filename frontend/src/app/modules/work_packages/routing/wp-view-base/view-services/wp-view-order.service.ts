@@ -1,6 +1,6 @@
 // -- copyright
-// OpenProject is a project management system.
-// Copyright (C) 2012-2015 the OpenProject Foundation (OPF)
+// OpenProject is an open source project management software.
+// Copyright (C) 2012-2020 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -23,11 +23,11 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// See doc/COPYRIGHT.rdoc for more details.
+// See docs/COPYRIGHT.rdoc for more details.
 // ++
 
 import {QueryResource} from 'core-app/modules/hal/resources/query-resource';
-import {Injectable, Optional} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {WorkPackageQueryStateService} from './wp-view-base.service';
 import {IsolatedQuerySpace} from "core-app/modules/work_packages/query-space/isolated-query-space";
 import {PathHelperService} from "core-app/modules/common/path-helper/path-helper.service";
@@ -36,12 +36,10 @@ import {States} from "core-components/states.service";
 import {QuerySchemaResource} from "core-app/modules/hal/resources/query-schema-resource";
 import {WorkPackageCollectionResource} from "core-app/modules/hal/resources/wp-collection-resource";
 import {MAX_ORDER, ReorderDeltaBuilder} from "core-app/modules/common/drag-and-drop/reorder-delta-builder";
-import {debugLog} from "core-app/helpers/debug_output";
 import {QueryOrder, QueryOrderDmService} from "core-app/modules/hal/dm-services/query-order-dm.service";
 import {take} from "rxjs/operators";
 import {InputState} from "reactivestates";
 import {WorkPackageViewSortByService} from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-sort-by.service";
-import {from} from "rxjs";
 import {CausedUpdatesService} from "core-app/modules/boards/board/caused-updates/caused-updates.service";
 
 
@@ -194,7 +192,11 @@ export class WorkPackageViewOrderService extends WorkPackageQueryStateService<Qu
    * Return ordered work packages
    */
   orderedWorkPackages():WorkPackageResource[] {
-    const upstreamOrder = this.querySpace.results.value!.elements;
+    const upstreamOrder = this.querySpace
+      .results
+      .value!
+      .elements
+      .map(wp => this.states.workPackages.get(wp.id!).getValueOr(wp));
 
     if (this.currentQuery.persisted || this.positions.isPristine()) {
       return upstreamOrder;

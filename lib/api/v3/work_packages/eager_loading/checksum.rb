@@ -1,8 +1,8 @@
 #-- encoding: UTF-8
 
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
@@ -49,7 +49,7 @@ module API
             def fetch_checksums_for(work_packages)
               WorkPackage
                 .where(id: work_packages.map(&:id).uniq)
-                .left_joins(:status, :author, :responsible, :assigned_to, :fixed_version, :priority, :category, :type)
+                .left_joins(:status, :author, :responsible, :assigned_to, :version, :priority, :category, :type)
                 .pluck('work_packages.id', Arel.sql(md5_concat.squish))
                 .to_h
             end

@@ -1,8 +1,8 @@
 #-- encoding: UTF-8
 
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
@@ -38,6 +38,8 @@ module API
         include Roar::JSON::HAL
         include Roar::Hypermedia
 
+        ERROR_PREFIX = 'urn:openproject-org:api:v3:errors:'.freeze
+
         self.as_strategy = API::Utilities::CamelCasingStrategy.new
 
         property :_type, exec_context: :decorator
@@ -56,7 +58,7 @@ module API
         end
 
         def error_identifier
-          represented.class.identifier
+          ERROR_PREFIX + represented.class.identifier
         end
       end
     end

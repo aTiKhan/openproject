@@ -1,6 +1,6 @@
 #-- copyright
-#OpenProject is a project management system.
-#Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+#OpenProject is an open source project management software.
+#Copyright (C) 2012-2020 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
@@ -28,29 +28,51 @@ fi:
     plugins:
       no_results_title_text: Tällä hetkellä ei ole liitännäisiä saatavilla.
     custom_styles:
+      color_theme: "Color theme"
+      color_theme_custom: "(Custom)"
+      colors:
+        alternative-color: "Alternative"
+        content-link-color: "Link font"
+        primary-color: "Primary"
+        primary-color-dark: "Primary (dark)"
+        header-bg-color: "Header background"
+        header-item-bg-hover-color: "Header background on hover"
+        header-item-font-color: "Header font"
+        header-item-font-hover-color: "Header font on hover"
+        header-border-bottom-color: "Header border"
+        main-menu-bg-color: "Main menu background"
+        main-menu-bg-selected-background: "Main menu when selected"
+        main-menu-bg-hover-background: "Main menu on hover"
+        main-menu-font-color: "Main menu font"
+        main-menu-selected-font-color: "Main menu font when selected"
+        main-menu-hover-font-color: "Main menu font on hover"
+        main-menu-border-color: "Main menu border"
       custom_colors: "Mukautetut värit"
       customize: "Mukauta OpenProject asennusta omalla logollasi. Huom: Tämä logo tulee olemaan julkisesti saatavilla."
       enterprise_notice: "As a special 'Thank you!' for their financial contribution to develop OpenProject, this tiny feature is only available for Enterprise Edition support subscribers."
       manage_colors: "Muokkaa värin valitsemis asetuksia"
       instructions:
-        alternative_color: "Strong accent color, typically used for most the important button on a screen."
-        content_link_color: "Fontin väri eniten linkkejä."
-        primary_color: "Pääväri."
-        primary_color_dark: "Yleensä tummempi versio pääväristä on käytössä valintatehosteissa."
-        header_bg_color: "Background color of the header."
-        header_item_bg_hover_color: "Taustan väri klikattava otsikko eriä kun leijui hiirellä."
-        header_item_font_color: "Fontin väri klikattava otsikko eriä."
-        header_item_font_hover_color: "Fontin väri klikattava otsikko eriä kun leijui hiirellä."
-        header_border_bottom_color: "Thin line under the header. Leave this field empty if you don't want any line."
-        main_menu_bg_color: "Left side menu's background color."
+        alternative-color: "Strong accent color, typically used for the most important button on a screen."
+        content-link-color: "Fontin väri eniten linkkejä."
+        primary-color: "Pääväri."
+        primary-color-dark: "Yleensä tummempi versio pääväristä on käytössä valintatehosteissa."
+        header-item-bg-hover-color: "Taustan väri klikattava otsikko eriä kun leijui hiirellä."
+        header-item-font-color: "Fontin väri klikattava otsikko eriä."
+        header-item-font-hover-color: "Fontin väri klikattava otsikko eriä kun leijui hiirellä."
+        header-border-bottom-color: "Thin line under the header. Leave this field empty if you don't want any line."
+        main-menu-bg-color: "Left side menu's background color."
+      theme_warning: Changing the theme will overwrite you custom style. The design will then be lost. Are you sure you want to continue?
     enterprise:
-      upgrade_to_ee: "Päivitä yritysversioon"
+      upgrade_to_ee: "Upgrade to the Enterprise Edition"
       add_token: "Upload an Enterprise Edition support token"
       replace_token: "Korvata nykyisen tukea poletti"
       order: "Tilaa yritysversio"
       paste: "Paste your Enterprise Edition support token"
       required_for_feature: "This feature is only available with an active Enterprise Edition support token."
       enterprise_link: "Saadaksesi lisätietoja, paina tästä."
+      start_trial: 'Start free trial'
+      book_now: 'Book now'
+      get_quote: 'Get a quote'
   announcements:
     show_until: Näytä tähän päivään asti
     is_active: näkyvissä tällä hetkellä
@@ -66,7 +88,39 @@ fi:
       no_results_content_title: Tällä hetkellä ei ole todennustiloja.
       no_results_content_text: Luo uusi todennustila
   ldap_auth_sources:
+    technical_warning_html: |
+      This LDAP form requires technical knowledge of your LDAP / Active Directory setup.
+      <br/>
+      <a href="https://www.openproject.org/help/administration/manage-ldap-authentication/">Please visit our documentation for detailed instructions</a>.
+    attribute_texts:
+      name: Arbitrary name of the LDAP connection
+      host: LDAP host name or IP address
+      login_map: The attribute key in LDAP that is used to identify the unique user login. Usually, this will be `uid` or `samAccountName`.
+      generic_map: The attribute key in LDAP that is mapped to the OpenProject `%{attribute}` attribute
+      admin_map_html: "Optional: The attribute key in LDAP that <strong>if present</strong> marks the OpenProject user an admin. Leave empty when in doubt."
+      system_user_dn_html: |
+        Enter the DN of the system user used for read-only access.
+        <br/>
+        Example: uid=openproject,ou=system,dc=example,dc=com
+      system_user_password: Enter the bind password of the system user
+      base_dn: |
+        Enter the Base DN of the subtree in LDAP you want OpenProject to look for users and groups.
+        OpenProject will filter for provided usernames in this subtree only.
+        Example: ou=users,dc=example,dc=com
+      onthefly_register: |
+        If you check this box, OpenProject will automatically create new users from their LDAP entries
+        when they first authenticate with OpenProject.
+        Leave this unchecked to only allow existing accounts in OpenProject to authenticate through LDAP!
     connection_encryption: 'Connection encryption'
+    system_account: 'System account'
+    system_account_legend: |
+      OpenProject requires read-only access through a system account to lookup users and groups in your LDAP tree.
+      Please specify the bind credentials for that system user in the following section.
+    ldap_details: 'LDAP details'
+    user_settings: 'Attribute mapping'
+    user_settings_legend: |
+      The following fields are related to how users are created in OpenProject from LDAP entries and
+      what LDAP attributes are used to define the attributes of an OpenProject user (attribute mapping).
     tls_mode:
       plain: 'ei mitään'
       simple_tls: 'simple_tls'
@@ -348,7 +402,7 @@ fi:
         types: "Tyypit"
         versions: "Versiot"
         work_packages: "Työpaketit"
-      project/status:
+      projects/status:
         code: 'Tila'
         explanation: 'Status description'
         codes:
@@ -413,7 +467,7 @@ fi:
         done_ratio: "Edistyminen (%)"
         end_insertion: "Lisäyksen loppu"
         end_deletion: "Poistokohdan loppu"
-        fixed_version: "Versio"
+        version: "Versio"
         parent: "Ylätaso"
         parent_issue: "Ylätaso"
         parent_work_package: "Ylätaso"
@@ -447,7 +501,7 @@ fi:
         could_not_be_copied: "kopioiminen ei onnistunut (täysimääräisesti)."
         does_not_exist: "ei ole olemassa."
         error_unauthorized: "may not be accessed."
-        error_readonly: "is not writable."
+        error_readonly: "was attempted to be written but is not writable."
         empty: "ei voi olla tyhjä."
         even: "täytyy olla parillinen."
         exclusion: "on jo varattu."
@@ -546,6 +600,10 @@ fi:
         role:
           permissions:
             dependency_missing: "need to also include '%{dependency}' as '%{permission}' is selected."
+        time_entry:
+          attributes:
+            hours:
+              day_limit: "is too high as a maximum of 24 hours can be logged per date."
         work_package:
           is_not_a_valid_target_for_time_entries: "Työpaketti #%{id} ei ole kelvollinen uusi kohde aikakirjauksille."
           attributes:
@@ -695,10 +753,12 @@ fi:
     type: "Tyyppi"
     updated_at: "Päivitetty vimeksi"
     updated_on: "Päivitetty vimeksi"
+    uploader: "Uploader"
     user: "Käyttäjä"
     version: "Versio"
     work_package: "Työpaketti"
   button_add: "Lisää"
+  button_add_comment: "Lisää kommentti"
   button_add_member: Lisää jäsen
   button_add_watcher: "Lisää seuraaja"
   button_annotate: "Lisää selitys"
@@ -980,9 +1040,8 @@ fi:
         rename_groups: "Rename attributes groups"
       project_filters:
         description_html: "Filtering and sorting on custom fields is an enterprise edition feature."
-  enumeration_activities: "Historia (ajan seuranta)"
+  enumeration_activities: "Time tracking activities"
   enumeration_work_package_priorities: "Work package priorities"
-  enumeration_system_activity: "Järjestelmän toiminta"
   enumeration_reported_project_statuses: "Reported project status"
   error_auth_source_sso_failed: "Single Sign-On (SSO) for user '%{value}' failed"
   error_can_not_archive_project: "This project cannot be archived: %{errors}"
@@ -1052,6 +1111,8 @@ fi:
       pdf_with_descriptions: "PDF kuvauksilla"
       pdf_with_descriptions_and_attachments: "PDF with descriptions and attachments"
       pdf_with_attachments: "PDF with attachments"
+    image:
+      omitted: "Image not exported."
   extraction:
     available:
       pdftotext: "Pdftotext available (optional)"
@@ -1082,13 +1143,8 @@ fi:
     blocks:
       community: "OpenProject yhteisö"
       upsale:
-        become_hero: "Ryhdy sankariksi!"
         title: "Päivitä yritysversioon"
-        description: "What are the benefits?"
         more_info: "Lisätietoja"
-        additional_features: "Muita tehokkaita erikoisominaisuuksia"
-        professional_support: "Professional support from the OpenProject experts"
-        you_contribute: "Myös kehittäjien täytyy maksaa heidän laskunsa. Yritysversiolla edistät merkittävästi tämän avoimen lähdekoodin yhteisön toimintaa."
     links:
       upgrade_enterprise_edition: "Päivitä yritysversioon"
       postgres_migration: "Migrating your installation to PostgreSQL"
@@ -1099,8 +1155,11 @@ fi:
       blog: "OpenProject blogi"
       forums: "Keskustelupalsta"
       newsletter: "Suojausvaroitukset / uutiskirje"
+  journals:
+    changes_retracted: "The changes where retracted."
   links:
     configuration_guide: 'Configuration guide'
+    get_in_touch: "You have questions? Get in touch with us."
   instructions_after_registration: "Heti kun tilisi on aktivoitu voit kirjatua painamalla %{signin}."
   instructions_after_logout: "Voit kirjautua sisään uudelleen napsauttamalla %{signin}."
   instructions_after_error: "Voit kirjautua uudelleen napsauttamalla %{signin}. Jos virhe toistuu, pyydä apua järjestelmävalvojalta."
@@ -1390,6 +1449,7 @@ fi:
   label_new: "Uusi"
   label_new_features: "New features"
   label_new_statuses_allowed: "Uudet tilat sallittu"
+  label_news_singular: "Uutiset"
   label_news_added: "Uutinen lisätty"
   label_news_comment_added: "Kommentti lisätty uutiseen"
   label_news_latest: "Viimeisimmät uutiset"
@@ -1632,44 +1692,23 @@ fi:
   label_workflow_plural: "Työnkulut"
   label_workflow_summary: "Yhteenveto"
   label_x_closed_work_packages_abbr:
+    zero: "0 closed"
     one: "1 suljettu"
     other: "%{count} suljettu"
   label_x_comments:
+    zero: "no comments"
     one: "1 kommentti"
     other: "%{count} kommenttia"
   label_x_open_work_packages_abbr:
+    zero: "0 open"
     one: "1 avoin"
     other: "%{count} avoinna"
   label_x_projects:
+    zero: "no projects"
     one: "1 projekti"
     other: "%{count} projects"
   label_year: "Vuosi"
   label_yesterday: "eilen"
-  label_keyboard_function: "Toiminto"
-  label_keyboard_shortcut: "Pikanäppäin"
-  label_keyboard_accesskey: "Pikanäppäin"
-  label_keyboard_shortcut_help_heading: "Käytettävissä olevat pikanäppäimet"
-  label_keyboard_shortcut_within_project: "Project related shortcuts:"
-  label_keyboard_shortcut_global_shortcuts: "Global shortcuts:"
-  label_keyboard_shortcut_some_pages_only: "Special shortcuts:"
-  label_keyboard_shortcut_search_global: "Global search"
-  label_keyboard_shortcut_search_project: "Hae projektia"
-  label_keyboard_shortcut_go_my_page: "Go to my page"
-  label_keyboard_shortcut_show_help: "Näyttää tämän ohjesanoman"
-  label_keyboard_shortcut_go_overview: "Go to project overview"
-  label_keyboard_shortcut_go_work_package: "Go to project work packages"
-  label_keyboard_shortcut_go_wiki: "Go to project wiki"
-  label_keyboard_shortcut_go_activity: "Go to project activities"
-  label_keyboard_shortcut_go_calendar: "Go to project calendar"
-  label_keyboard_shortcut_go_news: "Go to project news"
-  label_keyboard_shortcut_go_timelines: "Go to timelines"
-  label_keyboard_shortcut_new_work_package: "Luo uusi toimia paketti"
-  label_keyboard_shortcut_details_package: "Show work packages details pane"
-  label_keyboard_shortcut_go_edit: "Go to edit the current item (on detail pages only)"
-  label_keyboard_shortcut_open_more_menu: "Open more-menu (on detail pages only)"
-  label_keyboard_shortcut_go_preview: "Go to preview the current edit (on edit pages only)"
-  label_keyboard_shortcut_focus_previous_item: "Focus previous list element (on some lists only)"
-  label_keyboard_shortcut_focus_next_item: "Focus next list element (on some lists only)"
   auth_source:
     using_abstract_auth_source: "Voi käyttää abstrakti autentikointi lähde."
     ldap_error: "LDAP-Error: %{error_message}"
@@ -1892,6 +1931,7 @@ fi:
       title: Muuta projektin tunnistetta
     archive:
       are_you_sure: "Oletko varma, että haluat arkistoida projektin \"%{name}\"?"
+      archived: "Archived"
   project_module_activity: "Aktiviteetti"
   project_module_forums: "Keskustelupalstat"
   project_module_calendar: "Kalenteri"
@@ -2120,7 +2160,6 @@ fi:
   setting_welcome_text: "Tervehdysteksti"
   setting_welcome_title: "Tervehdyspalkki"
   setting_welcome_on_homescreen: "Näytä tervehdyspalkki kotinäkymässä"
-  setting_wiki_compression: "Wiki historian tiivistys"
   setting_work_package_group_assignment: "Allow assignment to groups"
   setting_work_package_list_default_highlighting_mode: "Default highlighting mode"
   setting_work_package_list_default_highlighted_attributes: "Default inline highlighted attributes"
@@ -2184,7 +2223,7 @@ fi:
   text_destroy_with_associated: "There are additional objects assossociated with the work package(s) that are to be deleted. Those objects are of the following types:"
   text_destroy_what_to_do: "Mitä sinä haluat tehdä?"
   text_diff_truncated: "... Tämä katkaistiin koska suurin mahdollinen näytettävä määrä tuli täyteen."
-  text_email_delivery_not_configured: "Sähköpostin jakelu ei ole määritelty ja sähköpostimuistutukset eivät ole käytössä.\nKonfiguroi sähköpostipalvelinasetukset (SMTP) config/configuration.yml tiedostosta ja uudelleenkäynnistä sovellus jotta asetukset astuvat voimaan."
+  text_email_delivery_not_configured: "Email delivery is not configured, and notifications are disabled.\nConfigure your SMTP server to enable them."
   text_enumeration_category_reassign_to: "Siirrä täksi arvoksi:"
   text_enumeration_destroy_question: "%{count} kohdetta on liitetty tälle arvolle."
   text_file_repository_writable: "Liitekansioon voi kirjoittaa"
@@ -2197,7 +2236,8 @@ fi:
   text_work_package_category_destroy_question: "Some work packages (%{count}) are assigned to this category. What do you want to do?"
   text_work_package_category_reassign_to: "Reassign work packages to this category"
   text_work_package_updated: "Work package %{id} has been updated by %{author}."
-  text_work_package_watcher_added: "Sinut on lisätty seuraajaksi työpaketille %{id} henkilön %{watcher_setter} toimesta."
+  text_work_package_watcher_added: "You have been added as a watcher to Work package %{id} by %{watcher_changer}."
+  text_work_package_watcher_removed: "You have been removed from watchers of Work package %{id} by %{watcher_changer}."
   text_work_packages_destroy_confirmation: "Are you sure you want to delete the selected work package(s)?"
   text_work_packages_ref_in_commit_messages: "Vertailemalla ja korjaus toimia paketit sitoutua viestejä"
   text_journal_added: "%{label} %{value} lisätty"
@@ -2459,6 +2499,7 @@ fi:
       mail_self_notified: "Haluan ilmoituksen muutoksista jotka teen itse"
     status_user_and_brute_force: "%{user} and %{brute_force}"
     status_change: "Status change"
+    text_change_disabled_for_provider_login: "The name is set by your login provider and can thus not be changed."
     unlock: "Vapauta"
     unlock_and_reset_failed_logins: "Unlock and reset failed logins"
   version_status_closed: "suljettu"
@@ -2477,6 +2518,17 @@ fi:
     User limit reached. You cannot activate any more users. Please <a href="%{upgrade_url}">upgrade your plan</a> or block members to allow for additional users.
   warning_user_limit_reached_instructions: >
     You reached your user limit (%{current}/%{max} active users). Please contact sales@openproject.com to upgrade your Enterprise Edition plan and add additional users.
+  0: >
+
+  warning_bar:
+    protocol_mismatch:
+      title: 'Protocol setting mismatch'
+      text_html: >
+        Your application is running with its protocol setting set to <code>%{set_protocol}</code>, but the request is an <code>%{actual_protocol}</code> request. This will result in errors! Go to <a href="%{setting_path}">System settings</a> and change the "Protocol" setting to correct this.
+    hostname_mismatch:
+      title: 'Hostname setting mismatch'
+      text_html: >
+        Your application is running with its host name setting set to <code>%{set_hostname}</code>, but the request is a <code>%{actual_hostname}</code> hostname. This will result in errors! Go to <a href="%{setting_path}">System settings</a> and change the "Host name" setting to correct this.
   menu_item: "Menu item"
   menu_item_setting: "Visibility"
   wiki_menu_item_for: "Menu item for wikipage \"%{title}\""
@@ -2485,6 +2537,7 @@ fi:
     Sinä olet poistat vain tärkeimmät wiki valikosta. Sinun täytyy nyt valita wiki sivu joista tärkein uusi kohde luodaan. Poistaa wiki wiki moduuli voidaan kytkeä pois päältä hankkeen ylläpitäjät.
   wiki_menu_item_delete_not_permitted: Wiki valikosta vain wiki sivu voi olla Poistetaan.
   query_menu_item_for: "Menu item for query \"%{title}\""
+  #TODO: merge with work_packages top level key
   work_package:
     updated_automatically_by_child_changes: |
       _Päivitetty automaattisesti muutoksella joka tapahtui alityöpaketissa %{child}_
@@ -2529,7 +2582,9 @@ fi:
         estimated_hours: "Arvioitu tuntia ei voi asettaa vanhemman toimia paketti."
         invalid_user_assigned_to_work_package: "The chosen user is not allowed to be '%{property}' for this work package."
         start_date: "Start date cannot be set on parent work packages."
-      writing_read_only_attributes: "You must not write a read-only attribute."
+      eprops:
+        invalid_gzip: "is invalid gzip: %{message}"
+        invalid_json: "is invalid json: %{message}"
     resources:
       schema: 'Schema'
   doorkeeper:

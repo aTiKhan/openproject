@@ -1,7 +1,7 @@
 #-- encoding: UTF-8
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
@@ -39,6 +39,15 @@ module OpenProject
       # The latter requires further configuration.
       def attachments_storage
         (self['attachments_storage'] || 'file').to_sym
+      end
+
+      # Augur connect host
+      def enterprise_trial_creation_host
+        if Rails.env.production?
+          self['enterprise_trial_creation_host']
+        else
+          'https://augur.openproject-edge.com'
+        end
       end
 
       def file_storage?
@@ -80,7 +89,13 @@ module OpenProject
       ##
       # Whether we're running a bim edition
       def bim?
-        ENV['OPENPROJECT_EDITION'] == 'bim'
+        self['edition'] == 'bim'
+      end
+
+      ##
+      # Whether we want to report to sentry
+      def frontend_sentry?
+        self['sentry_dsn'].present? && sentry_report_js?
       end
 
 

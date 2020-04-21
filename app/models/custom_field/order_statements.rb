@@ -1,7 +1,7 @@
 #-- encoding: UTF-8
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
@@ -59,6 +59,15 @@ module CustomField::OrderStatements
     when 'version'
       [order_by_version_sql('name')]
     end
+  end
+
+  ##
+  # Returns the null handling for the given direction
+  def null_handling(asc)
+    return unless %w[int float].include?(field_format)
+
+    null_direction = asc ? 'FIRST' : 'LAST'
+    Arel.sql("NULLS #{null_direction}")
   end
 
   # Returns the grouping result

@@ -15,7 +15,7 @@ pt-BR:
         members:
           title: 'Membros'
           no_results: 'Nenhum membro visível.'
-          view_all_members: 'Visualizar todos os membros'
+          view_all_members: 'Ver todos os membros'
           add: 'Membro'
           too_many: 'Exibindo %{count} de %{total} membros.'
         news:
@@ -37,6 +37,8 @@ pt-BR:
         subprojects:
           title: 'Subprojetos'
           no_results: 'Nenhum subprojeto.'
+        time_entries_current_user:
+          title: 'Meu tempo gasto'
         time_entries_list:
           title: 'Tempo gasto (últimos 7 dias)'
           no_results: 'Não há entradas de tempo nos últimos 7 dias.'

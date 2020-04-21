@@ -1,8 +1,8 @@
 #-- encoding: UTF-8
 
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
@@ -93,13 +93,6 @@ module ApplicationHelper
     t "status_#{user.status_name}"
   end
 
-  def toggle_link(name, id, options = {}, html_options = {})
-    onclick = "jQuery('##{id}').toggle(); "
-    onclick << (options[:focus] ? "jQuery('##{options[:focus]}').focus(); " : 'this.blur(); ')
-    onclick << 'return false;'
-    link_to_function(name, onclick, html_options)
-  end
-
   def delete_link(url, options = {})
     options = {
       method: :delete,
@@ -122,10 +115,6 @@ module ApplicationHelper
     html_escape_once(truncate(text.to_s, length: 120).gsub(%r{[\r\n]*<(pre|code)>.*$}m, '...'))
       .gsub(/[\r\n]+/, '<br />')
       .html_safe
-  end
-
-  def format_version_name(version)
-    h(version.to_s_for_project(@project))
   end
 
   def due_date_distance_in_words(date)
@@ -301,7 +290,7 @@ module ApplicationHelper
   # Returns the theme, controller name, and action as css classes for the
   # HTML body.
   def body_css_classes
-    css = ['theme-' + OpenProject::Design.identifier.to_s]
+    css = ['theme-' + OpenProject::CustomStyles::Design.identifier.to_s]
 
     if params[:controller] && params[:action]
       css << 'controller-' + params[:controller]
@@ -373,9 +362,9 @@ module ApplicationHelper
   end
 
   def check_all_links(form_name)
-    link_to_function(l(:button_check_all), "checkAll('#{form_name}', true)") +
+    link_to_function(t(:button_check_all), "checkAll('#{form_name}', true)") +
       ' | ' +
-      link_to_function(l(:button_uncheck_all), "checkAll('#{form_name}', false)")
+      link_to_function(t(:button_uncheck_all), "checkAll('#{form_name}', false)")
   end
 
   def current_layout

@@ -1,6 +1,6 @@
 //-- copyright
-// OpenProject is a project management system.
-// Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+// OpenProject is an open source project management software.
+// Copyright (C) 2012-2020 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -28,25 +28,43 @@
 
 @mixin wp-table--time-values
   display: inline-block
-  // deduct 10px to avoid ellipsis kicking in
-  width: calc(100% - 10px)
+  width: 48%
+
+@mixin wp-table--actual-time-values
+  text-align: right
+  padding-right: 0.5rem
+
+@mixin wp-table--placeholder-time-values
+  display: inline-block
+  width: 100%
   text-align: center
-  padding: 0
 
 // READ value of edit fields
 .inline-edit--display-field
   display: inline-block
   max-width: 100%
-  @include text-shortener
-  white-space: inherit
+  @include text-shortener(false)
 
   &.-placeholder
     font-style: italic
 
   // Always render custom options as inline
   // when only one line
-  .custom-option:not(.-multiple-lines)
-    display: inline
+  .custom-option
+    @include text-shortener(false)
+
+    &:not(.-multiple-lines)
+      display: inline
+      white-space: nowrap
+
+      // Leave space for the badge
+      &:not(:only-child)
+        max-width: 90%
+        display: inline-block
+        vertical-align: middle
+        line-height: 32px
+        &:first-of-type
+          padding-right: 5px
 
   &.split-time-field
     white-space: nowrap
@@ -57,21 +75,31 @@
       .-derived-value
         @include wp-table--time-values
 
+      .-derived-value:not(.-with-actual-value)
+        margin-left: 48%
+
     .-actual-value
-      text-align: right
-      padding-right: 0.5rem
+      @include wp-table--actual-time-values
 
     .-derived-value
       @include varprop(color, gray-dark)
       font-style: italic
       font-weight: bold
 
+.wp-table--cell-container
+  &.estimatedTime
+    width: 100%
+
+    .-placeholder
+      @include wp-table--placeholder-time-values
+      
 // Sums in wp table
 .wp-table--sum-container
   .split-time-field
-    .-actual-value,
-    .-derived-value
+    .-actual-value
       @include wp-table--time-values
+      @include wp-table--actual-time-values
+
 
 // Editable fields cursor
 .inline-edit--display-field.-editable
@@ -98,3 +126,6 @@
 
 editable-attribute-field
   width: 100%
+
+  .-minimal &
+    width: initial

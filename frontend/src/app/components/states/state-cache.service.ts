@@ -1,6 +1,6 @@
 // -- copyright
-// OpenProject is a project management system.
-// Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+// OpenProject is an open source project management software.
+// Copyright (C) 2012-2020 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -23,7 +23,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// See doc/COPYRIGHT.rdoc for more details.
+// See docs/COPYRIGHT.rdoc for more details.
 // ++
 
 import {InputState, MultiInputState, State} from 'reactivestates';
@@ -47,6 +47,13 @@ export abstract class StateCacheService<T> {
   public touch(id:string):void {
     const state = this.multiState.get(id);
     state.putValue(state.value, 'Touching the state');
+  }
+
+  /**
+   * Get the current value
+   */
+  public current(id:string, fallback?:T):T|undefined {
+    return this.state(id).getValueOr(fallback);
   }
 
   /**

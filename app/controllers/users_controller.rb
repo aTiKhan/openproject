@@ -1,7 +1,7 @@
 #-- encoding: UTF-8
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
@@ -48,10 +48,10 @@ class UsersController < ApplicationController
                                                    :destroy]
 
   # Password confirmation helpers and actions
-  include Concerns::PasswordConfirmation
+  include PasswordConfirmation
   before_action :check_password_confirmation, only: [:destroy]
 
-  include Concerns::UserLimits
+  include Accounts::UserLimits
   before_action :enforce_user_limit, only: [:create]
   before_action -> { enforce_user_limit flash_now: true }, only: [:new]
 

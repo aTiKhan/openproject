@@ -1,6 +1,6 @@
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
@@ -240,6 +240,7 @@ describe PermittedParams, type: :model do
 
     context 'with instance passed' do
       let(:instance) { double('message', project: double('project')) }
+      let(:project) { double('project') }
       let(:allowed_params) do
         { 'subject' => 'value',
           'content' => 'value',
@@ -253,10 +254,10 @@ describe PermittedParams, type: :model do
       end
 
       before do
-        allow(user).to receive(:allowed_to?).with(:edit_messages, instance.project).and_return(true)
+        allow(user).to receive(:allowed_to?).with(:edit_messages, project).and_return(true)
       end
 
-      subject { PermittedParams.new(hash, user).message(instance).to_h }
+      subject { PermittedParams.new(hash, user).message(project).to_h }
 
       it do
         expect(subject).to eq(allowed_params)
@@ -407,8 +408,8 @@ describe PermittedParams, type: :model do
       it_behaves_like 'allows params'
     end
 
-    context 'fixed_version_id' do
-      let(:hash) { { 'fixed_version_id' => '1' } }
+    context 'version_id' do
+      let(:hash) { { 'version_id' => '1' } }
 
       it_behaves_like 'allows params'
     end
@@ -522,6 +523,23 @@ describe PermittedParams, type: :model do
       let(:hash) { { 'custom_field_values' => { 'blubs' => '5', '5' => { '1' => '2' } } } }
 
       it_behaves_like 'forbids params'
+    end
+  end
+
+  describe '#time_entry_activities_project' do
+    let(:attribute) { :time_entry_activities_project }
+    let(:hash) do
+      [
+        { "activity_id" => "5", "active" => "0" },
+        { "activity_id" => "6", "active" => "1" }
+      ]
+    end
+    let(:allowed_params) do
+      [{ "activity_id" => "5", "active" => "0" }, { "activity_id" => "6", "active" => "1" }]
+    end
+
+    it_behaves_like 'allows params' do
+      subject { PermittedParams.new(params, user).send(attribute) }
     end
   end
 

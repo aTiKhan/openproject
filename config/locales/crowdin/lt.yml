@@ -1,6 +1,6 @@
 #-- copyright
-#OpenProject is a project management system.
-#Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+#OpenProject is an open source project management software.
+#Copyright (C) 2012-2020 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
@@ -28,29 +28,51 @@ lt:
     plugins:
       no_results_title_text: Nėra jokių pasiekiamų plėtinių.
     custom_styles:
+      color_theme: "Spalvų tema"
+      color_theme_custom: "(Pasirinktinis)"
+      colors:
+        alternative-color: "Alternatyva"
+        content-link-color: "Nuorodų šriftas"
+        primary-color: "Pagrindinė"
+        primary-color-dark: "Pagrindinė (tamsi)"
+        header-bg-color: "Antraštės fonas"
+        header-item-bg-hover-color: "Atraštės fonas užvedus pelę"
+        header-item-font-color: "Antraštės šriftas"
+        header-item-font-hover-color: "Antraštės šriftas užvažiavus pele"
+        header-border-bottom-color: "Antraštės kraštinės"
+        main-menu-bg-color: "Pagrindinio meniu fonas"
+        main-menu-bg-selected-background: "Pagrindinis meniu kai pasirinktas"
+        main-menu-bg-hover-background: "Pagrindinis meniu užvažiavus pele"
+        main-menu-font-color: "Pagrindinio meniu šriftas"
+        main-menu-selected-font-color: "Pagrindinio meniu šriftas, kai pasirinktas"
+        main-menu-hover-font-color: "Pagrindinio meniu šriftas užvažiavus pele"
+        main-menu-border-color: "Pagrindinio meniu kraštinės"
       custom_colors: "Pasirinktinės spalvos"
       customize: "Suasmeninkite savo OpenProject įdiegtį su savo logotipu. Pastaba: šis logotipas bus matomas viešai."
       enterprise_notice: "Kaip specialus „AČIŪ!“ už finansinę paramą kuriant OpenProject, ši mažytė funkcija galima naudoti tik „Enterprise Edition“ paramos prenumeratoriams."
       manage_colors: "Redaguoti spalvos pasirinkimo variantus"
       instructions:
-        alternative_color: "Stipri, akį rėžianti spalva įprastai naudojama svarbiausiams mygtukams ekrane."
-        content_link_color: "Šrifto spalva daugeliui nuorodų."
-        primary_color: "Pagrindinė spalva."
-        primary_color_dark: "Įprastai tamsesnė pagrindinės spalvos atmaina naudojama sklandymo efektui sukurti."
-        header_bg_color: "Antraštės fono spalva."
-        header_item_bg_hover_color: "Antraštės fono spalva galimiems paspausti antraštės įrašams, kai užvedama pelė."
-        header_item_font_color: "Šrifto spalva galimiems paspausti antraštės įrašams."
-        header_item_font_hover_color: "Šrifto spalva galimiems paspausti antraštės įrašams, kai užvedama pelė."
-        header_border_bottom_color: "Linija po antrašte. Palikite laukelį tuščią, jei nenorite jokios linijos."
-        main_menu_bg_color: "Kairiojo šoninio meniu fono spalva."
+        alternative-color: "Stipri, akį rėžianti spalva įprastai naudojama svarbiausiam mygtukui ekrane."
+        content-link-color: "Šrifto spalva daugeliui nuorodų."
+        primary-color: "Pagrindinė spalva."
+        primary-color-dark: "Įprastai tamsesnė pagrindinės spalvos atmaina naudojama sklandymo efektui sukurti."
+        header-item-bg-hover-color: "Antraštės fono spalva galimiems paspausti antraštės įrašams, kai užvedama pelė."
+        header-item-font-color: "Šrifto spalva galimiems paspausti antraštės įrašams."
+        header-item-font-hover-color: "Šrifto spalva galimiems paspausti antraštės įrašams, kai užvedama pelė."
+        header-border-bottom-color: "Linija po antrašte. Palikite laukelį tuščią, jei nenorite jokios linijos."
+        main-menu-bg-color: "Kairiojo šoninio meniu fono spalva."
+      theme_warning: Changing the theme will overwrite you custom style. The design will then be lost. Are you sure you want to continue?
     enterprise:
-      upgrade_to_ee: "Patobulinti į „Enterprise Edition“ versiją"
+      upgrade_to_ee: "Upgrade to the Enterprise Edition"
       add_token: "Įkelti „Enterprise Edition“ paramos raktą"
       replace_token: "Pakeisti savo esamą paramos raktą"
       order: "Ušsakyti „Enterprise Edition“ versiją"
       paste: "Įklijuokite savo „Enterprise Edition“ paramos raktą"
       required_for_feature: "Ši funkcija galima tiks su aktyviu Enterprise Edition versijos raktu."
       enterprise_link: "Norėdami gauti daugiau informacijos, spustelėkite čia."
+      start_trial: 'Start free trial'
+      book_now: 'Book now'
+      get_quote: 'Get a quote'
   announcements:
     show_until: Rodyti iki
     is_active: šiuo metu rodoma
@@ -66,7 +88,37 @@ lt:
       no_results_content_title: Šiuo metu nėra jokių autentifikacijos būdų.
       no_results_content_text: Sukurti naują autentifikacijos būdą
   ldap_auth_sources:
+    technical_warning_html: |
+      Ši LDAP forma reikalauja jūsų LDAP / Active Directory tvarkos žinojimo.
+      <br/>
+      <a href="https://www.openproject.org/help/administration/manage-ldap-authentication/">Detalios instrukcijos pateiktos dokumentacijoje</a>.
+    attribute_texts:
+      name: LDAP prisijungimui suteiktas pavadinimas
+      host: LDAP serverio vardas arba IP adresas
+      login_map: LDAP atributo, kuris naudojamas vienareikšmiškai nustatyti besijungiantį asmenį, pavadinimas. Dažniausiai tai būna `uid` arba `samAccountName`.
+      generic_map: LDAP atributo pavadinimas, kuris bus susietas su OpenProject atributu `%{attribute}`
+      admin_map_html: "Pasirinktinis: LDAP atributas, kuris <strong>jei bus nustatytas</strong> pažymi, kad vartotojas yra OpenProject administratorius. Jei abejojate, palikite tuščią."
+      system_user_dn_html: |
+        Įveskite sisteminio vartotojo, naudojamos tik skaitymo teisėmis jugtis prie LDAP, DN.
+        <br/>
+        Pavyzdžiui: uid=openproject,ou=system,dc=example,dc=com
+      system_user_password: Įveskite sisteminio vartotojo, kuris jungsis prie LDAP, slaptažodį
+      base_dn: |
+        Įveskite submedžio, kuriame OpenProject ieškos vartotojų ir grupių šaknies DN (Base DN).
+        OpenProject ieškos vartotojų tik šio submedžio ribose.
+        Pavyzdys: ou=users,dc=example,dc=com
+      onthefly_register: |
+        Jei pažymėsite šį lauką, OpenProject automatiškai sukurs naujus vartotojus pagal LDAP informaciją, kai tik šie vartotojai pirmą kartą prisijungs prie OpenProject.
+        Nežymėkite šio lauko, jei norite, kad tik jau sukurti vartotojai galėtų prisijungti pasinaudodami LDAP!
     connection_encryption: 'Jungties šifravimas'
+    system_account: 'Sistemos paskyra'
+    system_account_legend: |
+      OpenProject reikia tik-skaitymui skirto sisteminio vartotojo kitų vartotojų ir grupių patikrinimui jūsų LDAP medyje.
+      Šioje sekcijoje prašome pateikti tokio vartotojo kredencialus.
+    ldap_details: 'LDAP duomenys'
+    user_settings: 'Atributų surišimas'
+    user_settings_legend: |
+      Žemiau esantys laukai yra naudojami nustatyti kaip OpenProject vartotojai yra kuriami pagal LDAP įrašus ir kokie LDAP atributai yra naudojami nustatyti kuriuos OpenProject vartotojo atributus (atributų surišimas).
     tls_mode:
       plain: 'joks'
       simple_tls: 'simple_tls'
@@ -349,13 +401,13 @@ lt:
         types: "Tipai"
         versions: "Versijos"
         work_packages: "Darbų paketai"
-      project/status:
+      projects/status:
         code: 'Būsena'
-        explanation: 'Status description'
+        explanation: 'Būsenos aprašymas'
         codes:
-          on_track: 'On track'
-          at_risk: 'At risk'
-          off_track: 'Off track'
+          on_track: 'Teisingame kelyje'
+          at_risk: 'Rizikingas'
+          off_track: 'Pasiklydęs'
       query:
         column_names: "Stulpeliai"
         relations_to_type_column: "Ryšiai su %{type}"
@@ -414,7 +466,7 @@ lt:
         done_ratio: "Progresas (%)"
         end_insertion: "Įterpimo pabaigoje"
         end_deletion: "Ištrynimo pabaigoje"
-        fixed_version: "Versija"
+        version: "Versija"
         parent: "Tėvas"
         parent_issue: "Tėvas"
         parent_work_package: "Tėvas"
@@ -447,8 +499,8 @@ lt:
         confirmation: "nesutampa su %{attribute}."
         could_not_be_copied: "negalima (pilnai) nukopijuoti."
         does_not_exist: "neegzistuoja."
-        error_unauthorized: "may not be accessed."
-        error_readonly: "is not writable."
+        error_unauthorized: "negali būti pasiektas."
+        error_readonly: "bandytas įrašyti, bet įrašyti nebuvo galima."
         empty: "negali būti tuščia."
         even: "turi būti lyginis."
         exclusion: "yra rezervuotas."
@@ -547,6 +599,10 @@ lt:
         role:
           permissions:
             dependency_missing: "taipogi reikia įtraukti „%{dependency}“ kai parinktas „%{permission}“."
+        time_entry:
+          attributes:
+            hours:
+              day_limit: "yra per didelis nes maksimum 24 valandos gali būti užregistruotos per parą."
         work_package:
           is_not_a_valid_target_for_time_entries: "Darbų paketas #%{id} nėra tinkamas laiko įrašų perskirstymo pasirinkimas."
           attributes:
@@ -702,10 +758,12 @@ lt:
     type: "Tipas"
     updated_at: "Atnaujinta"
     updated_on: "Atnaujinta"
+    uploader: "Įkėlėjas"
     user: "Vartotojas"
     version: "Versija"
     work_package: "Darbų paketas"
   button_add: "Pridėti"
+  button_add_comment: "Pridėti komentarą"
   button_add_member: Pridėti narį
   button_add_watcher: "Pridėti stebėtojų"
   button_annotate: "Rašyti pastabą"
@@ -1010,10 +1068,9 @@ lt:
         add_groups: "Pridėti naujas atributų grupes"
         rename_groups: "Pervadinti atributų grupes"
       project_filters:
-        description_html: "Filtering and sorting on custom fields is an enterprise edition feature."
-  enumeration_activities: "Veikla (laiko sekimas)"
+        description_html: "Filtravimas ir rikiavimas pagal pritaikytus laukus yra tik Enterprise edition galimybė."
+  enumeration_activities: "Laiko sekimo veiklos"
   enumeration_work_package_priorities: "Darbų paketo prioritetai"
-  enumeration_system_activity: "Sistemos veikla"
   enumeration_reported_project_statuses: "Pranešta projekto būsena"
   error_auth_source_sso_failed: "Bendroji autentifikacija (SSO) vartotojui „%{value}“ nepavyko"
   error_can_not_archive_project: "Projekto negalima suarchyvuoti: %{errors}"
@@ -1083,6 +1140,8 @@ lt:
       pdf_with_descriptions: "PDF su aprašymu"
       pdf_with_descriptions_and_attachments: "PDF su aprašymais ir priedais"
       pdf_with_attachments: "PDF su priedais"
+    image:
+      omitted: "Paveiksliukas neeksportuotas."
   extraction:
     available:
       pdftotext: "Pdf-į-tekstą pasiekiamas (pasirinktinai)"
@@ -1113,13 +1172,8 @@ lt:
     blocks:
       community: "OpenProject community"
       upsale:
-        become_hero: "Tapti didvyriu!"
         title: "Patobulinti į „Enterprise Edition“ versiją"
-        description: "Kokie privalumai?"
         more_info: "Daugiau informacijos"
-        additional_features: "Papildomos galingos premium funkcijos"
-        professional_support: "Profesionali parama iš OpenProject expertų"
-        you_contribute: "Kūrėjams taip pat reikia apmokėti savo sąskaitas. Su „Enterprise Edition“ jūs iš esmės prisidėsite prie atviro kodo bendruomenės darbo."
     links:
       upgrade_enterprise_edition: "Patobulinti į „Enterprise Edition“ versiją"
       postgres_migration: "Migruojame jūsų instaliaciją į PostgreSQL"
@@ -1130,8 +1184,11 @@ lt:
       blog: "OpenProject blogas"
       forums: "Bendruomenės forumas"
       newsletter: "Saugos įspėjimai / Naujienos"
+  journals:
+    changes_retracted: "The changes where retracted."
   links:
     configuration_guide: 'Konfigūravimo vadovas'
+    get_in_touch: "You have questions? Get in touch with us."
   instructions_after_registration: "Galėsite prisijungti, kai tik jūsų paskyra bus aktyvuota paspaudžiant %{signin}."
   instructions_after_logout: "Galite vėl prisijungti paspausdami %{signin}."
   instructions_after_error: "Bandykite prisijungti dar kartą spustelėdami %{signin}. Jei klaida kartosis, kreipkitės į administratorių."
@@ -1421,6 +1478,7 @@ lt:
   label_new: "Naujas"
   label_new_features: "Naujos savybės"
   label_new_statuses_allowed: "Naujos galimos būsenos"
+  label_news_singular: "Naujienos"
   label_news_added: "Pridėta naujiena"
   label_news_comment_added: "Prie naujienos pridėtas komentaras"
   label_news_latest: "Paskutinės naujienos"
@@ -1663,52 +1721,31 @@ lt:
   label_workflow_plural: "Darbų eigos"
   label_workflow_summary: "Santrauka"
   label_x_closed_work_packages_abbr:
+    zero: "0 uždarytų"
     one: "1 uždarytas"
     few: "%{count} uždaryti (-as, -ų)"
     many: "%{count} uždaryti (-as, -ų)"
     other: "%{count} uždaryti (-as, -ų)"
   label_x_comments:
+    zero: "nėra komentarų"
     one: "1 komentatas"
     few: "%{count} komentarai (-as, -ų)"
     many: "%{count} komentarai (-as, -ų)"
     other: "%{count} komentarai (-as, -ų)"
   label_x_open_work_packages_abbr:
+    zero: "0 atvirų"
     one: "1 atidarytas"
     few: "%{count} atidaryti (-as, -ų)"
     many: "%{count} atidaryti (-as, -ų)"
     other: "%{count} atidaryti (-as, -ų)"
   label_x_projects:
+    zero: "nėra projektų"
     one: "1 projektas"
     few: "%{count} projektai (-as, -ų)"
     many: "%{count} projektai (-as, -ų)"
     other: "%{count} projektai (-as, -ų)"
   label_year: "Metai"
   label_yesterday: "vakar"
-  label_keyboard_function: "Funkcija"
-  label_keyboard_shortcut: "Nuoroda"
-  label_keyboard_accesskey: "Prieigos raktas"
-  label_keyboard_shortcut_help_heading: "Galimi spartieji klavišai"
-  label_keyboard_shortcut_within_project: "Su projektu susiję spartieji klavišai:"
-  label_keyboard_shortcut_global_shortcuts: "Globalios nuorodos:"
-  label_keyboard_shortcut_some_pages_only: "Specialios nuorodos:"
-  label_keyboard_shortcut_search_global: "Globali paieška"
-  label_keyboard_shortcut_search_project: "Rasti mano projektą"
-  label_keyboard_shortcut_go_my_page: "Eiti į mano puslapį"
-  label_keyboard_shortcut_show_help: "Rodyti šį pagalbos pranešimą"
-  label_keyboard_shortcut_go_overview: "Eiti į projekto apžvalgą"
-  label_keyboard_shortcut_go_work_package: "Eiti į projekto darbų paketus"
-  label_keyboard_shortcut_go_wiki: "Eiti į projekto wiki"
-  label_keyboard_shortcut_go_activity: "Eiti į projekto veiklas"
-  label_keyboard_shortcut_go_calendar: "Eiti į projekto kalendorių"
-  label_keyboard_shortcut_go_news: "Eiti į projekto naujienas"
-  label_keyboard_shortcut_go_timelines: "Eiti į tvarkaraščius"
-  label_keyboard_shortcut_new_work_package: "Sukurti naują darbų paketą"
-  label_keyboard_shortcut_details_package: "Rodyti darbų paketų išsamios informacijos panelę"
-  label_keyboard_shortcut_go_edit: "Eiti redaguoti esamą elementą (tik didelio detalumo puslapiuose)"
-  label_keyboard_shortcut_open_more_menu: "Atidaryti daugiau-meniu (tik didelio detalumo puslapiuose)"
-  label_keyboard_shortcut_go_preview: "Eiti į esamos redakcijos peržiūrą (tik redagavimo puslapiuose)"
-  label_keyboard_shortcut_focus_previous_item: "Sutelkti dėmesį į ankstesnį sąrašo elementą (tik kai kuriuose sąrašuose)"
-  label_keyboard_shortcut_focus_next_item: "Sutelkti dėmesį į sekantį sąrašo elementą (tik kai kuriuose sąrašuose)"
   auth_source:
     using_abstract_auth_source: "Negalima naudoti abstraktaus autentifikavimo šaltinio."
     ldap_error: "LDAP-Klaida: %{error_message}"
@@ -1933,6 +1970,7 @@ lt:
       title: Pakeisti projekto identifikatorių
     archive:
       are_you_sure: "Ar Jūs tikrai norite suarchyvuoti projektą '%{name}'?"
+      archived: "Suarchyvuotas"
   project_module_activity: "Veikla"
   project_module_forums: "Forumai"
   project_module_calendar: "Kalendorius"
@@ -2159,7 +2197,6 @@ lt:
   setting_welcome_text: "Pasisveikinimo bloko tekstas"
   setting_welcome_title: "Pasisveikinimo bloko pavadinimas"
   setting_welcome_on_homescreen: "Rodyti pasisveikinimo bloką namų lange"
-  setting_wiki_compression: "Wiki istorijos suspaudimas"
   setting_work_package_group_assignment: "Leisti priskyrimus grupėms"
   setting_work_package_list_default_highlighting_mode: "Numatytasis paryškinimo būdas"
   setting_work_package_list_default_highlighted_attributes: "Atributai, kuriuos numatyta paryškinti"
@@ -2223,7 +2260,7 @@ lt:
   text_destroy_with_associated: "Yra papildomų objektų, kurie susieti su darbų paketu(-ais), kurie ketinami ištrinti.\nTie objektai yra šių tipų:"
   text_destroy_what_to_do: "Ką norite daryti?"
   text_diff_truncated: "... Šis diff'as sutrauktas, nes viršija maksimalų rodomų eilučių skaičių."
-  text_email_delivery_not_configured: "El.pašto siuntimas nesukonfigūruotas ir perspėjimai neaktyvūs.\nSukonfigūruokite savo SMTP serverį byloje config/configuration.yml ir perleiskite programą norėdami pritaikyti pakeitimus."
+  text_email_delivery_not_configured: "El. laiškų pristatymas yra nesukonfigūruotas, dėl to pranešimai yra išjungti.\nSukonfigūruokite prisijungimą prie SMTP serverio pranešimų įjungimui."
   text_enumeration_category_reassign_to: "Priskirti juos šiai reikšmei:"
   text_enumeration_destroy_question: "%{count} objektai(-ų) priskirti(-ų) šiai reikšmei."
   text_file_repository_writable: "Į priedų saugyklą rašyti galima"
@@ -2236,7 +2273,8 @@ lt:
   text_work_package_category_destroy_question: "Kai kurie darbų paketai (%{count}) yra paskirti šiai kategorijai. Ką jūs norite daryti?"
   text_work_package_category_reassign_to: "Iš naujo priskirti darbų paketus šiai kategorijai"
   text_work_package_updated: "%{author} atnaujino darbų paketą %{id}."
-  text_work_package_watcher_added: "Jūs buvote vartotojo %{watcher_setter} pridėtas kaip stebėtojas į darbų paketą %{id}."
+  text_work_package_watcher_added: "Jūs buvote vartotojo %{watcher_changer} pridėtas kaip stebėtojas į darbų paketą %{id}."
+  text_work_package_watcher_removed: "%{watcher_changer} pašalino jus iš darbų paketo %{id} stebėtojų."
   text_work_packages_destroy_confirmation: "Ar tikrai norite ištrinti pasirinktus(-ą) darbų paketus(-ą)?"
   text_work_packages_ref_in_commit_messages: "Darbų paketų susiejimas ir taisymas pavedimų žinutėse"
   text_journal_added: "%{label} %{value} pridėtas"
@@ -2502,6 +2540,7 @@ lt:
       mail_self_notified: "Noriu būti informuotas apie pakeitimus, kuriuos pats atlieku"
     status_user_and_brute_force: "%{user} ir %{brute_force}"
     status_change: "Būsenos keitimas"
+    text_change_disabled_for_provider_login: "The name is set by your login provider and can thus not be changed."
     unlock: "Atrakinti"
     unlock_and_reset_failed_logins: "Atrakintiir iš naujo nustatyti nepavykusius prisijungimus"
   version_status_closed: "uždarytas"
@@ -2519,6 +2558,17 @@ lt:
     Pasiektas vartotojų limitas. Jūs negalite aktyvuoti daugiau vartotojų. Prašome <a href="%{upgrade_url}">atnaujinti planą</a> arba blokuokite esamus vartotojus norėdami aktyvuoti naujus vartotojus.
   warning_user_limit_reached_instructions: >
     Jūs pasiekėte vartotojų ribą (%{current}/%{max} aktyvūs vartotojai). Susisiekite su sales@openproject.com norėdami atnaujinti savo Enterprise Edition planą arba pridėti papildomų vartotojų.
+  0: >
+
+  warning_bar:
+    protocol_mismatch:
+      title: 'Neatitinka protokolų nustatymai'
+      text_html: >
+        Jūsų programa veikia su protokolų nustatymo reikšme <code>%{set_protocol}</code>, tačiau užklausa atėjo per protokolą <code>%{actual_protocol}</code>. Tai lems klaidas! Eikite į <a href="%{setting_path}">Sistemos nustatymus</a> ir pakeiskite „Protokolo“ nustatymus.
+    hostname_mismatch:
+      title: 'Neatitinka serverio vardo nustatymai'
+      text_html: >
+        Jūsų programa veikia su serverio vardo reikšme <code>%{set_hostname}</code>, tačiau užklausa atėjo į <code>%{actual_hostname}</code>. Tai lems klaidas! Eikite į <a href="%{setting_path}">Sistemos nustatymus</a> ir pakeiskite „Serverio vardas“ nustatymus.
   menu_item: "Meniu punktas"
   menu_item_setting: "Matomumas"
   wiki_menu_item_for: "Meniu punktas wiki puslapiui „%{title}“"
@@ -2527,6 +2577,7 @@ lt:
     Jūs ketinate šalinti tik pagrindinį wiki meniu punktą. Jūs dabar turėsite pasirinkti wiki puslapį, kuriam naujas pagrindinis punktas bus sugeneruotas. Jei norite ištrinti wiki, wiki modulį gali išjungti projekto administratoriai.
   wiki_menu_item_delete_not_permitted: Wiki meniu punktas, kuris priklauso vieninteliam wiki puslapiui, negali būti ištrintas.
   query_menu_item_for: "Meniu punktas užklausai „%{title}“"
+  #TODO: merge with work_packages top level key
   work_package:
     updated_automatically_by_child_changes: |
       _Automatiškai atnaujinta keičiant reikšmes vaiko darbų pakete %{child}_
@@ -2571,7 +2622,9 @@ lt:
         estimated_hours: "Tikėtinos valandos negali būti nustatomos tėviniams darbų paketams."
         invalid_user_assigned_to_work_package: "Pasirinktas vartotojas negali būti '%{property}' šiam darbų paketui."
         start_date: "Pradžios data negali būti nustatyta tėviniams darbų paketams."
-      writing_read_only_attributes: "Jūs neturėtumėte įrašyti atributą „tik skaitomas“."
+      eprops:
+        invalid_gzip: "yra neteisingas gzip: %{message}"
+        invalid_json: "yra neteisingas json: %{message}"
     resources:
       schema: 'Schema'
   doorkeeper:
@@ -2581,7 +2634,7 @@ lt:
       messages:
         #Common error messages
         invalid_request: 'Užklausoje trūksta privalomo parametro, yra nepalaikoma parametro reikšmė arba jis kažkaip kitaip netinkamas.'
-        invalid_redirect_uri: "The requested redirect URI is malformed or doesn't match client redirect URI."
+        invalid_redirect_uri: "Paprašytas peradresavimo URI yra netinkamas arba neatitinka kliento peradresavimo URI."
         unauthorized_client: 'Klientui neleidžiama vykdyti šios užklausos naudojant šį metodą.'
         access_denied: 'Resurso savininkas arba autorizacijos serveris neleido užklausos.'
         invalid_scope: 'Užklausos apimtis yra netinkama, nežinoma arba blogai suformuota.'
@@ -2619,7 +2672,7 @@ lt:
         redirect_uri_html: >
           Leidžiami URL, kur gali būti peradresuojami autorizuoti naudotojai. Po vieną įrašą eilutėje. <br/> Jei jūs registruojate darbastalio aplikaciją, naudokite šį URL.
         confidential: "Patikrinkite, ar bus naudojama aplikacija, kurioje kliento paslaptis gali likti konfidenciali. Mobilios aplikacijos ir Vieno puslapio aplikacijos laikomos nekonfidencialiomis."
-        scopes: "Check the scopes you want the application to grant access to. If no scope is checked, api_v3 is assumed."
+        scopes: "Pažymėkite programos sritis, kurioms norite suteikti prieigą. Kai jokia sritis nėra pažymėta, api_v3 yra leidžiama."
         client_credential_user_id: "Neprivalomas naudotojo ID, naudojamas kai klientai naudoja šią aplikaciją. Palikite tuščią, jei norite leisti tik viešą prieigą"
         register_intro: "Jei kuriate OAuth API kliento aplikaciją skirtą OpenProject, jūs galite registruoti ją visiems naudotojams naudojant šią formą."
         default_scopes: ""
@@ -2634,8 +2687,8 @@ lt:
       wants_to_access_html: >
         Šiai aplikacijai reikia prieigos prie jūsų OpenProject paskyros. <br/> <strong>Ji paprašė tokių teisių:</strong>
     scopes:
-      api_v3: "Full API v3 access"
-      api_v3_text: "Application will receive full read & write access to the OpenProject API v3 to perform actions on your behalf."
+      api_v3: "Pilna API v3 prieiga"
+      api_v3_text: "Aplikacija gaus pilną skaitymo ir rašymo prieigą prie OpenProject API v3 vykdyti veiksmus jūsų vardu."
     grants:
       created_date: "Patvirtinimo data"
       scopes: "Leidimai"

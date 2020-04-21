@@ -1,8 +1,8 @@
 #-- encoding: UTF-8
 
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
@@ -29,7 +29,7 @@
 #++
 require 'spec_helper'
 
-describe Notifications::JournalWPMailService do
+describe Notifications::JournalWpMailService do
   let(:project) { FactoryBot.create(:project_with_types) }
   let(:role) { FactoryBot.create(:role, permissions: [:view_work_packages]) }
   let(:author) do
@@ -333,15 +333,28 @@ describe Notifications::JournalWPMailService do
       it_behaves_like 'mentioned'
     end
   end
+
+  context 'aggregated journal is empty' do
+    let(:journal) { journal_2_empty_change }
+    let(:journal_2_empty_change) do
+      work_package.add_journal(author, 'temp')
+      work_package.save(validate: false)
+      work_package.journals.last.tap do |j|
+        j.update_column(:notes, nil)
+      end
+    end
+
+    it_behaves_like 'sends no mail'
+  end
 end
 
 describe 'initialization' do
   it 'subscribes the listener' do
-    expect(Notifications::JournalWPMailService).to receive(:call)
+    expect(Notifications::JournalWpMailService).to receive(:call)
 
     OpenProject::Notifications.send(
       OpenProject::Events::AGGREGATED_WORK_PACKAGE_JOURNAL_READY,
-      journal: double('journal', initial?: true)
+      journal: double('journal', initial?: true, journable: double('WorkPackage'))
     )
   end
 end

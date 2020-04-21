@@ -1,6 +1,6 @@
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
@@ -43,12 +43,16 @@ module API
         end
 
         def present_error(call)
+          api_errors = [::API::Errors::ErrorBase.create_and_merge_errors(postprocess_errors(call))]
+
+          fail(::API::Errors::MultipleErrors
+                 .create_if_many(api_errors))
+        end
+
+        def postprocess_errors(call)
           errors = call.errors
           errors = merge_dependent_errors call if errors.empty?
-
-          api_errors = [::API::Errors::ErrorBase.create_and_merge_errors(errors)]
-
-          fail ::API::Errors::MultipleErrors.create_if_many(api_errors)
+          errors
         end
 
         def merge_dependent_errors(call)

@@ -1,12 +1,12 @@
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2015 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2013 Jean-Philippe Lang
+# Copyright (C) 2006-2017 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -23,7 +23,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
-# See doc/COPYRIGHT.rdoc for more details.
+# See docs/COPYRIGHT.rdoc for more details.
 #++
 
 require 'support/pages/page'
@@ -58,13 +58,21 @@ module Pages
       fill_in "#{prefix}_comments", with: comment if comment.present?
     end
 
-    def edit_planned_costs!(id, costs:, type: )
+    def open_edit_planned_costs!(id, type:)
       row_id = "#cost_object_existing_#{type}_budget_item_attributes_#{id}"
-      editor_name = "cost_object_existing_#{type}_budget_item_attributes_#{id}_costs_edit"
-
 
       page.within row_id do
         find('.costs--edit-planned-costs-btn').click
+      end
+    end
+
+    def edit_planned_costs!(id, costs:, type: )
+      open_edit_planned_costs!(id, type: type)
+
+      row_id = "#cost_object_existing_#{type}_budget_item_attributes_#{id}"
+      editor_name = "cost_object_existing_#{type}_budget_item_attributes_#{id}_costs_edit"
+
+      page.within row_id do
         fill_in editor_name, with: costs
       end
 

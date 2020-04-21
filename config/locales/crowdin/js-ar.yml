@@ -1,6 +1,6 @@
 #-- copyright
-#OpenProject is a project management system.
-#Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+#OpenProject is an open source project management software.
+#Copyright (C) 2012-2020 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
@@ -80,6 +80,7 @@ ar:
         inline: 'Highlight inline:'
         entire_card_by: 'Entire card by'
       remove_from_list: 'Remove card from list'
+    caption_rate_history: "تاريخ السعر"
     clipboard:
       browser_error: "لا يدعم المتصفح الخاص بك النسخ إلى الحافظة, من فضلك انسخ النص المختار يدوياً."
       copied_successful: "تم النسخ بنجاح إلى الحافظة!"
@@ -162,6 +163,58 @@ ar:
         edit_query: 'Edit query'
         new_group: 'مجموعة جديدة'
         reset_to_defaults: 'Reset to defaults'
+      enterprise:
+        trial:
+          confirmation: "Confirmation of email address"
+          confirmation_info: "We sent you an email. Please check your emails and click the confirmation link provided to start your 14 days trial."
+          form:
+            general_consent: >
+              I agree with the <a target="_blank" href="%{link_terms}">terms of service</a> and the <a target="_blank" href="%{link_privacy}">privacy policy</a>.
+            invalid_email: "Invalid email address"
+            label_company: "Company"
+            label_first_name: "الاسم الأول"
+            label_last_name: "الاسم الأخير"
+            label_email: "البريد الإكتروني"
+            label_domain: "Domain"
+            label_subscriber: "Subscriber"
+            label_maximum_users: "Maximum active users"
+            label_starts_at: "Starts at"
+            label_expires_at: "Expires at"
+            receive_newsletter: I want to receive the OpenProject <a target="_blank" href="%{link}">newsletter</a>.
+          email_not_received: "You did not receive an email? You can resend the email with the link on the right."
+          try_another_email: "Or try it with another email address."
+          try_another_email_hint: "Please be aware that your previous email address gets invalid if you try again with a new one."
+          next_steps: "Next steps"
+          resend_link: "Resend"
+          resend_success: "Email has been resent. Please check your emails and click the confirmation link provided."
+          resend_warning: "Could not resend email."
+          session_timeout: "Your session timed out. Please try to reload the page or resend email."
+          status_label: "Status:"
+          status_confirmed: "confirmed"
+          status_waiting: "email sent - waiting for confirmation"
+          test_ee: "Test the Enterprise Edition 14 days for free"
+          quick_overview: "Get a quick overview of project management and team collaboration with OpenProject Enterprise Edition."
+        upsale:
+          become_hero: "Become a hero!"
+          benefits:
+            description: "What are the benefits?"
+            high_security: "Security features"
+            high_security_text: "Single sign on (SAML, OpenID Connect, CAS), two-factor authentication and automatic sync of LDAP groups."
+            installation: "Installation support"
+            installation_text: "Experienced software engineers guide you through the complete installation and setup process in your own infrastructure."
+            premium_features: "Premium features"
+            premium_features_text: "Agile boards, custom theme and logo, graphs, intelligent workflows with custom actions, full text search for work package attachments and multi-select custom fields."
+            professional_support: "الدعم الفني"
+            professional_support_text: "Get reliable, high-touch support from senior support engineers with expert knowledge about running OpenProject in business-critical environments."
+          button_start_trial: "Start free trial"
+          button_book_now: "Book now"
+          confidence: >
+            We deliver the confidence of a tested and supported enterprise-class project management software - with Open Source and an open mind.
+          link_quote: "Get a quote"
+          text: >
+            The OpenProject Enterprise Edition builds on top of the Community Edition. It includes premium features and professional support mainly aimed at organizations with more than 10 users that manage business critical projects with OpenProject.
+          unlimited: "Unlimited"
+          you_contribute: "Developers need to pay their bills, too. With the Enterprise Edition, you substantially contribute to this Open Source community effort."
     custom_actions:
       date:
         specific: 'في'
@@ -171,6 +224,9 @@ ar:
       cannot_save_changes_with_message: "Cannot save your changes due to the following error: %{error}"
       query_saving: "The view could not be saved."
       embedded_table_loading: "The embedded view could not be loaded: %{message}"
+    enumeration_activities: "الأنشطة (تتبع الوقت)"
+    enumeration_doc_categories: "فئات الوثائق"
+    enumeration_work_package_priorities: "أولويات مجموعة العمل"
     filter:
       description:
         text_open_filter: "فتح هذا المرشح باستخدام 'ALT' و مفاتيح الأسهم."
@@ -192,6 +248,7 @@ ar:
     general_text_yes: "نعم"
     general_text_No: "لا"
     general_text_Yes: "نعم"
+    global_roles: الأدوار العالمية
     hal:
       error:
         update_conflict_refresh: "Click here to refresh the resource and update to the newest version."
@@ -203,8 +260,15 @@ ar:
       blocks:
         new_features:
           text_new_features: "Read about new features and product updates."
-          current_new_feature_html: "OpenProject contains a new <b>Overview page</b> to <b>display important project information</b> and show whether the project is on track. </br> You can insert various new status widgets, such as: <ul><li>project status,</li> <li>overview of work package status,</li> <li>task progress,</li> <li>tasks assigned to users.</li></ul>"
-          learn_about: "Learn more about the new status widgets"
+          learn_about: "Learn more about the new features"
+          standard:
+            learn_about_link: https://www.openproject.org/openproject-10-4
+            current_new_feature_html: >
+              The release contains various new features and improvements: <br><br> <ul> <li>Default <b>design templates</b> to select a light or dark theme (premium feature).</li> <li>New <b>time tracking widget</b> for <i>My page</i> to show spent time in a bar chart.</li> <li><b>XLS-exports for cost reports</b> and formatted text in PDF export of work packages.</li> <li><b>Improved design and usability</b>, i.e. tabs and more in project settings and administration.</li> </ul>
+          bim:
+            learn_about_link: https://www.openproject.org/openproject-bim-10-4
+            current_new_feature_html: >
+              OpenProject contains a <b>new IFC module to integrate 3D models</b> into your project management application and to work collaboratively with these files with your team without installation of separate costly software or licenses. <br><br> <ul> <li><b>Import IFC files</b> of building models into your OpenProject application.</li> <li><b>Open 3D models and visualize building models</b> in your browser.</li> <li> Easily <b>work on multiple IFC files</b> with your team directly in OpenProject without installation of separate costly software. </li> </ul>
     label_activate: "تفعيل"
     label_add_column_after: "Add column after"
     label_add_column_before: "Add column before"
@@ -222,6 +286,7 @@ ar:
     label_and: "و"
     label_ascending: "ترتيب تصاعدي"
     label_author: "الكاتب%{user}"
+    label_avatar: "Avatar"
     label_between: "بين"
     label_board: "Board"
     label_board_locked: "مقفل"
@@ -235,6 +300,8 @@ ar:
     label_deactivate: "تعطيل"
     label_descending: "ترتيب تنازلي"
     label_description: "الوصف"
+    label_details: "تفاصيل"
+    label_display: "عرض"
     label_cancel_comment: "ألغي التعليق"
     label_closed_work_packages: "مغلق"
     label_collapse: "مطوي"
@@ -255,22 +322,30 @@ ar:
     label_export: "تصدير"
     label_filename: "ملف"
     label_filesize: "حجم"
+    label_general: "عام"
     label_greater_or_equal: "=<"
     label_group: 'مجموعة'
     label_group_by: "مجموعة من"
+    label_group_plural: "المجموعات"
     label_hide_attributes: "أظهِر أقل"
     label_hide_column: "إخفاء العمود"
     label_hide_project_menu: "Collapse project menu"
     label_in: "في"
     label_in_less_than: "في أقل من"
     label_in_more_than: "في أكثر من"
+    label_incoming_emails: "رسائل البريد الالكتروني الواردة"
+    label_information_plural: "معلومات"
     label_import: "Import"
     label_latest_activity: "Latest activity"
     label_last_updated_on: "تاريخ آخر تحديث"
+    label_learn_more_link: "التعرف على المزيد"
     label_less_or_equal: "=>"
     label_less_than_ago: "أقل من أيام"
     label_loading: "جاري التحميل..."
+    label_mail_notification: "إشعارات البريد الإلكتروني"
     label_me: "لي"
+    label_meeting_agenda: "جدول الأعمال"
+    label_meeting_minutes: "محضر الجلسة"
     label_menu_collapse: "طي"
     label_menu_expand: "وسّع"
     label_more_than_ago: "منذ أكثر من أيام"
@@ -291,12 +366,16 @@ ar:
     label_previous: "السابق"
     label_per_page: "لكل صفحة:"
     label_please_wait: "الرجاء الانتظار"
+    label_project_plural: "المشاريع"
     label_visibility_settings: "Visibility settings"
     label_quote_comment: "أقتبس هذا التعليق"
+    label_recent: "Recent"
     label_reset: "إعادة تعيين"
     label_remove_column: "Remove column"
     label_remove_columns: "إزالة الأعمدة المختارة"
     label_remove_row: "Remove row"
+    label_report: "تقرير"
+    label_repository_plural: "مستودعات البيانات"
     label_save_as: "احفظ بشكل"
     label_select_watcher: "اختر مراقبًا..."
     label_selected_filter_list: "عوامل التصفية المٌختارة"
@@ -307,6 +386,7 @@ ar:
     label_sort_higher: "تحريك للأعلى"
     label_sort_lower: "تحريك للأسفل"
     label_sorting: "جاري الترتيب"
+    label_spent_time: "الوقت المستهلك"
     label_star_query: "Favored"
     label_press_enter_to_save: "Press enter to save."
     label_public_query: "عام"
@@ -315,7 +395,9 @@ ar:
     label_subject: "الموضوع"
     label_this_week: "هذا الأسبوع"
     label_today: "اليوم"
+    label_time_entry_plural: "الوقت المستهلك"
     label_up: "الأعلى"
+    label_user_plural: "المستخدمين"
     label_activity_show_only_comments: "Show activities with comments only"
     label_activity_show_all: "Show all activities"
     label_total_progress: "%{percent} من التقدم الكلي"
@@ -357,6 +439,7 @@ ar:
     label_wait: "الرجاء الانتظار للتكوين..."
     label_upload_counter: "%{done} من%{count} ملف انهيت"
     label_validation_error: "تعذر حفظ حزمة العمل نتيجة للأخطاء التالية:"
+    label_version_plural: "الإصدارات"
     label_view_has_changed: "This view has unsaved changes. Click to save them."
     help_texts:
       show_modal: 'Show attribute help text entry'
@@ -423,23 +506,22 @@ ar:
         upgrade_to_ee_text: "Wow! If you need this feature you are a super pro! Would you mind supporting us OpenSource developers by becoming an Enterprise Edition client?"
         more_information: "More information"
         nevermind: "Nevermind"
-        filter_types:
-          parent: "being child of"
-          precedes: "preceding"
-          follows: "following"
-          relates: "relating to"
-          duplicates: "duplicating"
-          duplicated: "مكرر بواسطة"
-          blocks: "blocking"
-          blocked: "محجوب من قبل"
-          partof: "being part of"
-          includes: "including"
-          requires: "requiring"
-          required: "required by"
+      edit:
+        form_configuration: "Form Configuration"
+        projects: "المشاريع"
+        settings: "إعدادات"
     time_entry:
+      project: 'مشروع'
+      work_package: 'مجموعة العمل'
+      work_package_required: 'Requires selecting a work package first.'
       activity: 'النشاط'
       comment: 'تعليق'
+      duration: 'المدّة'
+      spent_on: 'التاريخ'
       hours: 'الساعات'
+      label: 'Time entry'
+    two_factor_authentication:
+      label_two_factor_authentication: 'Two-factor authentication'
     watchers:
       label_loading: تحميل مشاهدين...
       label_error_loading: حدث خطأ خلال تحميل المشاهدين
@@ -497,24 +579,6 @@ ar:
       select_tag: 'حدد العلامة'
       select_branch: 'اختر فرع'
     field_value_enter_prompt: "أدخِل قيمة ل '%{field}'"
-    select2:
-      input_too_short:
-        zero: "من فضلك أدخِل {{count}} حروفًا أكثر"
-        one: "من فضلك أدخِل حرفًا واحدًا آخر"
-        two: "من فضلك أدخِل {{count}} حروفًا أكثر"
-        few: "من فضلك أدخِل {{count}} حروفًا أكثر"
-        many: "من فضلك أدخِل {{count}} حروفًا أكثر"
-        other: "من فضلك أدخِل {{count}} حروفًا أكثر"
-      load_more: "تحميل المزيد من النتائج ..."
-      no_matches: "لم يتم العثور على تطابقات"
-      searching: "جاري البحث ..."
-      selection_too_big:
-        zero: "تستطيع فقط اختيار {{limit}} عناصر"
-        one: "تستطيع فقط اختيار عنصر واحد"
-        two: "تستطيع فقط اختيار {{limit}} عناصر"
-        few: "تستطيع فقط اختيار {{limit}} عناصر"
-        many: "تستطيع فقط اختيار {{limit}} عناصر"
-        other: "تستطيع فقط اختيار {{limit}} عناصر"
     project_menu_details: "تفاصيل"
     sort:
       sorted_asc: 'Ascending sort applied, '
@@ -759,14 +823,13 @@ ar:
           automatic: 'Automatic'
           manually: 'Manually'
           warning: 'You will lose your previous sorting when activating the automatic sorting mode.'
-        columns_help_text: "Use the input above to add or remove columns to your table view. You can drag and drop the columns to reorder them."
+        columns_help_text: "Use the input above to add columns to your table view. You can drag and drop the columns to reorder them."
         upsale:
           attribute_highlighting: 'Need certain work packages to stand out from the mass?'
           relation_columns: 'Need to see relations in the work package list?'
           check_out_link: 'Check out the Enterprise Edition.'
         relation_filters:
-          first_part: "Show all work packages"
-          second_part: "the current work package"
+          filter_work_packages_by_relation_type: 'Filter work packages by relation type'
       tabs:
         overview: نظرة عامة
         activity: النشاط
@@ -860,6 +923,7 @@ ar:
         many: "%{count} work package children"
         other: "%{count} work package children"
       hour:
+        zero: "0 h"
         zero: "%{count} h"
         one: "1 h"
         two: "%{count} h"

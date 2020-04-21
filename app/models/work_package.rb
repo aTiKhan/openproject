@@ -1,8 +1,8 @@
 #-- encoding: UTF-8
 
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
@@ -28,23 +28,21 @@
 # See docs/COPYRIGHT.rdoc for more details.
 #++
 
-class WorkPackage < ActiveRecord::Base
+class WorkPackage < ApplicationRecord
   include WorkPackage::Validations
   include WorkPackage::SchedulingRules
   include WorkPackage::StatusTransitions
   include WorkPackage::AskBeforeDestruction
-  include WorkPackage::TimeEntries
+  include WorkPackage::TimeEntriesCleaner
   include WorkPackage::Ancestors
   prepend WorkPackage::Parent
   include WorkPackage::TypedDagDefaults
-  include WorkPackage::CustomActions
+  include WorkPackage::CustomActioned
   include WorkPackage::Hooks
 
   include OpenProject::Journal::AttachmentHelper
 
   DONE_RATIO_OPTIONS = %w(field status disabled).freeze
-  ATTRIBS_WITH_VALUES_FROM_CHILDREN =
-    %w(start_date due_date estimated_hours done_ratio).freeze
 
   belongs_to :project
   belongs_to :type
@@ -52,7 +50,7 @@ class WorkPackage < ActiveRecord::Base
   belongs_to :author, class_name: 'User', foreign_key: 'author_id'
   belongs_to :assigned_to, class_name: 'Principal', foreign_key: 'assigned_to_id'
   belongs_to :responsible, class_name: 'Principal', foreign_key: 'responsible_id'
-  belongs_to :fixed_version, class_name: 'Version', foreign_key: 'fixed_version_id'
+  belongs_to :version
   belongs_to :priority, class_name: 'IssuePriority', foreign_key: 'priority_id'
   belongs_to :category, class_name: 'Category', foreign_key: 'category_id'
 
@@ -62,7 +60,7 @@ class WorkPackage < ActiveRecord::Base
     order("#{Changeset.table_name}.committed_on ASC, #{Changeset.table_name}.id ASC")
   }
 
-  scope :recently_updated, ->() {
+  scope :recently_updated, -> {
     order(updated_at: :desc)
   }
 
@@ -84,7 +82,7 @@ class WorkPackage < ActiveRecord::Base
     end
   }
 
-  scope :with_status_open, ->() {
+  scope :with_status_open, -> {
     includes(:status)
       .where(statuses: { is_closed: false })
   }
@@ -104,7 +102,7 @@ class WorkPackage < ActiveRecord::Base
   }
 
   scope :without_version, -> {
-    where(fixed_version_id: nil)
+    where(version_id: nil)
   }
 
   scope :with_query, ->(query) {
@@ -158,7 +156,8 @@ class WorkPackage < ActiveRecord::Base
                      order: "#{Attachment.table_name}.file",
                      add_on_new_permission: :add_work_packages,
                      add_on_persisted_permission: :edit_work_packages,
-                     modification_blocked: ->(*) { readonly_status? }
+                     modification_blocked: ->(*) { readonly_status? },
+                     extract_tsv: true
 
   after_validation :set_attachments_error_details,
                    if: lambda { |work_package| work_package.errors.messages.has_key? :attachments }
@@ -263,8 +262,8 @@ class WorkPackage < ActiveRecord::Base
   #     (to make sure, that you can still update closed tickets)
   def assignable_versions
     @assignable_versions ||= begin
-      current_version = fixed_version_id_changed? ? Version.find_by(id: fixed_version_id_was) : fixed_version
-      ((project&.assignable_versions || []) + [current_version]).compact.uniq.sort
+      current_version = version_id_changed? ? Version.find_by(id: version_id_was) : version
+      ((project&.assignable_versions || []) + [current_version]).compact.uniq
     end
   end
 
@@ -283,10 +282,6 @@ class WorkPackage < ActiveRecord::Base
     status.present? && status.is_readonly?
   end
 
-  def closed_version_and_status?
-    fixed_version&.closed? && status.is_closed?
-  end
-
   # Returns true if the work_package is overdue
   def overdue?
     !due_date.nil? && (due_date < Date.today) && !closed?
@@ -296,23 +291,6 @@ class WorkPackage < ActiveRecord::Base
     type&.is_milestone?
   end
   alias_method :is_milestone?, :milestone?
-
-  # Returns an array of status that user is able to apply
-  def new_statuses_allowed_to(user, include_default = false)
-    return Status.where('1=0') if status.nil?
-
-    current_status = Status.where(id: status_id)
-
-    return current_status if closed_version_and_status?
-
-    statuses = new_statuses_allowed_by_workflow_to(user)
-               .or(current_status)
-
-    statuses = statuses.or(Status.where_default) if include_default
-    statuses = statuses.where(is_closed: false) if blocked?
-
-    statuses.order_by_position
-  end
 
   # Returns users that should be notified
   def recipients
@@ -452,7 +430,7 @@ class WorkPackage < ActiveRecord::Base
   # Unassigns issues from +version+ if it's no longer shared with issue's project
   def self.update_versions_from_sharing_change(version)
     # Update issues assigned to the version
-    update_versions(["#{WorkPackage.table_name}.fixed_version_id = ?", version.id])
+    update_versions(["#{WorkPackage.table_name}.version_id = ?", version.id])
   end
 
   # Unassigns issues from versions that are no longer shared
@@ -476,7 +454,7 @@ class WorkPackage < ActiveRecord::Base
 
   def self.by_version(project)
     count_and_group_by project: project,
-                       field: 'fixed_version_id',
+                       field: 'version_id',
                        joins: Version.table_name
   end
 
@@ -643,15 +621,6 @@ class WorkPackage < ActiveRecord::Base
     time_entries.build(attributes)
   end
 
-  def new_statuses_allowed_by_workflow_to(user)
-    status.new_statuses_allowed_to(
-      user.roles_for_project(project),
-      type,
-      author == user,
-      assigned_to_id_changed? ? assigned_to_id_was == user.id : assigned_to_id == user.id
-    )
-  end
-
   ##
   # Checks if the time entry defined by the given attributes is blank.
   # A time entry counts as blank despite a selected activity if that activity
@@ -670,28 +639,28 @@ class WorkPackage < ActiveRecord::Base
     default_id && attributes.except(key).values.all?(&:blank?)
   end
 
-  def self.having_fixed_version_from_other_project
+  def self.having_version_from_other_project
     where(
-      "#{WorkPackage.table_name}.fixed_version_id IS NOT NULL" +
+      "#{WorkPackage.table_name}.version_id IS NOT NULL" +
       " AND #{WorkPackage.table_name}.project_id <> #{Version.table_name}.project_id" +
       " AND #{Version.table_name}.sharing <> 'system'"
     )
   end
-  private_class_method :having_fixed_version_from_other_project
+  private_class_method :having_version_from_other_project
 
   # Update issues so their versions are not pointing to a
-  # fixed_version that is not shared with the issue's project
+  # version that is not shared with the issue's project
   def self.update_versions(conditions = nil)
-    # Only need to update issues with a fixed_version from
+    # Only need to update issues with a version from
     # a different project and that is not systemwide shared
-    having_fixed_version_from_other_project
+    having_version_from_other_project
       .where(conditions)
-      .includes(:project, :fixed_version)
+      .includes(:project, :version)
       .references(:versions).each do |issue|
-      next if issue.project.nil? || issue.fixed_version.nil?
+      next if issue.project.nil? || issue.version.nil?
 
-      unless issue.project.shared_versions.include?(issue.fixed_version)
-        issue.fixed_version = nil
+      unless issue.project.shared_versions.include?(issue.version)
+        issue.version = nil
         issue.save
       end
     end

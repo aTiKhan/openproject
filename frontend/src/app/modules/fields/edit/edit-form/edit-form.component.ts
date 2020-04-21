@@ -1,6 +1,6 @@
 // -- copyright
-// OpenProject is a project management system.
-// Copyright (C) 2012-2015 the OpenProject Foundation (OPF)
+// OpenProject is an open source project management software.
+// Copyright (C) 2012-2020 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -23,7 +23,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// See doc/COPYRIGHT.rdoc for more details.
+// See docs/COPYRIGHT.rdoc for more details.
 // ++
 
 import {Component, ElementRef, EventEmitter, Injector, Input, OnDestroy, OnInit, Optional, Output} from '@angular/core';
@@ -61,10 +61,8 @@ export class EditFormComponent extends EditForm<HalResource> implements OnInit, 
   private registeredFields = input<string[]>();
   private unregisterListener:Function;
 
-  constructor(protected readonly injector:Injector,
+  constructor(public readonly injector:Injector,
               protected readonly elementRef:ElementRef,
-              protected readonly halEditing:HalResourceEditingService,
-              protected readonly halNotification:HalResourceNotificationService,
               protected readonly $transitions:TransitionService,
               protected readonly ConfigurationService:ConfigurationService,
               protected readonly editingPortalService:EditingPortalService,
@@ -82,7 +80,7 @@ export class EditFormComponent extends EditForm<HalResource> implements OnInit, 
       }
 
       // Show confirmation message when transitioning to a new state
-      // that's not withing the edit mode.
+      // that's not within the edit mode.
       if (!this.editFormRouting || this.editFormRouting.blockedTransition(transition)) {
         if (requiresConfirmation && !window.confirm(confirmText)) {
           return false;
@@ -96,7 +94,6 @@ export class EditFormComponent extends EditForm<HalResource> implements OnInit, 
   }
 
   ngOnDestroy() {
-    this.unregisterListener();
     this.destroy();
   }
 
@@ -106,6 +103,11 @@ export class EditFormComponent extends EditForm<HalResource> implements OnInit, 
     if (this.initializeEditMode) {
       this.start();
     }
+  }
+
+  destroy() {
+    this.unregisterListener();
+    super.destroy();
   }
 
   public async activateField(form:EditForm, schema:IFieldSchema, fieldName:string, errors:string[]):Promise<EditFieldHandler> {

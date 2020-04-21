@@ -1,8 +1,8 @@
 #-- encoding: UTF-8
 
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
@@ -66,9 +66,7 @@ module API
       end
 
       def authenticate
-        warden.authenticate! scope: authentication_scope
-
-        User.current = warden.user scope: authentication_scope
+        User.current = warden.authenticate! scope: authentication_scope
 
         if Setting.login_required? and not logged_in?
           raise ::API::Errors::Unauthenticated
@@ -211,6 +209,7 @@ module API
 
     error_response ActiveRecord::RecordNotFound, ::API::Errors::NotFound, log: false
     error_response ActiveRecord::StaleObjectError, ::API::Errors::Conflict, log: false
+    error_response NotImplementedError, ::API::Errors::NotImplemented, log: false
 
     error_response MultiJson::ParseError, ::API::Errors::ParseError
 

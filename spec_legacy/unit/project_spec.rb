@@ -1,8 +1,8 @@
 #-- encoding: UTF-8
 
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
@@ -33,7 +33,6 @@ describe Project, type: :model do
   fixtures :all
 
   before do
-    FactoryBot.create(:type_standard)
     @ecookbook = Project.find(1)
     @ecookbook_sub1 = Project.find(3)
     User.current = nil
@@ -326,78 +325,6 @@ describe Project, type: :model do
     assert copied_project.active
   end
 
-  it 'should activities should use the system activities' do
-    project = Project.find(1)
-    assert_equal project.activities, TimeEntryActivity.where(active: true).to_a
-  end
-
-  it 'should activities should use the project specific activities' do
-    project = Project.find(1)
-    overridden_activity = TimeEntryActivity.new(name: 'Project', project: project)
-    assert overridden_activity.save!
-
-    assert project.activities.include?(overridden_activity), 'Project specific Activity not found'
-  end
-
-  it 'should activities should not include the inactive project specific activities' do
-    project = Project.find(1)
-    overridden_activity = TimeEntryActivity.new(name: 'Project', project: project, parent: TimeEntryActivity.first, active: false)
-    assert overridden_activity.save!
-
-    assert !project.activities.include?(overridden_activity), 'Inactive Project specific Activity found'
-  end
-
-  it 'should activities should not include project specific activities from other projects' do
-    project = Project.find(1)
-    overridden_activity = TimeEntryActivity.new(name: 'Project', project: Project.find(2))
-    assert overridden_activity.save!
-
-    assert !project.activities.include?(overridden_activity), 'Project specific Activity found on a different project'
-  end
-
-  it 'should activities should handle nils' do
-    overridden_activity = TimeEntryActivity.new(name: 'Project', project: Project.find(1), parent: TimeEntryActivity.first)
-    TimeEntryActivity.delete_all
-
-    # No activities
-    project = Project.find(1)
-    assert project.activities.empty?
-
-    # No system, one overridden
-    assert overridden_activity.save!
-    project.reload
-    assert_equal [overridden_activity], project.activities
-  end
-
-  it 'should activities should override system activities with project activities' do
-    project = Project.find(1)
-    parent_activity = TimeEntryActivity.first
-    overridden_activity = TimeEntryActivity.new(name: 'Project', project: project, parent: parent_activity)
-    assert overridden_activity.save!
-
-    assert project.activities.include?(overridden_activity), 'Project specific Activity not found'
-    assert !project.activities.include?(parent_activity), 'System Activity found when it should have been overridden'
-  end
-
-  it 'should activities should include inactive activities if specified' do
-    project = Project.find(1)
-    overridden_activity = TimeEntryActivity.new(name: 'Project', project: project, parent: TimeEntryActivity.first, active: false)
-    assert overridden_activity.save!
-
-    assert project.activities(true).include?(overridden_activity), 'Inactive Project specific Activity not found'
-  end
-
-  specify 'activities should not include active System activities if the project has an override that is inactive' do
-    project = Project.find(1)
-    system_activity = TimeEntryActivity.find_by(name: 'Design')
-    assert system_activity.active?
-    overridden_activity = FactoryBot.create(:time_entry_activity, project: project, parent: system_activity, active: false)
-    assert overridden_activity.save!
-
-    assert !project.activities.include?(overridden_activity), 'Inactive Project specific Activity not found'
-    assert !project.activities.include?(system_activity), 'System activity found when the project has an inactive override'
-  end
-
   it 'should close completed versions' do
     Version.update_all("status = 'open'")
     project = Project.find(1)
@@ -456,7 +383,7 @@ describe Project, type: :model do
       @source_project.versions << assigned_version
       assert_equal 3, @source_project.versions.size
       FactoryBot.create(:work_package, project: @source_project,
-                                        fixed_version_id: assigned_version.id,
+                                        version_id: assigned_version.id,
                                         subject: 'change the new issues to use the copied version',
                                         type_id: 1,
                                         project_id: @source_project.id)
@@ -466,9 +393,9 @@ describe Project, type: :model do
       copied_issue = @project.work_packages.find_by(subject: 'change the new issues to use the copied version')
 
       assert copied_issue
-      assert copied_issue.fixed_version
-      assert_equal 'Assigned Issues', copied_issue.fixed_version.name # Same name
-      refute_equal assigned_version.id, copied_issue.fixed_version.id # Different record
+      assert copied_issue.version
+      assert_equal 'Assigned Issues', copied_issue.version.name # Same name
+      refute_equal assigned_version.id, copied_issue.version.id # Different record
     end
 
     it 'should change the new issues to use the copied closed version' do
@@ -477,7 +404,7 @@ describe Project, type: :model do
       @source_project.versions << assigned_version
       assert_equal 3, @source_project.versions.size
       FactoryBot.create(:work_package, project: @source_project,
-                                        fixed_version_id: assigned_version.id,
+                                        version_id: assigned_version.id,
                                         subject: 'change the new issues to use the copied version',
                                         type_id: 1,
                                         project_id: @source_project.id)
@@ -488,9 +415,9 @@ describe Project, type: :model do
       copied_issue = @project.work_packages.find_by(subject: 'change the new issues to use the copied version')
 
       assert copied_issue
-      assert copied_issue.fixed_version
-      assert_equal 'Assigned Issues', copied_issue.fixed_version.name # Same name
-      refute_equal assigned_version.id, copied_issue.fixed_version.id # Different record
+      assert copied_issue.version
+      assert_equal 'Assigned Issues', copied_issue.version.name # Same name
+      refute_equal assigned_version.id, copied_issue.version.id # Different record
     end
 
     it 'should copy issue relations' do

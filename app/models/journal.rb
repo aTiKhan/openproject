@@ -1,7 +1,7 @@
 #-- encoding: UTF-8
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
@@ -27,7 +27,7 @@
 # See docs/COPYRIGHT.rdoc for more details.
 #++
 
-class Journal < ActiveRecord::Base
+class Journal < ApplicationRecord
   self.table_name = 'journals'
 
   include ::JournalChanges
@@ -61,6 +61,17 @@ class Journal < ActiveRecord::Base
       attributes.each { |k, v| attributes[k] = v[1] }
     end
     data.update attributes
+  end
+
+  # TODO: check if this can be removed
+  # Overrides the +user=+ method created by the polymorphic +belongs_to+ user association.
+  # Based on the class of the object given, either the +user+ association columns or the
+  # +user_name+ string column is populated.
+  def user=(value)
+    case value
+    when ActiveRecord::Base then super(value)
+    else self.user = User.find_by_login(value)
+    end
   end
 
   # In conjunction with the included Comparable module, allows comparison of journal records
@@ -119,6 +130,10 @@ class Journal < ActiveRecord::Base
 
   def previous
     predecessor
+  end
+
+  def noop?
+    (!notes || notes&.empty?) && get_changes.empty?
   end
 
   private

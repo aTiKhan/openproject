@@ -1,6 +1,6 @@
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
@@ -29,7 +29,8 @@
 require 'spec_helper'
 
 RSpec.feature 'Work package index sums', js: true do
-  let(:admin) { FactoryBot.create(:admin) }
+  using_shared_fixtures :admin
+
   let(:project) do
     FactoryBot.create(:project, name: 'project1', identifier: 'project1')
   end

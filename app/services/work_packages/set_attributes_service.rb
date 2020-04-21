@@ -1,8 +1,8 @@
 #-- encoding: UTF-8
 
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
@@ -131,7 +131,7 @@ class WorkPackages::SetAttributesService < ::BaseServices::SetAttributes
     return unless work_package.project_id_changed? && work_package.project_id
 
     change_by_system do
-      set_fixed_version_to_nil
+      set_version_to_nil
       reassign_category
 
       reassign_type unless work_package.type_id_changed?
@@ -149,10 +149,11 @@ class WorkPackages::SetAttributesService < ::BaseServices::SetAttributes
     end
   end
 
-  def set_fixed_version_to_nil
-    unless work_package.fixed_version &&
-           work_package.project.shared_versions.include?(work_package.fixed_version)
-      work_package.fixed_version = nil
+  def set_version_to_nil
+    if work_package.version &&
+       !(work_package.project &&
+         work_package.project.shared_versions.include?(work_package.version))
+      work_package.version = nil
     end
   end
 
@@ -173,11 +174,11 @@ class WorkPackages::SetAttributesService < ::BaseServices::SetAttributes
 
     work_package.type = available_types.detect(&:is_default) || available_types.first
 
-    reassign_status work_package.new_statuses_allowed_to(user, true)
+    reassign_status assignable_statuses
   end
 
   def reassign_status(available_statuses)
-    return if available_statuses.include? work_package.status
+    return if available_statuses.include?(work_package.status) || work_package.status.is_a?(Status::InexistentStatus)
 
     new_status = available_statuses.detect(&:is_default) || available_statuses.first
     work_package.status = new_status if new_status.present?
@@ -213,5 +214,9 @@ class WorkPackages::SetAttributesService < ::BaseServices::SetAttributes
 
   def work_package
     model
+  end
+
+  def assignable_statuses
+    instantiate_contract(work_package, user).assignable_statuses(true)
   end
 end

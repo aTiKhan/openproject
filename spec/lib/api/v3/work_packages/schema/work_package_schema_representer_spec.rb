@@ -1,6 +1,6 @@
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
@@ -700,7 +700,7 @@ describe ::API::V3::WorkPackages::Schema::WorkPackageSchemaRepresenter do
         it_behaves_like 'has basic schema properties' do
           let(:path) { 'version' }
           let(:type) { 'Version' }
-          let(:name) { I18n.t('activerecord.attributes.work_package.fixed_version') }
+          let(:name) { I18n.t('activerecord.attributes.work_package.version') }
           let(:required) { false }
           let(:writable) { true }
         end
@@ -718,7 +718,7 @@ describe ::API::V3::WorkPackages::Schema::WorkPackageSchemaRepresenter do
         it_behaves_like 'has basic schema properties' do
           let(:path) { 'version' }
           let(:type) { 'Version' }
-          let(:name) { I18n.t('activerecord.attributes.work_package.fixed_version') }
+          let(:name) { I18n.t('activerecord.attributes.work_package.version') }
           let(:required) { false }
           let(:writable) { false }
         end

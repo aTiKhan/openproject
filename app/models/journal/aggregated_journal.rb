@@ -1,7 +1,8 @@
 #-- encoding: UTF-8
+
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
@@ -418,6 +419,12 @@ class Journal::AggregatedJournal
 
   def initial?
     predecessor.nil?
+  end
+
+  # If we where to delegate here, the wrapped journal would be compared to its predecessor which is
+  # not necessarily the this aggreated journal's predecessor.
+  def noop?
+    (!notes || notes&.empty?) && get_changes.empty?
   end
 
   private

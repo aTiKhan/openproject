@@ -1,6 +1,6 @@
 // -- copyright
-// OpenProject is a project management system.
-// Copyright (C) 2012-2015 the OpenProject Foundation (OPF)
+// OpenProject is an open source project management software.
+// Copyright (C) 2012-2020 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -23,7 +23,7 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// See doc/COPYRIGHT.rdoc for more details.
+// See docs/COPYRIGHT.rdoc for more details.
 // ++
 
 import {WorkPackageCacheService} from 'core-components/work-packages/work-package-cache.service';
@@ -55,16 +55,16 @@ import {NotificationsService} from 'core-app/modules/common/notifications/notifi
 import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
 import {IFieldSchema} from "core-app/modules/fields/field.base";
 import {ClickPositionMapper} from "core-app/modules/common/set-click-position/set-click-position";
-import {untilComponentDestroyed} from "ng2-rx-componentdestroyed";
 import {EditFormComponent} from "core-app/modules/fields/edit/edit-form/edit-form.component";
 import {HalResource} from "core-app/modules/hal/resources/hal-resource";
+import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
 
 @Component({
   selector: 'editable-attribute-field',
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './editable-attribute-field.component.html'
 })
-export class EditableAttributeFieldComponent implements OnInit, OnDestroy {
+export class EditableAttributeFieldComponent extends UntilDestroyedMixin implements OnInit, OnDestroy {
   @Input('fieldName') public fieldName:string;
   @Input('resource') public resource:HalResource;
   @Input('wrapperClasses') public wrapperClasses?:string;
@@ -95,12 +95,12 @@ export class EditableAttributeFieldComponent implements OnInit, OnDestroy {
               protected NotificationsService:NotificationsService,
               protected cdRef:ChangeDetectorRef,
               protected I18n:I18nService) {
-
+    super();
   }
 
   public setActive(active:boolean = true) {
     this.active = active;
-    if (!this.destroyed) {
+    if (!this.componentDestroyed) {
       this.cdRef.detectChanges();
     }
   }
@@ -114,16 +114,12 @@ export class EditableAttributeFieldComponent implements OnInit, OnDestroy {
       .temporaryEditResource(this.resource)
       .values$()
       .pipe(
-        untilComponentDestroyed(this)
+        this.untilDestroyed()
       )
-      .subscribe(workPackage => {
-        this.resource = workPackage;
+      .subscribe(resource => {
+        this.resource = resource;
         this.render();
       });
-  }
-
-  public ngOnDestroy() {
-    this.destroyed = true;
   }
 
   // Open the field when its closed and relay drag & drop events to it.

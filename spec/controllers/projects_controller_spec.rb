@@ -1,6 +1,6 @@
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
@@ -29,16 +29,13 @@
 require 'spec_helper'
 
 describe ProjectsController, type: :controller do
-  before do
-    Role.delete_all
-    User.delete_all
-  end
+  using_shared_fixtures :admin
 
   before do
     allow(@controller).to receive(:set_localization)
 
-    @user = FactoryBot.create(:admin)
-    allow(User).to receive(:current).and_return @user
+    @role = FactoryBot.create(:non_member)
+    allow(User).to receive(:current).and_return admin
 
     @params = {}
   end
@@ -159,7 +156,7 @@ describe ProjectsController, type: :controller do
         end
 
         it 'redirects to settings#types' do
-          expect(response).to redirect_to(settings_project_path(project.identifier, tab: 'types'))
+          expect(response).to redirect_to(controller: '/project_settings/types', id: project, action: 'show')
         end
       end
 
@@ -179,7 +176,7 @@ describe ProjectsController, type: :controller do
         end
 
         it 'redirects to settings#types' do
-          expect(response).to redirect_to(settings_project_path(project.identifier, tab: 'types'))
+          expect(response).to redirect_to(controller: '/project_settings/types', id: project, action: 'show')
         end
       end
     end
@@ -237,7 +234,7 @@ describe ProjectsController, type: :controller do
           request
         end
 
-        it { expect(response).to redirect_to(settings_project_path(project, 'custom_fields')) }
+        it { expect(response).to redirect_to(controller: '/project_settings/custom_fields', id: project, action: 'show') }
 
         it 'sets flash[:notice]' do
           expect(flash[:notice]).to eql(I18n.t(:notice_successful_update))
@@ -250,7 +247,7 @@ describe ProjectsController, type: :controller do
           request
         end
 
-        it { expect(response).to redirect_to(settings_project_path(project, 'custom_fields')) }
+        it { expect(response).to redirect_to(controller: '/project_settings/custom_fields', id: project, action: 'show') }
 
         it 'sets flash[:error]' do
           expect(flash[:error]).to include(

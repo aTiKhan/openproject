@@ -1,6 +1,6 @@
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
@@ -29,7 +29,6 @@
 require 'spec_helper'
 
 describe AccountController, type: :controller do
-  # class AccountHook < Redmine::Hook::ViewListener; end
 
   class UserHook < Redmine::Hook::ViewListener
     attr_reader :registered_user
@@ -55,10 +54,6 @@ describe AccountController, type: :controller do
     hook.reset!
   end
 
-  after do
-    User.delete_all
-    User.current = nil
-  end
   let(:user) { FactoryBot.build_stubbed(:user) }
 
   context 'GET #login' do
@@ -106,7 +101,7 @@ describe AccountController, type: :controller do
   end
 
   context 'POST #login' do
-    let(:admin) { FactoryBot.create(:admin) }
+    using_shared_fixtures :admin
 
     describe 'wrong password' do
       it 'redirects back to login' do
@@ -285,7 +280,7 @@ describe AccountController, type: :controller do
     end
 
     context 'GET #logout' do
-      let(:admin) { FactoryBot.create(:admin) }
+      using_shared_fixtures :admin
 
       it 'calls reset_session' do
         expect(@controller).to receive(:reset_session).once
@@ -421,10 +416,8 @@ describe AccountController, type: :controller do
     describe "User who is not allowed to change password can't login" do
       before do
         post 'change_password',
-             flash: {
-               _password_change_user_id: admin.id
-             },
              params: {
+               password_change_user_id: admin.id,
                username: admin.login,
                password: 'adminADMIN!',
                new_password: 'adminADMIN!New',
@@ -620,10 +613,9 @@ describe AccountController, type: :controller do
           it "notifies the admins about the issue" do
             perform_enqueued_jobs
 
-            mail = ActionMailer::Base.deliveries.last
-
+            mail = ActionMailer::Base.deliveries.detect { |mail| mail.to.first == admin.mail }
+            expect(mail).to be_present
             expect(mail.subject).to match /limit reached/
-            expect(mail.to.first).to eq admin.mail
             expect(mail.body.parts.first.to_s).to match /new user \(#{params[:user][:mail]}\)/
           end
 
@@ -875,10 +867,9 @@ describe AccountController, type: :controller do
       it "notifies the admins about the issue" do
         perform_enqueued_jobs
 
-        mail = ActionMailer::Base.deliveries.last
-
+        mail = ActionMailer::Base.deliveries.detect { |mail| mail.to.first == admin.mail }
+        expect(mail).to be_present
         expect(mail.subject).to match /limit reached/
-        expect(mail.to.first).to eq admin.mail
       end
     end
 

@@ -1,6 +1,6 @@
 #-- copyright
-#OpenProject is a project management system.
-#Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+#OpenProject is an open source project management software.
+#Copyright (C) 2012-2020 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
@@ -80,6 +80,7 @@ ru:
         inline: 'Выделение:'
         entire_card_by: 'Вся карточка по'
       remove_from_list: 'Удалить карточку из списка'
+    caption_rate_history: "История тарифов"
     clipboard:
       browser_error: "Ваш браузер не поддерживает копирование в буфер обмена. Пожалуйста, скопируйте выделенный текст вручную."
       copied_successful: "Успешно скопировано в буфер обмена!"
@@ -161,6 +162,58 @@ ru:
         edit_query: 'Редактировать запрос'
         new_group: 'Новая группа'
         reset_to_defaults: 'Восстановить значения по умолчанию'
+      enterprise:
+        trial:
+          confirmation: "Подтверждение адреса электронной почты"
+          confirmation_info: "Мы отправили вам письмо. Проверьте электронную почту и нажмите на ссылку подтверждения в письме, чтобы получить 14-дневную пробную версию."
+          form:
+            general_consent: >
+              Я принимаю <a target="_blank" href="%{link_terms}">условия обслуживания</a> и <a target="_blank" href="%{link_privacy}">политику конфиденциальности</a>.
+            invalid_email: "Неверный адрес электронной почты"
+            label_company: "Компания"
+            label_first_name: "Имя"
+            label_last_name: "Фамилия"
+            label_email: "Электронная почта"
+            label_domain: "Домен"
+            label_subscriber: "Подписчик"
+            label_maximum_users: "Максимальное число активных пользователей"
+            label_starts_at: "Начиная с"
+            label_expires_at: "Срок действия до"
+            receive_newsletter: Я хочу получать <a target="_blank" href="%{link}">новостную рассылку от OpenProject</a>.
+          email_not_received: "Не получили письмо? Справа вы можете запросить повторную отправку письма со ссылкой."
+          try_another_email: "Еще можно указать другой адрес электронной почты."
+          try_another_email_hint: "Учтите, что предыдущий адрес электронной почты сбросится, если вы повторите попытку с новым адресом."
+          next_steps: "Дальнейшие шаги"
+          resend_link: "Отправить еще раз"
+          resend_success: "Письмо отправлено. Проверьте электронную почту и нажмите на ссылку подтверждения в письме."
+          resend_warning: "Не удалось повторно отправить письмо."
+          session_timeout: "Время сеанса истекло. Обновите страницу или запросите повторную отправку письма."
+          status_label: "Статус:"
+          status_confirmed: "подтверждено"
+          status_waiting: "письмо отправлено, ожидается подтверждение"
+          test_ee: "Протестируйте корпоративную 14-дневную версию бесплатно"
+          quick_overview: "Узнайте вкратце об управлении проектами и совместной работе в OpenProject Enterprise Edition."
+        upsale:
+          become_hero: "Станьте героем!"
+          benefits:
+            description: "Каковы преимущества?"
+            high_security: "Функции безопасности"
+            high_security_text: "Единый вход (SAML, OpenID Connect, CAS), двухфакторная аутентификация и автоматическая синхронизация LDAP-групп."
+            installation: "Поддержка установки"
+            installation_text: "Опытные разработчики ПО проконсультируют вас по всему процессу установки и настройки в вашей инфраструктуре."
+            premium_features: "Премиум-функции"
+            premium_features_text: "Agile-доски, пользовательские темы и логотипы, графики, умные рабочие процессы с настройкой действий, полнотекстовый поиск по вложениям в пакетах работ и множественный выбор пользовательских полей."
+            professional_support: "Профессиональная поддержка"
+            professional_support_text: "Получите надежную и отзывчивую помощь от старших инженеров поддержки, обладающих экспертными знаниями о работе OpenProject в критичных для бизнеса условиях."
+          button_start_trial: "Бесплатная пробная версия"
+          button_book_now: "Заказать сейчас"
+          confidence: >
+            Мы предлагаем надежное и проверенное временем программное решение корпоративного уровня для управления проектами, в котором открытый исходный код сочетается с открытостью к новым идеям.
+          link_quote: "Рассчитать стоимость"
+          text: >
+            Версия OpenProject Enterprise Edition основана на версии Community Edition и включает в себя премиум-функции и профессиональную поддержку для организаций, у которых более 10 пользователей и которые управляют критически важными для бизнеса проектами с помощью OpenProject.
+          unlimited: "Без ограничений"
+          you_contribute: "Разработчикам тоже нужно на что-то жить. Купив корпоративную версию, вы ощутимо поможете нашему сообществу свободного ПО."
     custom_actions:
       date:
         specific: 'на'
@@ -170,6 +223,9 @@ ru:
       cannot_save_changes_with_message: "Не удается сохранить изменения из-за следующей ошибки: %{error}"
       query_saving: "Представление не может быть сохранено."
       embedded_table_loading: "Встроенное представление не может быть загружено: %{message}"
+    enumeration_activities: "Деятельность (отслеживание времени)"
+    enumeration_doc_categories: "Категории документов"
+    enumeration_work_package_priorities: "Приоритеты пакета работ"
     filter:
       description:
         text_open_filter: "Откройте этот фильтр с «ALT» и клавишей со стрелкой."
@@ -191,6 +247,7 @@ ru:
     general_text_yes: "Да"
     general_text_No: "Нет"
     general_text_Yes: "да"
+    global_roles: Глобальная роль
     hal:
       error:
         update_conflict_refresh: "Кликните здесь для обновления ресурса и обновления до последней версии."
@@ -202,8 +259,15 @@ ru:
       blocks:
         new_features:
           text_new_features: "Читайте о новых возможностях и обновлениях продуктов."
-          current_new_feature_html: "В OpenProject появилась новая <b>страница обзора</b>, где <b>собрана важная информация о проекте</b>, в том числе сведения о его отслеживании. </br>Кроме того, можно добавить множество новых виджетов состояния, таких как: <ul><li>состояние проекта;</li><li>обзор состояния пакета работ;</li><li>ход выполнения задач;</li><li>задачи, назначенные пользователям.</li></ul>"
-          learn_about: "Подробнее о новых виджетах состояния"
+          learn_about: "Подробнее о новых функциях"
+          standard:
+            learn_about_link: https://www.openproject.org/openproject-10-4
+            current_new_feature_html: >
+              Этот релиз содержит ряд новых функций и улучшений: <br><br> <ul> <li><b>Шаблоны оформления</b> по умолчанию: светлая и темная темы (премиум-функция).</li> <li>Новый <b>виджет отслеживания времени</b> для <i>Моей страницы</i>, в котором затраченное время отображается в виде столбчатой диаграммы.</li> <li><b>Экспорт отчетов о затратах в виде XLS</b> и форматированного текста из пакетов работ в виде PDF.</li> <li><b>Обновленный внешний вид и эргономика:</b>вкладки и другие улучшения в настройках проекта и функциях администрирования.</li> </ul>
+          bim:
+            learn_about_link: https://www.openproject.org/openproject-bim-10-4
+            current_new_feature_html: >
+              OpenProject содержит <b>новый модуль IFC для интеграции 3D-моделей</b> в систему управления проектами и для совместной работы с этими файлами в команде без установки отдельных платных приложений или лицензий. <br><br> <ul> <li><b>Импортируйте файлы IFC</b> моделей построения в свое приложение OpenProject.</li> <li><b>Открывайте 3D-модели и визуализируйте модели построения</b> прямо в браузере.</li> <li> <b>Работайте сразу с несколькими файлами IFC</b> вместе со своей командой прямо в OpenProject без установки отдельных платных приложений. </li> </ul>
     label_activate: "Активировать"
     label_add_column_after: "Добавить столбец после"
     label_add_column_before: "Добавить столбец перед"
@@ -211,7 +275,7 @@ ru:
     label_add_comment: "Добавить комментарий"
     label_add_comment_title: "Комментарий и тип @ для уведомления других людей"
     label_add_row_after: "Добавить строку после"
-    label_add_row_before: "Добавить строку до"
+    label_add_row_before: "Добавить строку перед"
     label_add_selected_columns: "Добавить выбранные столбцы"
     label_added_by: "Добавил(-а)"
     label_added_time_by: "Добавил(-а) %{author} %{age}"
@@ -221,6 +285,7 @@ ru:
     label_and: "и"
     label_ascending: "По возрастанию"
     label_author: "Автор: %{user}"
+    label_avatar: "Аватар"
     label_between: "между"
     label_board: "Доска"
     label_board_locked: "Заперто"
@@ -234,6 +299,8 @@ ru:
     label_deactivate: "Деактивировать"
     label_descending: "По убыванию"
     label_description: "Описание"
+    label_details: "Детали"
+    label_display: "Отображение"
     label_cancel_comment: "Отменить комментарий"
     label_closed_work_packages: "закрыт"
     label_collapse: "свернуть"
@@ -254,22 +321,30 @@ ru:
     label_export: "Экспорт"
     label_filename: "Файл"
     label_filesize: "Размер"
+    label_general: "Общие"
     label_greater_or_equal: ">="
     label_group: 'Группа'
     label_group_by: "Группировать по"
+    label_group_plural: "Группы"
     label_hide_attributes: "Показывать меньше"
     label_hide_column: "Скрыть столбец"
     label_hide_project_menu: "Свернуть меню проекта"
     label_in: "в"
     label_in_less_than: "менее чем"
     label_in_more_than: "более чем"
+    label_incoming_emails: "Входящие e-mail"
+    label_information_plural: "Информация"
     label_import: "Импорт"
     label_latest_activity: "Последние действия"
     label_last_updated_on: "Последний раз обновлено"
+    label_learn_more_link: "Узнать больше"
     label_less_or_equal: "<="
     label_less_than_ago: "меньше чем день назад"
     label_loading: "Загрузка..."
+    label_mail_notification: "Уведомления по электронной почте"
     label_me: "мне"
+    label_meeting_agenda: "Повестка дня"
+    label_meeting_minutes: "Протокол(-ы)"
     label_menu_collapse: "свернуть"
     label_menu_expand: "развернуть"
     label_more_than_ago: "больше, чем дней назад"
@@ -290,12 +365,16 @@ ru:
     label_previous: "Предыдущие"
     label_per_page: "На странице:"
     label_please_wait: "Пожалуйста, подождите"
+    label_project_plural: "Проекты"
     label_visibility_settings: "Параметры видимости"
     label_quote_comment: "Цитировать этот комментарий"
+    label_recent: "Недавние"
     label_reset: "Сброс"
     label_remove_column: "Удалить столбец"
     label_remove_columns: "Удалить выбранные столбцы"
     label_remove_row: "Удалить строку"
+    label_report: "Отчет"
+    label_repository_plural: "Репозитории"
     label_save_as: "Сохранить как"
     label_select_watcher: "Выберите наблюдателя..."
     label_selected_filter_list: "Выбранные фильтры"
@@ -306,6 +385,7 @@ ru:
     label_sort_higher: "Переместить вверх"
     label_sort_lower: "Переместить вниз"
     label_sorting: "Сортировка"
+    label_spent_time: "Затраченное время"
     label_star_query: "Добавлено в избранное"
     label_press_enter_to_save: "Нажмите ввод для сохранения."
     label_public_query: "Общий"
@@ -314,7 +394,9 @@ ru:
     label_subject: "Тема"
     label_this_week: "на этой неделе"
     label_today: "Сегодня"
+    label_time_entry_plural: "Затраченное время"
     label_up: "Вверх"
+    label_user_plural: "Пользователи"
     label_activity_show_only_comments: "Показать только деятельности с комментариями"
     label_activity_show_all: "Показать все активности"
     label_total_progress: "%{percent}% общего прогресса"
@@ -349,13 +431,14 @@ ru:
     label_add_description: "Добавить описание для %{file}"
     label_upload_notification: "Загрузка файлов..."
     label_work_package_upload_notification: "Загрузка файлов для пакета работ #%{id}: %{subject}"
-    label_wp_id_added_by: "#%{id} добавил(а) %{author}"
+    label_wp_id_added_by: "#%{id} добавлен %{author}"
     label_files_to_upload: "Эти файлы будут загружены:"
     label_rejected_files: "Эти файлы не могут быть загружены:"
     label_rejected_files_reason: "Эти файлы не могут быть загружены, как их размер больше, чем %{maximumFilesize}"
     label_wait: "Пожалуйста, подождите конфигурирование..."
     label_upload_counter: "%{done} %{count} файлов, готовы"
     label_validation_error: "Пакет работ не удалось сохранить из-за следующих ошибок:"
+    label_version_plural: "Этапы"
     label_view_has_changed: "У этого вида есть несохраненные изменения. Нажмите, чтобы сохранить их."
     help_texts:
       show_modal: 'Показать содержимое атрибута текста справки'
@@ -422,23 +505,22 @@ ru:
         upgrade_to_ee_text: "Ух ты! Если вам нужна эта функция, вы – супер профессионал! Не хотите поддержать OpenSource разработчиков, став клиентом корпоративной версии?"
         more_information: "Больше информации"
         nevermind: "Неважно"
-        filter_types:
-          parent: "будучи потомком"
-          precedes: "предыдущие"
-          follows: "следующие"
-          relates: "связанные с"
-          duplicates: "дублирование"
-          duplicated: "Дублируется"
-          blocks: "блокировка"
-          blocked: "заблокировано"
-          partof: "является частью"
-          includes: "включая"
-          requires: "требование"
-          required: "необходим для"
+      edit:
+        form_configuration: "Конфигурация формы"
+        projects: "Проекты"
+        settings: "Параметры"
     time_entry:
+      project: 'Проект'
+      work_package: 'Пакет работ'
+      work_package_required: 'Сначала необходимо выбрать пакет работ.'
       activity: 'Деятельность'
       comment: 'Комментарий'
+      duration: 'Продолжительность'
+      spent_on: 'Дата'
       hours: 'Часы'
+      label: 'Время поступления'
+    two_factor_authentication:
+      label_two_factor_authentication: 'Двухфакторная аутентификация'
     watchers:
       label_loading: Загрузка наблюдателей...
       label_error_loading: При загрузке наблюдателей произошла ошибка
@@ -496,20 +578,6 @@ ru:
       select_tag: 'Выберите тег'
       select_branch: 'Выберите ветвь'
     field_value_enter_prompt: "Введите значение для «%{field}»"
-    select2:
-      input_too_short:
-        one: "Пожалуйста, введите еще один символ"
-        few: "Пожалуйста, введите более {{count}} символов"
-        many: "Пожалуйста, введите более {{count}} символов"
-        other: "Пожалуйста, введите более {{count}} символов"
-      load_more: "Загрузка дополнительных результатов ..."
-      no_matches: "Совпадения не найдены"
-      searching: "Поиск ..."
-      selection_too_big:
-        one: "Вы можете выбрать только один элемент"
-        few: "Можно выбрать {{limit}} элементов"
-        many: "Можно выбрать {{limit}} элементов"
-        other: "Можно выбрать {{limit}} элементов"
     project_menu_details: "Детали"
     sort:
       sorted_asc: 'Применяется сортировка по возрастанию, '
@@ -754,14 +822,13 @@ ru:
           automatic: 'Автоматически'
           manually: 'Вручную'
           warning: 'При активации режима автоматической сортировки вы потеряете свою предыдущую сортировку.'
-        columns_help_text: "Используйте ввод выше для добавления или удаления столбцов в табличном представлении. Вы можете перетаскивать столбцы для изменения их порядка."
+        columns_help_text: "С помощью поля ввода выше можно добавлять столбцы в табличное представление. Для изменения порядка столбцов перетаскивайте их мышью."
         upsale:
           attribute_highlighting: 'Хотите выделить некоторые пакеты работ из общей массы?'
           relation_columns: 'Нужно видеть отношения в списке пакетов работ?'
           check_out_link: 'Проверьте корпоративную версию.'
         relation_filters:
-          first_part: "Показать все пакеты работы"
-          second_part: "текущий пакет работ"
+          filter_work_packages_by_relation_type: 'Фильтр пакета работ по типу отношения'
       tabs:
         overview: Обзор
         activity: Деятельность
@@ -851,6 +918,7 @@ ru:
         many: "пакет работ с %{count} дочерними"
         other: "пакет работ с %{count} дочерними"
       hour:
+        zero: "0 ч"
         one: "1 ч"
         few: "%{count} ч"
         many: "%{count} ч"

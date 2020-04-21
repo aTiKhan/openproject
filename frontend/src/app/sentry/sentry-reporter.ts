@@ -1,6 +1,6 @@
 // -- copyright
-// OpenProject is a project management system.
-// Copyright (C) 2012-2015 the OpenProject Foundation (OPF)
+// OpenProject is an open source project management software.
+// Copyright (C) 2012-2020 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -23,13 +23,13 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// See doc/COPYRIGHT.rdoc for more details.
+// See docs/COPYRIGHT.rdoc for more details.
 // ++
 
 import {Scope} from "@sentry/hub";
 import {Severity} from "@sentry/types";
+import {Event as SentryEvent} from "@sentry/types";
 import {environment} from "../../environments/environment";
-import {debugLog} from "core-app/helpers/debug_output";
 
 export type ScopeCallback = (scope:Scope) => void;
 
@@ -82,6 +82,7 @@ export class SentryReporter implements ErrorReporter {
             // Uncaught promise rejections
             'Uncaught (in promise)'
           ],
+          beforeSend: (event) => this.filterEvent(event)
         });
 
         this.sentryLoaded(Sentry);
@@ -115,7 +116,8 @@ export class SentryReporter implements ErrorReporter {
 
   public captureException(err:Error|string) {
     if (!this.client || !err) {
-      return this.handleOfflineMessage('captureException', Array.from(arguments));
+      this.handleOfflineMessage('captureException', Array.from(arguments));
+      throw err;
     }
 
     if (typeof err === 'string') {
@@ -162,5 +164,21 @@ export class SentryReporter implements ErrorReporter {
 
     /** Execute callbacks */
     this.contextCallbacks.forEach(cb => cb(scope));
+  }
+
+  /**
+   * Filters the event content's or removes
+   * it from being sent.
+   *
+   * @param event
+   */
+  private filterEvent(event:SentryEvent):SentryEvent|null {
+    const unsupportedBrowser = document.body.classList.contains('-unsupported-browser');
+    if (unsupportedBrowser) {
+      console.warn("Browser is not supported, skipping sentry reporting completely.")
+      return null;
+    }
+
+    return event;
   }
 }

@@ -1,6 +1,6 @@
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2020 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
@@ -324,7 +324,7 @@ describe 'API v3 Project resource', type: :request, content_type: :json do
         expect(Project.count)
           .to eql(1)
 
-        expect(Project::Status.count)
+        expect(Projects::Status.count)
           .to eql(1)
       end
     end
@@ -707,7 +707,7 @@ describe 'API v3 Project resource', type: :request, content_type: :json do
 
       context 'for a project which has a version foreign work packages refer to' do
         let(:version) { FactoryBot.create(:version, project: project) }
-        let(:work_package) { FactoryBot.create(:work_package, fixed_version: version) }
+        let(:work_package) { FactoryBot.create(:work_package, version: version) }
 
         let(:setup) { work_package }
 

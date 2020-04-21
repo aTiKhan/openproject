@@ -15,7 +15,7 @@ zh-TW:
         members:
           title: '成員'
           no_results: 'No visible members.'
-          view_all_members: '查看所有的成員'
+          view_all_members: '查看所有成員'
           add: '成員'
           too_many: 'Displaying %{count} of %{total} members.'
         news:
@@ -37,6 +37,8 @@ zh-TW:
         subprojects:
           title: '子專案'
           no_results: 'No subprojects.'
+        time_entries_current_user:
+          title: 'My spent time'
         time_entries_list:
           title: 'Spent time (last 7 days)'
           no_results: 'No time entries for the last 7 days.'
