@@ -1,12 +1,12 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
 //
 // OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-// Copyright (C) 2006-2017 Jean-Philippe Lang
+// Copyright (C) 2006-2013 Jean-Philippe Lang
 // Copyright (C) 2010-2013 the ChiliProject Team
 //
 // This program is free software; you can redistribute it and/or
@@ -25,14 +25,14 @@
 //
 // See docs/COPYRIGHT.rdoc for more details.
 //++
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from "@angular/core";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } from "@angular/core";
 
-import {WorkPackageResource} from "core-app/modules/hal/resources/work-package-resource";
-import {UserCacheService} from "core-components/user/user-cache.service";
-import {UserResource} from "core-app/modules/hal/resources/user-resource";
-import {ProjectResource} from "core-app/modules/hal/resources/project-resource";
-import {TimezoneService} from "core-components/datetime/timezone.service";
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
+import { WorkPackageResource } from "core-app/modules/hal/resources/work-package-resource";
+import { UserResource } from "core-app/modules/hal/resources/user-resource";
+import { ProjectResource } from "core-app/modules/hal/resources/project-resource";
+import { TimezoneService } from "core-components/datetime/timezone.service";
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
+import { APIV3Service } from "core-app/modules/apiv3/api-v3.service";
 
 @Component({
   selector: 'revision-activity',
@@ -60,7 +60,7 @@ export class RevisionActivityComponent implements OnInit {
   constructor(readonly I18n:I18nService,
               readonly timezoneService:TimezoneService,
               readonly cdRef:ChangeDetectorRef,
-              readonly userCacheService:UserCacheService) {
+              readonly apiV3Service:APIV3Service) {
   }
 
   ngOnInit() {
@@ -78,7 +78,7 @@ export class RevisionActivityComponent implements OnInit {
     link.title = this.revision;
     link.textContent = this.I18n.t(
       "js.label_committed_link",
-      {revision_identifier: formattedRevision}
+      { revision_identifier: formattedRevision }
     );
 
     this.revisionLink = this.I18n.t("js.label_committed_at",
@@ -92,15 +92,18 @@ export class RevisionActivityComponent implements OnInit {
     if (this.activity.author === undefined) {
       this.userName = this.activity.authorName;
     } else {
-      this.userCacheService
-        .require(this.activity.author.idFromLink)
-        .then((user:UserResource) => {
+      this
+        .apiV3Service
+        .users
+        .id(this.activity.author.idFromLink)
+        .get()
+        .subscribe((user:UserResource) => {
           this.userId = user.id!;
           this.userName = user.name;
           this.userActive = user.isActive;
           this.userAvatar = user.avatar;
           this.userPath = user.showUser.href;
-          this.userLabel = this.I18n.t('js.label_author', {user: this.userName});
+          this.userLabel = this.I18n.t('js.label_author', { user: this.userName });
           this.cdRef.detectChanges();
         });
     }

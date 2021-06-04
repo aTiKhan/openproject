@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -39,31 +40,40 @@ class LdapAuthSource < AuthSource
   validates_length_of :attr_login, :attr_firstname, :attr_lastname, :attr_mail, :attr_admin, maximum: 30, allow_nil: true
   validates_numericality_of :port, only_integer: true
 
+  validate :validate_filter_string
+
   before_validation :strip_ldap_attributes
   after_initialize :set_default_port
 
   def authenticate(login, password)
     return nil if login.blank? || password.blank?
+
     attrs = get_user_dn(login)
 
     if attrs && attrs[:dn] && authenticate_dn(attrs[:dn], password)
       Rails.logger.debug { "Authentication successful for '#{login}'" }
-      return attrs.except(:dn)
+      attrs.except(:dn)
     end
-  rescue  Net::LDAP::LdapError => error
-    raise 'LdapError: ' + error.message
+  rescue Net::LDAP::Error => e
+    raise 'LdapError: ' + e.message
   end
 
   def find_user(login)
     return nil if login.blank?
+
     attrs = get_user_dn(login)
 
     if attrs && attrs[:dn]
       Rails.logger.debug { "Lookup successful for '#{login}'" }
-      return attrs.except(:dn)
+      attrs.except(:dn)
     end
-  rescue  Net::LDAP::LdapError => error
-    raise 'LdapError: ' + error.message
+  rescue Net::LDAP::Error => e
+    raise 'LdapError: ' + e.message
+  end
+
+  # Open and return a system connection
+  def with_connection
+    yield initialize_ldap_con(account, account_password)
   end
 
   # test the connection to the LDAP
@@ -71,43 +81,18 @@ class LdapAuthSource < AuthSource
     unless authenticate_dn(account, account_password)
       raise I18n.t('auth_source.ldap_error', error_message: I18n.t('auth_source.ldap_auth_failed'))
     end
-  rescue  Net::LDAP::LdapError => text
-    raise I18n.t('auth_source.ldap_error', error_message: text.to_s)
+  rescue Net::LDAP::Error => e
+    raise I18n.t('auth_source.ldap_error', error_message: e.to_s)
   end
 
   def auth_method_name
     'LDAP'
   end
 
-  private
-
-  def strip_ldap_attributes
-    [:attr_login, :attr_firstname, :attr_lastname, :attr_mail, :attr_admin].each do |attr|
-      write_attribute(attr, read_attribute(attr).strip) unless read_attribute(attr).nil?
-    end
-  end
-
-  def initialize_ldap_con(ldap_user, ldap_password)
-    options = { host: host,
-                port: port,
-                force_no_page: true,
-                encryption: ldap_encryption
-              }
-    options.merge!(auth: { method: :simple, username: ldap_user, password: ldap_password }) unless ldap_user.blank? && ldap_password.blank?
-    Net::LDAP.new options
-  end
-
-  def ldap_encryption
-    if tls_mode == 'plain_ldap'
-      nil
-    else
-      tls_mode.to_sym
-    end
-  end
-
   def get_user_attributes_from_ldap_entry(entry)
     {
       dn: entry.dn,
+      login: LdapAuthSource.get_attr(entry, attr_login),
       firstname: LdapAuthSource.get_attr(entry, attr_firstname),
       lastname: LdapAuthSource.get_attr(entry, attr_lastname),
       mail: LdapAuthSource.get_attr(entry, attr_mail),
@@ -116,14 +101,57 @@ class LdapAuthSource < AuthSource
     }
   end
 
-  # Return the attributes needed for the LDAP search.  It will only
-  # include the user attributes if on-the-fly registration is enabled
-  def search_attributes
-    if onthefly_register?
-      ['dn', attr_firstname, attr_lastname, attr_mail, attr_admin]
+  # Return the attributes needed for the LDAP search.
+  #
+  # @param all_attributes [Boolean] Whether to return all user attributes
+  #
+  # By default, it will only include the user attributes if on-the-fly registration is enabled
+  def search_attributes(all_attributes = onthefly_register?)
+    if all_attributes
+      ['dn', attr_login, attr_firstname, attr_lastname, attr_mail, attr_admin].compact
     else
-      ['dn']
+      ['dn', attr_login]
     end
+  end
+
+  ##
+  # Returns the filter object used for searching
+  def default_filter
+    object_filter = Net::LDAP::Filter.eq('objectClass', '*')
+    parsed_filter_string || object_filter
+  end
+
+  def parsed_filter_string
+    Net::LDAP::Filter.from_rfc2254(filter_string) if filter_string.present?
+  end
+
+  private
+
+  def strip_ldap_attributes
+    %i[attr_login attr_firstname attr_lastname attr_mail attr_admin].each do |attr|
+      write_attribute(attr, read_attribute(attr).strip) unless read_attribute(attr).nil?
+    end
+  end
+
+  def initialize_ldap_con(ldap_user, ldap_password)
+    options = { host: host,
+                port: port,
+                force_no_page: OpenProject::Configuration.ldap_force_no_page,
+                encryption: ldap_encryption }
+    unless ldap_user.blank? && ldap_password.blank?
+      options.merge!(auth: { method: :simple, username: ldap_user,
+                             password: ldap_password })
+    end
+    Net::LDAP.new options
+  end
+
+  def ldap_encryption
+    return nil if tls_mode.to_s == 'plain_ldap'
+
+    {
+      method: tls_mode.to_sym,
+      tls_options: OpenProject::Configuration.ldap_tls_options.with_indifferent_access
+    }
   end
 
   # Check if a DN (user record) authenticates with the password
@@ -137,20 +165,20 @@ class LdapAuthSource < AuthSource
   def get_user_dn(login)
     ldap_con = initialize_ldap_con(account, account_password)
     login_filter = Net::LDAP::Filter.eq(attr_login, login)
-    object_filter = Net::LDAP::Filter.eq('objectClass', '*')
+
     attrs = {}
 
-    Rails.logger.debug {
-      "LDAP initializing search (BASE=#{base_dn}), (FILTER=#{(object_filter & login_filter).to_s})"
-    }
+    Rails.logger.debug do
+      "LDAP initializing search (BASE=#{base_dn}), (FILTER=#{default_filter & login_filter})"
+    end
     ldap_con.search(base: base_dn,
-                    filter: object_filter & login_filter,
+                    filter: default_filter & login_filter,
                     attributes: search_attributes) do |entry|
-      if onthefly_register?
-        attrs = get_user_attributes_from_ldap_entry(entry)
-      else
-        attrs = { dn: entry.dn }
-      end
+      attrs = if onthefly_register?
+                get_user_attributes_from_ldap_entry(entry)
+              else
+                { dn: entry.dn }
+              end
 
       Rails.logger.debug { "DN found for #{login}: #{attrs[:dn]}" }
     end
@@ -166,5 +194,11 @@ class LdapAuthSource < AuthSource
 
   def set_default_port
     self.port = 389 if port.to_i == 0
+  end
+
+  def validate_filter_string
+    parsed_filter_string
+  rescue Net::LDAP::FilterSyntaxInvalidError
+    errors.add :filter_string, :invalid
   end
 end

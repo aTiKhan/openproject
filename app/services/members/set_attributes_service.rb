@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -33,9 +33,38 @@ module Members
     private
 
     def set_attributes(params)
-      model.assign_roles(params.delete(:role_ids)) if params[:role_ids]
+      assign_roles(params)
 
       super
+    end
+
+    def assign_roles(params)
+      return unless params[:role_ids]
+
+      role_ids = params
+        .delete(:role_ids)
+        .select(&:present?)
+        .map(&:to_i)
+
+      existing_ids = model.member_roles.map(&:role_id)
+
+      mark_roles_for_destruction(existing_ids - role_ids)
+      build_roles(role_ids - existing_ids)
+    end
+
+    def mark_roles_for_destruction(role_ids)
+      role_ids.each do |role_id|
+        model
+          .member_roles
+          .detect { |mr| mr.inherited_from.nil? && mr.role_id == role_id }
+          &.mark_for_destruction
+      end
+    end
+
+    def build_roles(role_ids)
+      role_ids.each do |role_id|
+        model.member_roles.build(role_id: role_id)
+      end
     end
   end
 end

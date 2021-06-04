@@ -147,6 +147,7 @@ describe 'Switching types in work package table', js: true do
 
       # Now switch back to a type without the required CF
       type_field.activate!
+      type_field.openSelectField
       type_field.set_value type_task.name
 
       wp_table.expect_notification(
@@ -187,6 +188,7 @@ describe 'Switching types in work package table', js: true do
         req_text_field.expect_active!
 
         # Cancel edition now
+        SeleniumHubWaiter.wait
         req_text_field.cancel_by_escape
         req_text_field.expect_state_text '-'
 
@@ -310,6 +312,7 @@ describe 'Switching types in work package table', js: true do
 
       visit new_project_work_packages_path(project.identifier, type: type.id)
       expect_angular_frontend_initialized
+      SeleniumHubWaiter.wait
     end
 
     it 'can switch to the type with CF list' do

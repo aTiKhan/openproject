@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -34,20 +35,6 @@ describe WikiPage, type: :model do
   before do
     @wiki = Wiki.find(1)
     @page = @wiki.pages.first
-  end
-
-  it 'should create' do
-    page = WikiPage.new(wiki: @wiki)
-    assert !page.save
-    assert_equal 1, page.errors.count
-
-    page.title = 'Page'
-    assert page.save
-    page.reload
-    assert !page.protected?
-
-    @wiki.reload
-    assert @wiki.pages.include?(page)
   end
 
   it 'should find or new page' do
@@ -128,9 +115,9 @@ describe WikiPage, type: :model do
   end
 
   it 'should updated on eager load' do
-    page = WikiPage.with_updated_on.first
+    page = WikiPage.with_updated_at.first
     assert page.is_a?(WikiPage)
-    refute_nil page.read_attribute(:updated_on)
-    assert_equal page.content.updated_on, page.updated_on
+    refute_nil page.read_attribute(:updated_at)
+    assert_equal page.content.updated_at, page.updated_at
   end
 end

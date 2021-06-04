@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -114,7 +114,10 @@ describe Queries::WorkPackages::Filter::ResponsibleFilter, type: :model do
       it 'returns the mapped value' do
         objects = instance.value_objects
 
-        expect(objects.map(&:id)).to eql ['me', responsible.id, responsible2.id]
+        # The first value is guaranteed to be 'me'.
+        # There is no order on the other values.
+        expect(objects.map(&:id)[0]).to eql 'me'
+        expect(objects.map(&:id)[1..-1]).to match_array [responsible.id, responsible2.id]
       end
     end
 
@@ -130,10 +133,7 @@ describe Queries::WorkPackages::Filter::ResponsibleFilter, type: :model do
 
     context 'for a group value with a group member being assignee' do
       let(:values) { [group.id.to_s] }
-
-      before do
-        group.users << responsible
-      end
+      let(:group) { FactoryBot.create(:group, members: responsible) }
 
       it 'does not return the work package' do
         is_expected
@@ -154,10 +154,7 @@ describe Queries::WorkPackages::Filter::ResponsibleFilter, type: :model do
       let(:values) { [user.id.to_s] }
       let(:responsible) { group }
       let(:user) { FactoryBot.create(:user) }
-
-      before do
-        group.users << user
-      end
+      let(:group) { FactoryBot.create(:group, members: user) }
 
       it 'does not return the work package' do
         is_expected
@@ -195,10 +192,7 @@ describe Queries::WorkPackages::Filter::ResponsibleFilter, type: :model do
     let(:principal_loader) do
       loader = double('principal_loader')
       allow(loader)
-        .to receive(:user_values)
-        .and_return([])
-      allow(loader)
-        .to receive(:group_values)
+        .to receive(:principal_values)
         .and_return([])
 
       loader
@@ -227,8 +221,8 @@ describe Queries::WorkPackages::Filter::ResponsibleFilter, type: :model do
 
         it 'is true if there is another user selectable' do
           allow(principal_loader)
-            .to receive(:user_values)
-            .and_return([user_1])
+            .to receive(:principal_values)
+            .and_return([user_1.name, user_1.id.to_s])
 
           expect(instance).to be_available
         end
@@ -243,7 +237,7 @@ describe Queries::WorkPackages::Filter::ResponsibleFilter, type: :model do
 
         it 'is true if there is another user selectable' do
           allow(principal_loader)
-            .to receive(:user_values)
+            .to receive(:principal_values)
             .and_return([[user_1.name, user_1.id.to_s]])
 
           expect(instance).to be_available
@@ -253,6 +247,7 @@ describe Queries::WorkPackages::Filter::ResponsibleFilter, type: :model do
 
     describe '#allowed_values' do
       let(:logged_in) { true }
+      let(:group) { FactoryBot.build_stubbed(:group) }
 
       before do
         allow(User)
@@ -260,25 +255,17 @@ describe Queries::WorkPackages::Filter::ResponsibleFilter, type: :model do
           .and_return(logged_in)
 
         allow(principal_loader)
-          .to receive(:user_values)
-          .and_return([[user_1.name, user_1.id.to_s]])
+          .to receive(:principal_values)
+          .and_return([[user_1.name, user_1.id.to_s],
+                       [group.name, group.id.to_s]])
       end
 
       context 'when being logged in' do
-        it 'returns the me value and the available users' do
+        it 'returns the me value, the available users, and groups' do
           expect(instance.allowed_values)
             .to match_array([[I18n.t(:label_me), 'me'],
-                             [user_1.name, user_1.id.to_s]])
-        end
-
-        it 'returns the me value and only the available users if no group assignmit is allowed' do
-          allow(Setting)
-            .to receive(:work_package_group_assignment?)
-            .and_return(false)
-
-          expect(instance.allowed_values)
-            .to match_array([[I18n.t(:label_me), 'me'],
-                             [user_1.name, user_1.id.to_s]])
+                             [user_1.name, user_1.id.to_s],
+                             [group.name, group.id.to_s]])
         end
       end
 
@@ -287,7 +274,8 @@ describe Queries::WorkPackages::Filter::ResponsibleFilter, type: :model do
 
         it 'returns the available users' do
           expect(instance.allowed_values)
-            .to match_array([[user_1.name, user_1.id.to_s]])
+            .to match_array([[user_1.name, user_1.id.to_s],
+                             [group.name, group.id.to_s]])
         end
       end
     end

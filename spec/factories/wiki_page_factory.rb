@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -32,9 +32,7 @@ FactoryBot.define do
     sequence(:title) { |n| "Wiki Page No. #{n}" }
 
     factory :wiki_page_with_content do
-      callback(:after_build) do |wiki_page|
-        wiki_page.content = FactoryBot.build :wiki_content, page: wiki_page
-      end
+      content { association :wiki_content, page: instance }
     end
   end
 end

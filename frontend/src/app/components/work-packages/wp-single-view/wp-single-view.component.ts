@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,7 +24,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
 import {
   ChangeDetectionStrategy,
@@ -35,27 +35,28 @@ import {
   Input,
   OnInit
 } from '@angular/core';
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
-import {PathHelperService} from 'core-app/modules/common/path-helper/path-helper.service';
-import {distinctUntilChanged, map} from 'rxjs/operators';
-import {debugLog} from '../../../helpers/debug_output';
-import {CurrentProjectService} from '../../projects/current-project.service';
-import {States} from '../../states.service';
-import {WorkPackageResource} from 'core-app/modules/hal/resources/work-package-resource';
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
+import { PathHelperService } from 'core-app/modules/common/path-helper/path-helper.service';
+import { distinctUntilChanged, map } from 'rxjs/operators';
+import { debugLog } from '../../../helpers/debug_output';
+import { CurrentProjectService } from '../../projects/current-project.service';
+import { States } from '../../states.service';
+import { WorkPackageResource } from 'core-app/modules/hal/resources/work-package-resource';
 
-import {HalResourceEditingService} from "core-app/modules/fields/edit/services/hal-resource-editing.service";
-import {WorkPackageCacheService} from '../work-package-cache.service';
-import {DisplayFieldService} from 'core-app/modules/fields/display/display-field.service';
-import {DisplayField} from 'core-app/modules/fields/display/display-field.module';
-import {QueryResource} from 'core-app/modules/hal/resources/query-resource';
-import {HookService} from 'core-app/modules/plugins/hook-service';
-import {WorkPackageChangeset} from "core-components/wp-edit/work-package-changeset";
-import {Subject} from "rxjs";
-import {randomString} from "core-app/helpers/random-string";
-import {BrowserDetector} from "core-app/modules/common/browser/browser-detector.service";
-import {PortalCleanupService} from "core-app/modules/fields/display/display-portal/portal-cleanup.service";
-import {HalResourceService} from "core-app/modules/hal/services/hal-resource.service";
-import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
+import { HalResourceEditingService } from "core-app/modules/fields/edit/services/hal-resource-editing.service";
+import { DisplayFieldService } from 'core-app/modules/fields/display/display-field.service';
+import { DisplayField } from 'core-app/modules/fields/display/display-field.module';
+import { QueryResource } from 'core-app/modules/hal/resources/query-resource';
+import { HookService } from 'core-app/modules/plugins/hook-service';
+import { WorkPackageChangeset } from "core-components/wp-edit/work-package-changeset";
+import { Subject } from "rxjs";
+import { randomString } from "core-app/helpers/random-string";
+import { BrowserDetector } from "core-app/modules/common/browser/browser-detector.service";
+import { HalResourceService } from "core-app/modules/hal/services/hal-resource.service";
+import { UntilDestroyedMixin } from "core-app/helpers/angular/until-destroyed.mixin";
+import { SchemaCacheService } from "core-components/schemas/schema-cache.service";
+import { ISchemaProxy } from "core-app/modules/hal/schemas/schema-proxy";
+import { APIV3Service } from "core-app/modules/apiv3/api-v3.service";
 
 export interface FieldDescriptor {
   name:string;
@@ -87,16 +88,13 @@ export const overflowingContainerAttribute = 'overflowingIdentifier';
 @Component({
   templateUrl: './wp-single-view.html',
   selector: 'wp-single-view',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [
-    PortalCleanupService
-  ]
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class WorkPackageSingleViewComponent extends UntilDestroyedMixin implements OnInit {
   @Input() public workPackage:WorkPackageResource;
 
   /** Should we show the project field */
-  @Input() public showProject:boolean = false;
+  @Input() public showProject = false;
 
   // Grouped fields returned from API
   public groupedFields:GroupDescriptor[] = [];
@@ -131,7 +129,7 @@ export class WorkPackageSingleViewComponent extends UntilDestroyedMixin implemen
     },
   };
 
-  protected firstTimeFocused:boolean = false;
+  protected firstTimeFocused = false;
 
   $element:JQuery;
 
@@ -142,12 +140,11 @@ export class WorkPackageSingleViewComponent extends UntilDestroyedMixin implemen
               protected halEditing:HalResourceEditingService,
               protected halResourceService:HalResourceService,
               protected displayFieldService:DisplayFieldService,
-              protected wpCacheService:WorkPackageCacheService,
+              protected schemaCache:SchemaCacheService,
               protected hook:HookService,
               protected injector:Injector,
               protected cdRef:ChangeDetectorRef,
               readonly elementRef:ElementRef,
-              readonly cleanupService:PortalCleanupService,
               readonly browserDetector:BrowserDetector) {
     super();
   }
@@ -156,7 +153,7 @@ export class WorkPackageSingleViewComponent extends UntilDestroyedMixin implemen
     this.$element = jQuery(this.elementRef.nativeElement);
 
     const change = this.halEditing.changeFor<WorkPackageResource, WorkPackageChangeset>(this.workPackage);
-    this.resourceContextChange.next(this.contextFrom(change));
+    this.resourceContextChange.next(this.contextFrom(change.projectedResource));
     this.refresh(change);
 
     // Whenever the resource context changes in any way,
@@ -172,13 +169,13 @@ export class WorkPackageSingleViewComponent extends UntilDestroyedMixin implemen
     // Update the resource context on every update to the temporary resource.
     // This allows detecting a changed type value in a new work package.
     this.halEditing
-      .typedState<WorkPackageResource, WorkPackageChangeset>(this.workPackage)
+      .temporaryEditResource(this.workPackage)
       .values$()
       .pipe(
         this.untilDestroyed()
       )
-      .subscribe((change:WorkPackageChangeset) => {
-        this.resourceContextChange.next(this.contextFrom(change));
+      .subscribe(resource => {
+        this.resourceContextChange.next(this.contextFrom(resource));
       });
   }
 
@@ -197,11 +194,11 @@ export class WorkPackageSingleViewComponent extends UntilDestroyedMixin implemen
     }
 
     if (isNew && !this.currentProject.inProjectContext) {
-      this.projectContext.field = this.getFields(resource, ['project']);
+      this.projectContext.field = this.getFields(change, ['project']);
     }
 
-    const attributeGroups = resource.schema._attributeGroups;
-    this.groupedFields = this.rebuildGroupedFields(resource, attributeGroups);
+    const attributeGroups = this.schema(resource)._attributeGroups;
+    this.groupedFields = this.rebuildGroupedFields(change, attributeGroups);
     this.cdRef.detectChanges();
   }
 
@@ -262,9 +259,9 @@ export class WorkPackageSingleViewComponent extends UntilDestroyedMixin implemen
   }
 
   public get projectContextText():string {
-    let id = this.workPackage.project.idFromLink;
-    let projectPath = this.PathHelper.projectPath(id);
-    let project = `<a href="${projectPath}">${this.workPackage.project.name}<a>`;
+    const id = this.workPackage.project.idFromLink;
+    const projectPath = this.PathHelper.projectPath(id);
+    const project = `<a href="${projectPath}">${this.workPackage.project.name}<a>`;
     return this.I18n.t('js.project.work_package_belongs_to', { projectname: project });
   }
 
@@ -275,24 +272,19 @@ export class WorkPackageSingleViewComponent extends UntilDestroyedMixin implemen
     return this.workPackage.isNew && !this.browserDetector.isEdge;
   }
 
-  /**
-   *
-   * @param attributeGroups
-   * @returns {any}
-   */
-  private rebuildGroupedFields(resource:WorkPackageResource, attributeGroups:any) {
+  private rebuildGroupedFields(change:WorkPackageChangeset, attributeGroups:any) {
     if (!attributeGroups) {
       return [];
     }
 
     return attributeGroups.map((group:any) => {
-      let groupId = this.getAttributesGroupId(group);
+      const groupId = this.getAttributesGroupId(group);
 
       if (group._type === 'WorkPackageFormAttributeGroup') {
         return {
           name: group.name,
           id: groupId || randomString(16),
-          members: this.getFields(resource, group.attributes),
+          members: this.getFields(change, group.attributes),
           type: group._type,
           isolated: false
         };
@@ -314,21 +306,21 @@ export class WorkPackageSingleViewComponent extends UntilDestroyedMixin implemen
    * Maps the grouped fields into their display fields.
    * May return multiple fields (for the date virtual field).
    */
-  private getFields(resource:WorkPackageResource, fieldNames:string[]):FieldDescriptor[] {
+  private getFields(change:WorkPackageChangeset, fieldNames:string[]):FieldDescriptor[] {
     const descriptors:FieldDescriptor[] = [];
 
     fieldNames.forEach((fieldName:string) => {
       if (fieldName === 'date') {
-        descriptors.push(this.getDateField(resource));
+        descriptors.push(this.getDateField(change));
         return;
       }
 
-      if (!resource.schema[fieldName]) {
+      if (!change.schema.ofProperty(fieldName)) {
         debugLog('Unknown field for current schema', fieldName);
         return;
       }
 
-      const field:DisplayField = this.displayField(resource, fieldName);
+      const field:DisplayField = this.displayField(change, fieldName);
       descriptors.push({
         name: fieldName,
         label: field.label,
@@ -346,18 +338,18 @@ export class WorkPackageSingleViewComponent extends UntilDestroyedMixin implemen
    * 'date' field vs. all other types which should display a
    * combined 'start' and 'due' date field.
    */
-  private getDateField(resource:WorkPackageResource):FieldDescriptor {
-    let object:any = {
-      name: 'date',
+  private getDateField(change:WorkPackageChangeset):FieldDescriptor {
+    const object:any = {
       label: this.I18n.t('js.work_packages.properties.date'),
       multiple: false
     };
 
-    if (resource.schema.hasOwnProperty('date')) {
-      object.field = this.displayField(resource, 'date');
+    if (change.schema.ofProperty('date')) {
+      object.field = this.displayField(change, 'date');
+      object.name = 'date';
     } else {
-      object.fields = [this.displayField(resource, 'startDate'), this.displayField(resource, 'dueDate')];
-      object.multiple = true;
+      object.field = this.displayField(change, 'combinedDate');
+      object.name = 'combinedDate';
     }
 
     return object;
@@ -368,15 +360,14 @@ export class WorkPackageSingleViewComponent extends UntilDestroyedMixin implemen
    * Used to identify changes in the schema or project that may result in visual changes
    * to the single view.
    *
-   * @param {WorkPackageChangeset} change
+   * @param {WorkPackage} workPackage
    * @returns {SchemaContext}
    */
-  private contextFrom(change:WorkPackageChangeset):ResourceContextChange {
-    let schema = change.schema;
-    let workPackage = change.projectedResource;
+  private contextFrom(workPackage:WorkPackageResource):ResourceContextChange {
+    const schema = this.schema(workPackage);
 
     let schemaHref:string|null = null;
-    let projectHref:string|null = workPackage.project && workPackage.project.href;
+    const projectHref:string|null = workPackage.project && workPackage.project.href;
 
     if (schema.baseSchema) {
       schemaHref = schema.baseSchema.href;
@@ -392,17 +383,17 @@ export class WorkPackageSingleViewComponent extends UntilDestroyedMixin implemen
     };
   }
 
-  private displayField(resource:WorkPackageResource, name:string):DisplayField {
+  private displayField(change:WorkPackageChangeset, name:string):DisplayField {
     return this.displayFieldService.getField(
-      resource,
+      change.projectedResource,
       name,
-      resource.schema[name],
+      change.schema.ofProperty(name),
       { container: 'single-view', injector: this.injector, options: {} }
     ) as DisplayField;
   }
 
   private getAttributesGroupId(group:any):string {
-    let overflowingIdentifier = this.$element
+    const overflowingIdentifier = this.$element
       .find("[data-group-name=\'" + group.name + "\']")
       .data(overflowingContainerAttribute);
 
@@ -410,6 +401,14 @@ export class WorkPackageSingleViewComponent extends UntilDestroyedMixin implemen
       return overflowingIdentifier.replace('.__overflowing_', '');
     } else {
       return '';
+    }
+  }
+
+  private schema(resource:WorkPackageResource) {
+    if (this.halEditing.typedState(resource).hasValue()) {
+      return this.halEditing.typedState(this.workPackage).value!.schema;
+    } else {
+      return this.schemaCache.of(resource) as ISchemaProxy;
     }
   }
 }

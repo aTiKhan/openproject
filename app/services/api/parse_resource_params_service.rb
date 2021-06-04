@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -68,13 +68,26 @@ module API
     end
 
     def parse_attributes(request_body)
-      parsing_representer
-        .from_hash(request_body)
-        .to_h
+      struct = parsing_representer
+               .from_hash(request_body)
+
+      deep_to_h(struct)
     end
 
     def struct
       OpenStruct.new
+    end
+
+    def deep_to_h(value)
+      # Does not yet factor in Arrays. There hasn't been the need to do that, yet.
+      case value
+      when OpenStruct, Hash
+        value.to_h.transform_values do |sub_value|
+          deep_to_h(sub_value)
+        end
+      else
+        value
+      end
     end
   end
 end

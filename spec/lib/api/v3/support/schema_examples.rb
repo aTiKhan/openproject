@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -59,6 +59,26 @@ shared_examples_for 'has basic schema properties' do
     is_expected
       .to be_json_eql(expected_has_default.to_json)
       .at_path("#{path}/hasDefault")
+  end
+
+  it 'indicates if it has a location' do
+    if defined?(location)
+      is_expected
+        .to be_json_eql(location.to_json)
+              .at_path("#{path}/location")
+    else
+      is_expected.not_to have_json_path("#{path}/location")
+    end
+  end
+
+  it 'indicates if it has a description' do
+    if defined?(description)
+      is_expected
+        .to be_json_eql(description.to_json)
+              .at_path("#{path}/description/raw")
+    else
+      is_expected.not_to have_json_path("#{path}/description")
+    end
   end
 end
 

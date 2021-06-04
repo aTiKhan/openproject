@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -32,7 +32,8 @@ module Projects
   class SetAttributesService < ::BaseServices::SetAttributes
     private
 
-    def set_attributes(attributes)
+    def set_attributes(params)
+      attributes = params.dup
       status_attributes = attributes.delete(:status) || {}
 
       ret = super(attributes)
@@ -45,16 +46,9 @@ module Projects
     def set_default_attributes(attributes)
       attribute_keys = attributes.keys.map(&:to_s)
 
-      set_default_identifier(attribute_keys.include?('identifier'))
       set_default_public(attribute_keys.include?('public'))
       set_default_module_names(attribute_keys.include?('enabled_module_names'))
       set_default_types(attribute_keys.include?('types') || attribute_keys.include?('type_ids'))
-    end
-
-    def set_default_identifier(provided)
-      if !provided && Setting.sequential_project_identifiers?
-        model.identifier = Project.next_identifier
-      end
     end
 
     def set_default_public(provided)

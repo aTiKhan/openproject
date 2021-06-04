@@ -1,12 +1,12 @@
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2017 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -23,7 +23,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
-# See doc/COPYRIGHT.rdoc for more details.
+# See docs/COPYRIGHT.rdoc for more details.
 #++
 
 module Bim
@@ -41,15 +41,11 @@ module Bim
         ::Bim::IfcModels::IfcModel
       end
 
-      def validate
-        user_allowed_to_manage
-        user_is_uploader
-        ifc_attachment_existent
-        ifc_attachment_is_ifc
-        uploader_is_ifc_attachment_author
-
-        super
-      end
+      validate :user_allowed_to_manage
+      validate :user_is_uploader
+      validate :ifc_attachment_existent
+      validate :ifc_attachment_is_ifc
+      validate :uploader_is_ifc_attachment_author
 
       def user_allowed_to_manage
         if model.project && !user.allowed_to?(:manage_ifc_models, model.project)
@@ -68,17 +64,30 @@ module Bim
       end
 
       def ifc_attachment_is_ifc
-        return unless model.ifc_attachment&.new_record?
+        return unless model.ifc_attachment&.new_record? || model.ifc_attachment&.pending_direct_upload?
 
-        firstline = File.open(model.ifc_attachment.file.file.path, &:readline)
+        file_path = model.ifc_attachment.file.local_file.path
 
         begin
+          firstline = File.open(file_path, &:readline)
+
           unless firstline.match?(/^ISO-10303-21;/)
             errors.add :base, :invalid_ifc_file
           end
         rescue ArgumentError
           errors.add :base, :invalid_ifc_file
+        ensure
+          clean_up file_path
         end
+      end
+
+      def clean_up(file_path)
+        # If we are using direct uploads we can safely discard the file here straight away
+        # after we checked its contents. The actual file has already been uploaded to its final (remote) destination.
+        # For local uploads the file must remain to be copied later to its final (local) destination from the cache.
+        return unless OpenProject::Configuration.direct_uploads?
+
+        FileUtils.rm file_path if File.exists? file_path
       end
 
       def uploader_is_ifc_attachment_author

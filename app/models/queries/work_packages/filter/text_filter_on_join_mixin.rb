@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -32,32 +32,11 @@ module Queries::WorkPackages::Filter::TextFilterOnJoinMixin
   def where
     case operator
     when '~'
-      Queries::Operators::All.sql_for_field(values, join_table_alias, 'id')
+      "EXISTS (#{where_condition})"
     when '!~'
-      Queries::Operators::None.sql_for_field(values, join_table_alias, 'id')
+      "NOT EXISTS (#{where_condition})"
     else
       raise 'Unsupported operator'
     end
-  end
-
-  def joins
-    <<-SQL
-     LEFT OUTER JOIN #{join_table} #{join_table_alias}
-     ON #{join_condition}
-    SQL
-  end
-
-  private
-
-  def join_table
-    raise NotImplementedError
-  end
-
-  def join_condition
-    raise NotImplementedError
-  end
-
-  def join_table_alias
-    "#{self.class.key}_#{join_table}"
   end
 end

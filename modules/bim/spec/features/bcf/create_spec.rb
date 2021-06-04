@@ -1,6 +1,10 @@
 require_relative '../../spec_helper'
 
-describe 'Create BCF', type: :feature, js: true, with_mail: false do
+describe 'Create BCF',
+         type: :feature,
+         js: true,
+         with_config: { edition: 'bim' },
+         with_mail: false do
   let(:project) do
     FactoryBot.create(:project,
                       types: [type, type_with_cf],
@@ -106,6 +110,7 @@ describe 'Create BCF', type: :feature, js: true, with_mail: false do
       let(:view_route) { 'split' }
       before do
         index_page.visit!
+        index_page.finished_loading
       end
 
       it_behaves_like 'bcf details creation', true
@@ -115,6 +120,8 @@ describe 'Create BCF', type: :feature, js: true, with_mail: false do
       let(:view_route) { 'list' }
       before do
         index_page.visit!
+        index_page.finished_loading
+
         index_page.switch_view 'Cards'
         expect(page).to have_current_path /\/bcf\/list$/, ignore_query: true
       end
@@ -149,6 +156,8 @@ describe 'Create BCF', type: :feature, js: true, with_mail: false do
 
     it 'has the create button disabled' do
       index_page.visit!
+      index_page.finished_loading
+
       index_page.expect_wp_create_button_disabled
     end
   end
@@ -160,6 +169,7 @@ describe 'Create BCF', type: :feature, js: true, with_mail: false do
       let(:view_route) { 'split' }
       before do
         index_page.visit!
+        index_page.finished_loading
       end
 
       it_behaves_like 'bcf details creation', false

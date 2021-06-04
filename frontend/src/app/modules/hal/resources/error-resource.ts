@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,9 +26,8 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {HalResource} from 'core-app/modules/hal/resources/hal-resource';
-import {FormResource} from 'core-app/modules/hal/resources/form-resource';
-import {HttpErrorResponse} from "@angular/common/http";
+import { HalResource } from 'core-app/modules/hal/resources/hal-resource';
+import { HttpErrorResponse } from "@angular/common/http";
 
 export const v3ErrorIdentifierQueryInvalid = 'urn:openproject-org:api:v3:errors:InvalidQuery';
 export const v3ErrorIdentifierMultipleErrors = 'urn:openproject-org:api:v3:errors:MultipleErrors';
@@ -42,7 +41,7 @@ export class ErrorResource extends HalResource {
   /** We may get a reference to the underlying http error */
   public httpError?:HttpErrorResponse;
 
-  public isValidationError:boolean = false;
+  public isValidationError = false;
 
   /**
    * Override toString to ensure the resource can
@@ -69,8 +68,7 @@ export class ErrorResource extends HalResource {
 
     if (this.details) {
       columns = [{ details: this.details }];
-    }
-    else if (this.errors) {
+    } else if (this.errors) {
       columns = this.errors;
     }
 
@@ -84,21 +82,19 @@ export class ErrorResource extends HalResource {
   }
 
   public getMessagesPerAttribute():{ [attribute:string]:string[] } {
-    let perAttribute:any = {};
+    const perAttribute:any = {};
 
     if (this.details) {
       perAttribute[this.details.attribute] = [this.message];
-    }
-    else {
+    } else {
       _.forEach(this.errors, (error:any) => {
         if (error.errorIdentifier === v3ErrorIdentifierMultipleErrors) {
           const [attribute, messages] = this.extractMultiError(error);
-          let current = perAttribute[attribute] || [];
+          const current = perAttribute[attribute] || [];
           perAttribute[attribute] = current.concat(messages);
         } else if (perAttribute[error.details.attribute]) {
           perAttribute[error.details.attribute].push(error.message);
-        }
-        else {
+        } else {
           perAttribute[error.details.attribute] = [error.message];
         }
       });
@@ -108,8 +104,8 @@ export class ErrorResource extends HalResource {
   }
 
   protected extractMultiError(resource:ErrorResource):[string, string[]] {
-    let attribute = resource.errors[0].details.attribute;
-    let messages = resource.errors.map((el:ErrorResource) => el.message);
+    const attribute = resource.errors[0].details.attribute;
+    const messages = resource.errors.map((el:ErrorResource) => el.message);
 
     return [attribute, messages];
   }

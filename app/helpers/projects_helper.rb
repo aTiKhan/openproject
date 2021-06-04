@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -45,6 +45,8 @@ module ProjectsHelper
   def whitelisted_project_filter?(filter)
     whitelist = [
       Queries::Projects::Filters::ActiveFilter,
+      Queries::Projects::Filters::TemplatedFilter,
+      Queries::Projects::Filters::PublicFilter,
       Queries::Projects::Filters::ProjectStatusFilter,
       Queries::Projects::Filters::CreatedAtFilter,
       Queries::Projects::Filters::LatestActivityAtFilter,
@@ -77,8 +79,8 @@ module ProjectsHelper
     if User.current.allowed_to? :add_subprojects, project
       [t(:label_subproject_new),
        new_project_path(parent_id: project.id),
-       class: 'icon-context icon-add',
-       title: t(:label_subproject_new)]
+       { class: 'icon-context icon-add',
+         title: t(:label_subproject_new) }]
     end
   end
 
@@ -86,8 +88,8 @@ module ProjectsHelper
     if User.current.allowed_to?({ controller: '/project_settings/generic', action: 'show' }, project)
       [t(:label_project_settings),
        { controller: '/project_settings/generic', action: 'show', id: project },
-       class: 'icon-context icon-settings',
-       title: t(:label_project_settings)]
+       { class: 'icon-context icon-settings',
+         title: t(:label_project_settings) }]
     end
   end
 
@@ -95,10 +97,10 @@ module ProjectsHelper
     if User.current.admin? && project.active?
       [t(:button_archive),
        archive_project_path(project, status: params[:status]),
-       data: { confirm: t('project.archive.are_you_sure', name: project.name) },
-       method: :put,
-       class: 'icon-context icon-locked',
-       title: t(:button_archive)]
+       { data: { confirm: t('project.archive.are_you_sure', name: project.name) },
+         method: :put,
+         class: 'icon-context icon-locked',
+         title: t(:button_archive) }]
     end
   end
 
@@ -106,18 +108,18 @@ module ProjectsHelper
     if User.current.admin? && !project.active? && (project.parent.nil? || project.parent.active?)
       [t(:button_unarchive),
        unarchive_project_path(project, status: params[:status]),
-       method: :put,
-       class: 'icon-context icon-unlocked',
-       title: t(:button_unarchive)]
+       { method: :put,
+         class: 'icon-context icon-unlocked',
+         title: t(:button_unarchive) }]
     end
   end
 
   def project_more_menu_copy_item(project)
     if User.current.allowed_to?(:copy_projects, project) && !project.archived?
       [t(:button_copy),
-       copy_from_project_path(project, :admin),
-       class: 'icon-context icon-copy',
-       title: t(:button_copy)]
+       copy_project_path(project),
+       { class: 'icon-context icon-copy',
+         title: t(:button_copy) }]
     end
   end
 
@@ -125,8 +127,8 @@ module ProjectsHelper
     if User.current.admin
       [t(:button_delete),
        confirm_destroy_project_path(project),
-       class: 'icon-context icon-delete',
-       title: t(:button_delete)]
+       { class: 'icon-context icon-delete',
+         title: t(:button_delete) }]
     end
   end
 
@@ -145,6 +147,12 @@ module ProjectsHelper
     end
   end
 
+  def project_options_for_templated
+    ::Projects::InstantiateTemplateContract
+      .visible_templates(current_user)
+      .pluck(:name, :id)
+  end
+
   def shorten_text(text, length)
     text.to_s.gsub(/\A(.{#{length}[^\n\r]*).*\z/m, '\1...').strip
   end
@@ -161,16 +169,6 @@ module ProjectsHelper
 
       ancestors << project
     end
-  end
-
-  def project_css_classes(project)
-    s = 'project'
-
-    s << ' root' if project.root?
-    s << ' child' if project.child?
-    s << (project.leaf? ? ' leaf' : ' parent')
-
-    s
   end
 
   def projects_level_list_json(projects)
@@ -210,18 +208,6 @@ module ProjectsHelper
     @sort_criteria.criteria = former_criteria
   end
 
-  def deactivate_class_on_lft_sort
-    if sorted_by_lft?
-      '-inactive'
-    end
-  end
-
-  def href_only_when_not_sort_lft
-    unless sorted_by_lft?
-      "href=#{projects_path(sortBy: JSON::dump([['lft', 'asc']]))}"
-    end
-  end
-
   def sorted_by_lft?
     @sort_criteria.first_key == 'lft'
   end
@@ -233,6 +219,30 @@ module ProjectsHelper
       Projects::CreateContract
     end.new(project, current_user)
        .assignable_parents
+  end
+
+  def gantt_portfolio_query_link(filtered_project_ids)
+    generator = ::Projects::GanttQueryGeneratorService.new(filtered_project_ids)
+    work_packages_path query_props: generator.call
+  end
+
+  def gantt_portfolio_project_ids(project_scope)
+    project_scope
+      .where(active: true)
+      .select(:id)
+      .uniq
+      .pluck(:id)
+  end
+
+  def gantt_portfolio_title
+    title = t('projects.index.open_as_gantt_title')
+
+    if current_user.admin?
+      title << ' '
+      title << t('projects.index.open_as_gantt_title_admin')
+    end
+
+    title
   end
 
   def short_project_description(project, length = 255)

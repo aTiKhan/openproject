@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -90,8 +90,7 @@ describe 'layouts/base', type: :view do
     end
 
     context 'with omni_auth_direct_login enabled',
-             with_config: { omniauth_direct_login_provider: 'some_provider' } do
-
+            with_config: { omniauth_direct_login_provider: 'some_provider' } do
       it 'shows just a sign-in link, no menu' do
         expect(rendered).to have_selector "a[href='/login']"
         expect(rendered).not_to have_selector 'div#nav-login-content'
@@ -158,7 +157,7 @@ describe 'layouts/base', type: :view do
       visit 'assets/favicon.ico'
       expect(page.status_code).to eq(200)
 
-      visit 'apple-touch-icon-120x120.png'
+      visit 'assets/apple-touch-icon-120x120.png'
       expect(page.status_code).to eq(200)
     end
   end
@@ -200,7 +199,7 @@ describe 'layouts/base', type: :view do
         primary_color
         render
         expect(rendered).to render_template partial: 'custom_styles/_inline_css'
-        expect(rendered).to match /--primary-color:\s*#{primary_color.get_hexcode}/
+        expect(rendered).to match /--primary-color:\s*#{primary_color.hexcode}/
       end
     end
 
@@ -265,6 +264,19 @@ describe 'layouts/base', type: :view do
       it 'has no current_user metatag' do
         expect(rendered).not_to have_selector('meta[name=current_user]', visible: false)
       end
+    end
+  end
+
+  describe 'openproject_initializer meta tag' do
+    let(:current_user) { anonymous }
+    let(:base) { 'meta[name=openproject_initializer]' }
+
+    before do
+      render
+    end
+
+    it 'has the meta tag' do
+      expect(rendered).to have_selector(base, visible: false)
     end
   end
 end

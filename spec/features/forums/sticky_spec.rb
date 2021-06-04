@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -32,18 +32,18 @@ describe 'sticky messages', type: :feature do
   let(:forum) { FactoryBot.create(:forum) }
 
   let!(:message1) do
-    FactoryBot.create :message, forum: forum, created_on: Time.now - 1.minute do |message|
-      Message.where(id: message.id).update_all(updated_on: Time.now - 1.minute)
+    FactoryBot.create :message, forum: forum, created_at: Time.now - 1.minute do |message|
+      Message.where(id: message.id).update_all(updated_at: Time.now - 1.minute)
     end
   end
   let!(:message2) do
-    FactoryBot.create :message, forum: forum, created_on: Time.now - 2.minute do |message|
-      Message.where(id: message.id).update_all(updated_on: Time.now - 2.minute)
+    FactoryBot.create :message, forum: forum, created_at: Time.now - 2.minute do |message|
+      Message.where(id: message.id).update_all(updated_at: Time.now - 2.minute)
     end
   end
   let!(:message3) do
-    FactoryBot.create :message, forum: forum, created_on: Time.now - 3.minute do |message|
-      Message.where(id: message.id).update_all(updated_on: Time.now - 3.minute)
+    FactoryBot.create :message, forum: forum, created_at: Time.now - 3.minute do |message|
+      Message.where(id: message.id).update_all(updated_at: Time.now - 3.minute)
     end
   end
 

@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -25,14 +25,14 @@
 //
 // See docs/COPYRIGHT.rdoc for more details.
 //++
-import {ChangeDetectorRef, Component, ElementRef, Injector, Input, OnDestroy} from '@angular/core';
-import {distinctUntilChanged} from 'rxjs/operators';
-import {combineLatest} from 'rxjs';
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
-import {GlobalSearchService} from "core-app/modules/global_search/services/global-search.service";
-import {CurrentProjectService} from "core-components/projects/current-project.service";
-import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
-import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
+import { ChangeDetectorRef, Component, ElementRef, Injector, Input, OnDestroy } from '@angular/core';
+import { distinctUntilChanged } from 'rxjs/operators';
+import { combineLatest } from 'rxjs';
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
+import { GlobalSearchService } from "core-app/modules/global_search/services/global-search.service";
+import { CurrentProjectService } from "core-components/projects/current-project.service";
+import { InjectField } from "core-app/helpers/angular/inject-field.decorator";
+import { UntilDestroyedMixin } from "core-app/helpers/angular/until-destroyed.mixin";
 
 export const globalSearchTitleSelector = 'global-search-title';
 
@@ -83,20 +83,20 @@ export class GlobalSearchTitleComponent extends UntilDestroyedMixin implements O
   }
 
   private projectText(scope:string):string {
-    let currentProjectName = this.currentProjectService.name ? this.currentProjectService.name : '';
+    const currentProjectName = this.currentProjectService.name ? this.currentProjectService.name : '';
 
     switch (scope) {
-      case 'all':
-        return this.text.all_projects;
-        break;
-      case 'current_project':
-        return currentProjectName;
-        break;
-      case '':
-        return currentProjectName + ' ' + this.text.project_and_subprojects;
-        break;
-      default:
-        return '';
+    case 'all':
+      return this.text.all_projects;
+      break;
+    case 'current_project':
+      return currentProjectName;
+      break;
+    case '':
+      return currentProjectName + ' ' + this.text.project_and_subprojects;
+      break;
+    default:
+      return '';
     }
   }
 }

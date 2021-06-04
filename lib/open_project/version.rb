@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -32,8 +33,8 @@ require 'open3'
 
 module OpenProject
   module VERSION #:nodoc:
-    MAJOR = 10
-    MINOR = 5
+    MAJOR = 11
+    MINOR = 4
     PATCH = 0
     TINY  = PATCH # Redmine compat
 
@@ -65,6 +66,15 @@ module OpenProject
       def product_version
         cached_or_block(:@product_version) do
           path = Rails.root.join('config', 'PRODUCT_VERSION')
+          if File.exists? path
+            File.read(path)
+          end
+        end
+      end
+
+      def core_version
+        cached_or_block(:@core_version) do
+          path = Rails.root.join('config', 'CORE_VERSION')
           if File.exists? path
             File.read(path)
           end
@@ -110,10 +120,10 @@ module OpenProject
         return instance_variable_get(variable) if instance_variable_defined?(variable)
 
         value = begin
-                  yield
-                rescue StandardError
-                  nil
-                end
+          yield
+        rescue StandardError
+          nil
+        end
 
         instance_variable_set(variable, value)
       end

@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -83,12 +83,12 @@ describe ::API::V3::CostEntries::CostEntryRepresenter do
   end
 
   it_behaves_like 'has UTC ISO 8601 date and time' do
-    let(:date) { cost_entry.created_on }
+    let(:date) { cost_entry.created_at }
     let(:json_path) { 'createdAt' }
   end
 
   it_behaves_like 'has UTC ISO 8601 date and time' do
-    let(:date) { cost_entry.updated_on }
+    let(:date) { cost_entry.updated_at }
     let(:json_path) { 'updatedAt' }
   end
 end

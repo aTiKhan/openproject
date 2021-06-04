@@ -1,17 +1,17 @@
-import {Injector} from '@angular/core';
-import {StateService} from '@uirouter/core';
-import {WorkPackageViewFocusService} from 'core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-focus.service';
-import {debugLog} from '../../../../helpers/debug_output';
-import {States} from '../../../states.service';
-import {tdClassName} from '../../builders/cell-builder';
-import {tableRowClassName} from '../../builders/rows/single-row-builder';
-import {WorkPackageTable} from '../../wp-fast-table';
-import {TableEventHandler} from '../table-handler-registry';
-import {LinkHandling} from "core-app/modules/common/link-handling/link-handling";
-import {WorkPackageViewSelectionService} from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-selection.service";
-import {displayClassName} from "core-components/wp-edit-form/display-field-renderer";
-import {activeFieldClassName} from "core-app/modules/fields/edit/edit-form/edit-form";
-import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
+import { Injector } from '@angular/core';
+import { StateService } from '@uirouter/core';
+import { WorkPackageViewFocusService } from 'core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-focus.service';
+import { debugLog } from '../../../../helpers/debug_output';
+import { States } from '../../../states.service';
+import { tdClassName } from '../../builders/cell-builder';
+import { tableRowClassName } from '../../builders/rows/single-row-builder';
+import { WorkPackageTable } from '../../wp-fast-table';
+import { TableEventComponent, TableEventHandler } from '../table-handler-registry';
+import { LinkHandling } from "core-app/modules/common/link-handling/link-handling";
+import { WorkPackageViewSelectionService } from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-selection.service";
+import { displayClassName } from "core-app/modules/fields/display/display-field-renderer";
+import { activeFieldClassName } from "core-app/modules/fields/edit/edit-form/edit-form";
+import { InjectField } from "core-app/helpers/angular/inject-field.decorator";
 
 export class RowDoubleClickHandler implements TableEventHandler {
 
@@ -21,8 +21,7 @@ export class RowDoubleClickHandler implements TableEventHandler {
   @InjectField() public wpTableSelection:WorkPackageViewSelectionService;
   @InjectField() public wpTableFocus:WorkPackageViewFocusService;
 
-  constructor(public readonly injector:Injector,
-              table:WorkPackageTable) {
+  constructor(public readonly injector:Injector) {
   }
 
   public get EVENT() {
@@ -33,12 +32,12 @@ export class RowDoubleClickHandler implements TableEventHandler {
     return `.${tdClassName}`;
   }
 
-  public eventScope(table:WorkPackageTable) {
-    return jQuery(table.tbody);
+  public eventScope(view:TableEventComponent) {
+    return jQuery(view.workPackageTable.tbody);
   }
 
-  public handleEvent(table:WorkPackageTable, evt:JQuery.TriggeredEvent) {
-    let target = jQuery(evt.target);
+  public handleEvent(view:TableEventComponent, evt:JQuery.TriggeredEvent) {
+    const target = jQuery(evt.target);
 
     // Skip clicks with modifiers
     if (LinkHandling.isClickedWithModifier(evt)) {
@@ -53,8 +52,8 @@ export class RowDoubleClickHandler implements TableEventHandler {
     }
 
     // Locate the row from event
-    let element = target.closest(this.SELECTOR).closest(`.${tableRowClassName}`);
-    let wpId = element.data('workPackageId');
+    const element = target.closest(this.SELECTOR).closest(`.${tableRowClassName}`);
+    const wpId = element.data('workPackageId');
 
     // Ignore links
     if (target.is('a') || target.parent().is('a')) {
@@ -64,10 +63,7 @@ export class RowDoubleClickHandler implements TableEventHandler {
     // Save the currently focused work package
     this.wpTableFocus.updateFocus(wpId);
 
-    this.$state.go(
-      'work-packages.show',
-      {workPackageId: wpId}
-    );
+    view.itemClicked.emit({ workPackageId: wpId, double: true });
 
     return false;
   }

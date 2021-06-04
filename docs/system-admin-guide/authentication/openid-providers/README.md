@@ -8,10 +8,6 @@ keywords: OpenID providers
 ---
 # OpenID providers
 
-<div class="alert alert-info" role="alert">
-**Note**: For the OpenID configuration view our docs in Github:  https://github.com/opf/openproject/blob/dev/docs/configuration/openid.md  (Todo: needs to be moved to documentation).
-</div>
-
 To activate and configure OpenID providers in OpenProject, navigate to -> *Administration* -> *Authentication* and choose -> *OpenID providers*.
 
 ## Add a new authentication application for oauth
@@ -92,11 +88,21 @@ You can now log out, and see that the login form displays a badge for authentica
 
 Congratulations, your users can now authenticate using your Azure Active Directory!
 
+#### Tenant configuration
+
+Sometimes you may need to configure the `tenant` option for the AzureAD connection.
+Currently this is not possible through the user interface.
+
+But you can do it via the console as described [here](/installation-and-operations/misc/custom-openid-connect-providers/#custom-openid-connect-providers) where you can add `tenant` next to the other options like `host`, `identifier` and `secret`.
+
 ## Troubleshooting
 
 Q: After clicking on a provider badge, I am redirected to a signup form that says a user already exists with that login.
 
 A: This can happen if you previously created user accounts in OpenProject with the same email than what is stored in the OpenID provider. In this case, if you want to allow existing users to be automatically remapped to the OpenID provider, you should do the following:
+
+Spawn an interactive console in OpenProject. The following example shows the command for the packaged installation.
+See [our process control guide](https://docs.openproject.org/installation-and-operations/operation/control/) for information on other installation types.
 
 ```
 sudo openproject run console

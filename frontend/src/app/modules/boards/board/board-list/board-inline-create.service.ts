@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,17 +24,17 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {Injectable, Injector} from '@angular/core';
-import {WorkPackageResource} from 'core-app/modules/hal/resources/work-package-resource';
-import {WorkPackageRelationsHierarchyService} from "core-components/wp-relations/wp-relations-hierarchy/wp-relations-hierarchy.service";
-import {WorkPackageInlineCreateService} from "core-components/wp-inline-create/wp-inline-create.service";
-import {IsolatedQuerySpace} from "core-app/modules/work_packages/query-space/isolated-query-space";
-import {HalResourceService} from "core-app/modules/hal/services/hal-resource.service";
-import {PathHelperService} from "core-app/modules/common/path-helper/path-helper.service";
-import {BoardInlineAddAutocompleterComponent} from "core-app/modules/boards/board/inline-add/board-inline-add-autocompleter.component";
-import {GonService} from "core-app/modules/common/gon/gon.service";
+import { Injectable, Injector } from '@angular/core';
+import { WorkPackageResource } from 'core-app/modules/hal/resources/work-package-resource';
+import { WorkPackageRelationsHierarchyService } from "core-components/wp-relations/wp-relations-hierarchy/wp-relations-hierarchy.service";
+import { WorkPackageInlineCreateService } from "core-components/wp-inline-create/wp-inline-create.service";
+import { IsolatedQuerySpace } from "core-app/modules/work_packages/query-space/isolated-query-space";
+import { HalResourceService } from "core-app/modules/hal/services/hal-resource.service";
+import { PathHelperService } from "core-app/modules/common/path-helper/path-helper.service";
+import { BoardInlineAddAutocompleterComponent } from "core-app/modules/boards/board/inline-add/board-inline-add-autocompleter.component";
+import { GonService } from "core-app/modules/common/gon/gon.service";
 
 @Injectable()
 export class BoardInlineCreateService extends WorkPackageInlineCreateService {

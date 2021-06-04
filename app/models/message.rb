@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -33,7 +34,7 @@ class Message < ApplicationRecord
   belongs_to :forum
   has_one :project, through: :forum
   belongs_to :author, class_name: 'User', foreign_key: 'author_id'
-  acts_as_tree counter_cache: :replies_count, order: "#{Message.table_name}.created_on ASC"
+  acts_as_tree counter_cache: :replies_count, order: "#{Message.table_name}.created_at ASC"
   acts_as_attachable after_add: :attachments_changed,
                      after_remove: :attachments_changed,
                      add_on_new_permission: :add_messages,
@@ -44,7 +45,6 @@ class Message < ApplicationRecord
 
   acts_as_event title: Proc.new { |o| "#{o.forum.name}: #{o.subject}" },
                 description: :content,
-                datetime: :created_on,
                 type: Proc.new { |o| o.parent_id.nil? ? 'message' : 'reply' },
                 url: (Proc.new do |o|
                         msg = o
@@ -59,7 +59,7 @@ class Message < ApplicationRecord
                      include: { forum: :project },
                      references: [:forums],
                      project_key: 'project_id',
-                     date_column: "#{table_name}.created_on"
+                     date_column: "#{table_name}.created_at"
 
   acts_as_watchable
 
@@ -120,11 +120,13 @@ class Message < ApplicationRecord
   end
 
   def editable_by?(usr)
-    usr && usr.logged? && (usr.allowed_to?(:edit_messages, project) || (author == usr && usr.allowed_to?(:edit_own_messages, project)))
+    usr && usr.logged? && (usr.allowed_to?(:edit_messages,
+                                           project) || (author == usr && usr.allowed_to?(:edit_own_messages, project)))
   end
 
   def destroyable_by?(usr)
-    usr && usr.logged? && (usr.allowed_to?(:delete_messages, project) || (author == usr && usr.allowed_to?(:delete_own_messages, project)))
+    usr && usr.logged? && (usr.allowed_to?(:delete_messages,
+                                           project) || (author == usr && usr.allowed_to?(:delete_own_messages, project)))
   end
 
   private

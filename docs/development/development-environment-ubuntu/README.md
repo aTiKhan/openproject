@@ -17,14 +17,14 @@ We need an active Ruby and Node JS environment to run OpenProject. To this end, 
 
 ```bash
 sudo apt-get update
-sudo apt-get install git curl build-essential zlib1g-dev libyaml-dev libssl-dev libpq-dev  libreadline-dev libffi6
+sudo apt-get install git curl build-essential zlib1g-dev libyaml-dev libssl-dev libpq-dev libreadline-dev
 ```
 
 ## Install Ruby
 
-Use [rbenv](https://github.com/rbenv/rbenv) and [ruby-build](https://github.com/rbenv/ruby-build#readme) to install Ruby. We always require the latest ruby versions, and you can check which version is required by [checking the Gemfile](https://github.com/opf/openproject/blob/dev/Gemfile#L31) for the `ruby "~> X.Y"` statement. At the time of writing, this version is "2.6"
+Use [rbenv](https://github.com/rbenv/rbenv) and [ruby-build](https://github.com/rbenv/ruby-build#readme) to install Ruby. We always require the latest ruby versions, and you can check which version is required by [checking the Gemfile](https://github.com/opf/openproject/blob/dev/Gemfile#L31) for the `ruby "~> X.Y"` statement. At the time of writing, this version is "2.7"
 
-**Install rbenv and ruby-build**
+### Install rbenv and ruby-build
 
 rbenv is a ruby version manager that lets you quickly switch between ruby versions.
 ruby-build is an addon to rbenv that installs ruby versions.
@@ -43,7 +43,7 @@ echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-**Installing ruby-build**
+### Installing ruby-build
 
 ruby-build is an addon to rbenv that installs ruby versions
 
@@ -51,23 +51,23 @@ ruby-build is an addon to rbenv that installs ruby versions
 git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
 ```
 
-**Installing ruby-2.6**
+### Installing ruby-2.7
 
-With both installed, we can now install the actual ruby version 2.6. You can check available ruby versions with `rbenv install --list`.
-At the time of this writing, the latest stable version is `2.6.6`, which we also require.
+With both installed, we can now install the actual ruby version 2.7. You can check available ruby versions with `rbenv install --list`.
+At the time of this writing, the latest stable version is `2.7.3`, which we also require.
 
 We suggest you install the version we require in the [Gemfile](https://github.com/opf/openproject/blob/dev/Gemfile). Search for the `ruby '~> X.Y.Z'` line
 and install that version.
 
 ```bash
 # Install the required version as read from the Gemfile
-rbenv install 2.6.6
+rbenv install 2.7.3
 ```
 
 This might take a while depending on whether ruby is built from source. After it is complete, you need to tell rbenv to globally activate this version
 
 ```bash
-rbenv global 2.6.6
+rbenv global 2.7.3
 rbenv rehash
 ```
 
@@ -109,7 +109,7 @@ Now, create the database `openproject_dev` and `openproject_test` owned by the p
 
 We will install the latest LTS version of Node.js via [nodenv](https://github.com/nodenv/nodenv). This is basically the same steps as for rbenv:
 
-**Install nodenv**
+### Install nodenv
 
 ```bash
 # Install nodenv
@@ -125,22 +125,28 @@ echo 'export PATH="$HOME/.nodenv/bin:$PATH"' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-**Install node-build**
+### Install node-build
 
 ```bash
 git clone https://github.com/nodenv/node-build.git $(nodenv root)/plugins/node-build
 ```
 
-**Install latest LTS node version**
+### Install latest LTS node version
 
 You can find the latest LTS version here: https://nodejs.org/en/download/
 
-At the time of writing this is v12.16.1 Install and activate it with:
+At the time of writing this is v14.17.0 Install and activate it with:
 
 ```bash
-nodenv install 12.16.1
-nodenv global 12.16.1
+nodenv install 14.17.0
+nodenv global 14.17.0
 nodenv rehash
+```
+
+### Update NPM to the latest version
+
+```bash
+npm install npm@latest -g
 ```
 
 ## Verify your installation
@@ -149,31 +155,30 @@ You should now have an active ruby and node installation. Verify that it works w
 
 ```bash
 ruby --version
-ruby 2.6.6p114 (2019-10-01 revision 67812) [x86_64-linux]
+ruby 2.7.3p183 (2021-04-05 revision 6847ee089d) [x86_64-linux]]
 
 bundler --version
-Bundler version 2.0.2
+Bundler version 2.1.4
 
 node --version
-v12.6.1
+v14.16.1
 
 npm --version
-6.14.4
+7.15.1
 ```
 
 # Install OpenProject
 
+In order to create a pull request to the core OpenProject repository, you will want to fork it to your own GitHub account.
+This allows you to create branches and push changes and finally opening a pull request for us to review.
+
+To do that, go to https://github.com/opf/openproject and press "Fork" on the upper right corner.
+
 ```bash
 # Download the repository
+# If you want to create a pull request, replace the URL with your own fork as described above
 git clone https://github.com/opf/openproject.git
 cd openproject
-
-# Install gem dependencies
-# If you get errors here, you're likely missing a development dependency for your distribution
-bundle install
-
-# Install node_modules
-npm install
 ```
 
 Note that we have checked out the `dev` branch of the OpenProject repository. Development in OpenProject happens in the `dev` branch (there is no `master` branch).
@@ -209,13 +214,21 @@ test:
 
 ## Finish the Installation of OpenProject
 
-Now, run the following tasks to migrate and seed the dev database, and prepare the test setup for running tests locally.
+Install code dependencies, link plugin modules and export translation files.
+- gem dependencies (If you get errors here, you're likely missing a development dependency for your distribution)
+- node_modules
+- link plugin frontend modules
+- and export frontend localization files
 
 ```bash
-RAILS_ENV=development bin/rails db:migrate
-RAILS_ENV=development bin/rails db:seed
+bin/setup_dev
 ```
 
+Now, run the following tasks to seed the dev database, and prepare the test setup for running tests locally.
+
+```bash
+RAILS_ENV=development bin/rails db:seed
+```
 
 ## Run OpenProject through foreman
 
@@ -226,7 +239,7 @@ however most developers end up running the tasks in separate shells for better u
 gem install foreman
 foreman start -f Procfile.dev
 ```
-The application will be available at `http://127.0.0.1:5000`. To customize bind address and port copy the `.env.sample` provided in the root of this
+The application will be available at `http://127.0.0.1:3000`. To customize bind address and port copy the `.env.example` provided in the root of this
 project as `.env` and [configure values][foreman-env] as required.
 
 By default a worker process will also be started. In development asynchronous execution of long-running background tasks (sending emails, copying projects,
@@ -245,7 +258,7 @@ You can access the application with the admin-account having the following crede
 
 To run OpenProject manually, you need to run the rails server and the webpack frontend bundler to:
 
-**Rails web server**
+### Rails web server
 
 ```bash
 RAILS_ENV=development ./bin/rails server
@@ -253,7 +266,7 @@ RAILS_ENV=development ./bin/rails server
 
 This will start the development server on port `3000` by default.
 
-**Angular frontend**
+### Angular frontend
 
 To run the frontend server, please run
 
@@ -269,7 +282,7 @@ You can then access the application either through `localhost:3000` (Rails serve
 ## Start Coding
 
 Please have a look at [our development guidelines](https://www.openproject.org/open-source/code-contributions/) for tips and guides on how to start coding. We have advice on how to get your changes back into the OpenProject core as smooth as possible.
-Also, take a look at the `doc` directory in our sources, especially the [how to run tests](https://github.com/opf/openproject/blob/dev/docs/development/running-tests.md) documentation (we like to have automated tests for every new developed feature).
+Also, take a look at the `doc` directory in our sources, especially the [how to run tests](https://github.com/opf/openproject/blob/dev/docs/development/running-tests/README.md) documentation (we like to have automated tests for every new developed feature).
 
 ## Troubleshooting
 

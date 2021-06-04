@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -46,10 +46,9 @@ class Version < ApplicationRecord
   validates_format_of :effective_date, with: /\A\d{4}-\d{2}-\d{2}\z/, message: :not_a_date, allow_nil: true
   validates_format_of :start_date, with: /\A\d{4}-\d{2}-\d{2}\z/, message: :not_a_date, allow_nil: true
   validates_inclusion_of :status, in: VERSION_STATUSES
-  validates_inclusion_of :sharing, in: VERSION_SHARINGS
   validate :validate_start_date_before_effective_date
 
-  scope_classes ::Versions::Scopes::OrderBySemverName
+  scopes :order_by_semver_name
 
   scope :visible, ->(*args) {
     joins(:project)
@@ -58,7 +57,7 @@ class Version < ApplicationRecord
 
   scope :systemwide, -> { where(sharing: 'system') }
 
-  scope :order_by_name, -> { order(Arel.sql("LOWER(#{Version.table_name}.name)")) }
+  scope :order_by_name, -> { order(Arel.sql("LOWER(#{Version.table_name}.name) ASC")) }
 
   def self.with_status_open
     where(status: 'open')

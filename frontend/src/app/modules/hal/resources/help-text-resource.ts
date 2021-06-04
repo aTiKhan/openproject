@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,18 +26,19 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {HalResource} from 'core-app/modules/hal/resources/hal-resource';
-import {CallableHalLink, HalLink} from 'core-app/modules/hal/hal-link/hal-link';
+import { HalResource } from 'core-app/modules/hal/resources/hal-resource';
+import { CallableHalLink } from 'core-app/modules/hal/hal-link/hal-link';
+import { Attachable } from "core-app/modules/hal/resources/mixins/attachable-mixin";
 
-export class HelpTextResource extends HalResource {
-
-  public id:string;
+export class HelpTextBaseResource extends HalResource {
   public attribute:string;
   public attributeCaption:string;
   public scope:string;
   public helpText:api.v3.Formattable;
 }
 
-export interface HelpTextResource {
+export const HelpTextResource = Attachable(HelpTextBaseResource);
+
+export interface HelpTextResource extends HelpTextBaseResource {
   editText?:CallableHalLink;
 }

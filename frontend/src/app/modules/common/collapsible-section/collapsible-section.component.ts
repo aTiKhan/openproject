@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,10 +24,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
 
-import {Component, ElementRef, OnInit, ViewChild} from "@angular/core";
+import { Component, ElementRef, OnInit, ViewChild } from "@angular/core";
 
 export const collapsibleSectionAugmentSelector = 'collapsible-section-augment';
 
@@ -36,7 +36,7 @@ export const collapsibleSectionAugmentSelector = 'collapsible-section-augment';
   templateUrl: './collapsible-section.html'
 })
 export class CollapsibleSectionComponent implements OnInit {
-  public expanded:boolean = false;
+  public expanded = false;
   public sectionTitle:string;
 
   @ViewChild('sectionBody', { static: true }) public sectionBody:ElementRef;
@@ -57,7 +57,8 @@ export class CollapsibleSectionComponent implements OnInit {
     target.removeAttribute('hidden');
   }
 
-  public toggle() {
+  public toggle(event:Event) {
     this.expanded = !this.expanded;
+    event.preventDefault();
   }
 }

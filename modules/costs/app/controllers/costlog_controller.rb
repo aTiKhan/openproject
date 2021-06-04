@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -79,10 +79,10 @@ class CostlogController < ApplicationController
     end
   end
 
-  verify method: :delete, only: :destroy, render: { nothing: true, status: :method_not_allowed }
   def destroy
     render_404 and return unless @cost_entry
     render_403 and return unless @cost_entry.editable_by?(User.current)
+
     @cost_entry.destroy
     flash[:notice] = t(:notice_successful_delete)
 
@@ -90,14 +90,6 @@ class CostlogController < ApplicationController
       redirect_to controller: '/cost_reports', action: :index
     else
       redirect_back fallback_location: work_package_path(@cost_entry.work_package)
-    end
-  end
-
-  def get_cost_type_unit_plural
-    @cost_type = CostType.find(params[:cost_type_id]) unless params[:cost_type_id].empty?
-
-    if request.xhr?
-      render partial: 'cost_type_unit_plural', layout: false
     end
   end
 
@@ -118,7 +110,7 @@ class CostlogController < ApplicationController
       @project = Project.find(params[:project_id])
     else
       render_404
-      return false
+      false
     end
   rescue ActiveRecord::RecordNotFound
     render_404
@@ -142,24 +134,30 @@ class CostlogController < ApplicationController
 
   def find_associated_objects
     user_id = cost_entry_params.delete(:user_id)
-    @user = @cost_entry.present? && @cost_entry.user_id == user_id ?
-              @cost_entry.user :
+    @user = if @cost_entry.present? && @cost_entry.user_id == user_id
+              @cost_entry.user
+            else
               User.find_by_id(user_id)
+            end
 
     work_package_id = cost_entry_params.delete(:work_package_id)
-    @work_package = @cost_entry.present? && @cost_entry.work_package_id == work_package_id ?
-               @cost_entry.work_package :
-               WorkPackage.find_by_id(work_package_id)
+    @work_package = if @cost_entry.present? && @cost_entry.work_package_id == work_package_id
+                      @cost_entry.work_package
+                    else
+                      WorkPackage.find_by_id(work_package_id)
+                    end
 
     cost_type_id = cost_entry_params.delete(:cost_type_id)
-    @cost_type = @cost_entry.present? && @cost_entry.cost_type_id == cost_type_id ?
-                   @cost_entry.cost_type :
+    @cost_type = if @cost_entry.present? && @cost_entry.cost_type_id == cost_type_id
+                   @cost_entry.cost_type
+                 else
                    CostType.find_by_id(cost_type_id)
+                 end
   end
 
   def new_default_cost_entry
     @cost_entry = CostEntry.new.tap do |ce|
-      ce.project  = @project
+      ce.project = @project
       ce.work_package = @work_package
       ce.user = User.current
       ce.spent_on = Date.today
@@ -172,10 +170,15 @@ class CostlogController < ApplicationController
     @cost_entry.work_package = @work_package
     @cost_entry.cost_type = @cost_type
 
-    @cost_entry.attributes = permitted_params.cost_entry
-  end
+    attributes = permitted_params.cost_entry
+    attributes[:units] = Rate.parse_number_string_to_number(attributes[:units])
 
-  private
+    if attributes.key?(:overridden_costs)
+      attributes[:overridden_costs] = Rate.parse_number_string_to_number(attributes[:overridden_costs])
+    end
+
+    @cost_entry.attributes = attributes
+  end
 
   def cost_entry_params
     params.require(:cost_entry).permit(:work_package_id, :spent_on, :user_id,

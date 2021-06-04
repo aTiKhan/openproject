@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,10 +24,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {OpModalService} from "core-components/op-modals/op-modal.service";
-import {PasswordConfirmationModal} from "core-components/modals/request-for-confirmation/password-confirmation.modal";
+import { OpModalService } from "core-app/modules/modal/modal.service";
+import { PasswordConfirmationModal } from "core-components/modals/request-for-confirmation/password-confirmation.modal";
 
 function registerListener(
   form:JQuery,
@@ -73,7 +73,7 @@ export function registerRequestForConfirmation($:JQueryStatic) {
           const form = jQuery(this);
 
           if (form.find('input[name="_password_confirmation"]').length) {
-              return true;
+            return true;
           }
 
           return registerListener(form, $event, opModalService, passwordConfirmationModal);

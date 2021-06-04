@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -30,32 +31,34 @@
 require 'securerandom'
 
 module SettingsHelper
+  extend self
   include OpenProject::FormTagHelper
 
-  def administration_settings_tabs
+  def system_settings_tabs
     [
       {
         name: 'general',
-        partial: 'settings/general',
-        path: general_settings_path,
+        controller: '/admin/settings/general_settings',
         label: :label_general
       },
       {
         name: 'display',
-        partial: 'settings/display',
-        path: general_settings_path(tab: :display),
+        controller: '/admin/settings/display_settings',
         label: :label_display
       },
       {
         name: 'projects',
-        partial: 'settings/projects',
-        path: general_settings_path(tab: :projects),
+        controller: '/admin/settings/projects_settings',
         label: :label_project_plural
       },
       {
+        name: 'api',
+        controller: '/admin/settings/api_settings',
+        label: :label_api_access_key_type
+      },
+      {
         name: 'repositories',
-        partial: 'settings/repositories',
-        path: general_settings_path(tab: :repositories),
+        controller:'/admin/settings/repositories_settings',
         label: :label_repository_plural
       }
     ]
@@ -78,11 +81,14 @@ module SettingsHelper
       content_tag(:span, class: 'form--field-container -vertical') do
         hidden_field_tag("settings[#{setting}][]", '') +
           choices.map do |choice|
-            text, value = (choice.is_a?(Array) ? choice : [choice, choice])
+            text, value, choice_options = (choice.is_a?(Array) ? choice : [choice, choice])
+            choice_options = (choice_options || {}).merge(options.except(:id))
+            choice_options[:id] = "#{setting}_#{value}"
 
             content_tag(:label, class: 'form--label-with-check-box') do
               styled_check_box_tag("settings[#{setting}][]", value,
-                                   Setting.send(setting).include?(value), options.merge(id: nil)) + text.to_s
+                                   Setting.send(setting).include?(value), choice_options) + text.to_s
+
             end
           end.join.html_safe
       end
@@ -96,6 +102,18 @@ module SettingsHelper
   end
 
   def setting_text_field(setting, options = {})
+    setting_field_wrapper(setting, options) do
+      styled_text_field_tag("settings[#{setting}]", Setting.send(setting), options)
+    end
+  end
+
+  def setting_number_field(setting, options = {})
+    setting_field_wrapper(setting, options) do
+      styled_number_field_tag("settings[#{setting}]", Setting.send(setting), options)
+    end
+  end
+
+  def setting_field_wrapper(setting, options)
     unit = options.delete(:unit)
     unit_html = ''
 
@@ -105,21 +123,26 @@ module SettingsHelper
       unit_html = content_tag(:span,
                               unit,
                               class: 'form--field-affix',
-                              :'aria-hidden' => true,
+                              'aria-hidden': true,
                               id: unit_id)
     end
 
     setting_label(setting, options) +
       wrap_field_outer(options) do
-        styled_text_field_tag("settings[#{setting}]", Setting.send(setting), options) +
-          unit_html
+        yield + unit_html
       end
   end
 
   def setting_text_area(setting, options = {})
     setting_label(setting, options) +
       wrap_field_outer(options) do
-        styled_text_area_tag("settings[#{setting}]", Setting.send(setting), options)
+        value = Setting.send(setting)
+
+        if value.is_a?(Array)
+          value = value.join("\n")
+        end
+
+        styled_text_area_tag("settings[#{setting}]", value, options)
       end
   end
 
@@ -152,7 +175,7 @@ module SettingsHelper
     setting_label(setting, options) + wrap_field_outer(options, &block)
   end
 
-  # Renders a notification field for a Redmine::Notifiable option
+  # Renders a notification field for an OpenProject::Notifiable option
   def notification_field(notifiable, options = {})
     content_tag(:label, class: 'form--label-with-check-box' + (notifiable.parent.present? ? ' parent' : '')) do
       styled_check_box_tag('settings[notified_events][]',

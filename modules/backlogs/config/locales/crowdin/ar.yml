@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -19,7 +19,6 @@
 #Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #See docs/COPYRIGHT.rdoc for more details.
 #++
-#---
 ar:
   activerecord:
     attributes:
@@ -37,22 +36,16 @@ ar:
               can_only_contain_work_packages_of_current_sprint: "يمكن أن تحتوي فقط على الهويات المعرّفة لمجموعات العمل في السباق الحالي."
               must_block_at_least_one_work_package: "يجب أن يحتوي على الأقل على الهوية المعرّفة لبطاقة واحدة."
             parent_id:
+              parent_child_relationship_across_projects: "هو غير صالح لأن مجموعة العمل '%{work_package_name}' هي مهمة عمل متراكم غير منجز ولذلك لا يمكن أن يكون أحد الأصول خارج المشروع الحالي."
               type_must_be_one_of_the_following: "النوع يجب أن يكون أحد الأنواع التالية: %{type_names}."
+            version_id:
+              task_version_must_be_the_same_as_story_version: "يجب أن يكون نفس نسخة القصة الأصلية."
         sprint:
           cannot_end_before_it_starts: "لا يمكن أن ينتهي السباق قبل أن يبدأ."
-  activemodel:
-    errors:
-      models:
-        work_package:
-          attributes:
-            version_id:
-              task_version_must_be_the_same_as_story_version: "must be the same as the parent story's version."
-            parent_id:
-              parent_child_relationship_across_projects: "هو غير صالح لأن مجموعة العمل '%{work_package_name}' هي مهمة عمل متراكم غير منجز ولذلك لا يمكن أن يكون أحد الأصول خارج المشروع الحالي."
   backlogs:
     add_new_story: "قصة جديدة"
     any: "أي"
-    backlog_settings: "Backlogs settings"
+    backlog_settings: "إعدادات السجلات المتراكمة"
     burndown_graph: "الرسم البياني لتقدم العمل"
     card_paper_size: "حجم الورق لطباعة البطاقة"
     chart_options: "خيارات الرسم البياني"
@@ -103,9 +96,10 @@ ar:
   backlogs_velocity_missing: "لا يمكن احتساب السرعة في هذا المشروع"
   backlogs_velocity_varies: "السرعة تتفاوت بشكل ملحوظ على السباقات"
   backlogs_wiki_template: "نموذج لصفحة ويكي wiki الخاصة بالسباق"
-  backlogs_empty_title: "No versions are defined to be used in backlogs"
-  backlogs_empty_action_text: "To get started with backlogs, create a new version and assign it to a backlogs column."
+  backlogs_empty_title: "لا توجد إصدارات محددة لاستخدامها في  قائمة الأعمال"
+  backlogs_empty_action_text: "للبدء مع قائمة الأعمال ، قم بإنشاء إصدار جديد و تعيينه إلى عمود  قائمة الأعمال."
   button_edit_wiki: "عدّل صفحة ويكي wiki"
+  error_backlogs_task_cannot_be_story: "الإعدادات غير صالحة. نوع المهمة المحدد لا يمكن أن يكون أيضا نوع قصة."
   error_intro_plural: "تم مصادفة الأخطاء التالية:"
   error_intro_singular: "تمت مصادفة الخطأ التالي:"
   error_outro: "من فضلك صحح الأخطاء في الأعلى قبل التقديم مرة أخرى."

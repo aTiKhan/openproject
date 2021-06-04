@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,27 +24,23 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {ConfigurationService} from 'core-app/modules/common/config/configuration.service';
-import {Component, OnInit} from "@angular/core";
+import { ConfigurationService } from 'core-app/modules/common/config/configuration.service';
+import { Component, OnInit } from "@angular/core";
 import {
   FormattableEditFieldComponent,
-  formattableFieldTemplate
-} from "core-app/modules/fields/edit/field-types/formattable-edit-field.component";
-import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
+} from "core-app/modules/fields/edit/field-types/formattable-edit-field/formattable-edit-field.component";
+import { InjectField } from "core-app/helpers/angular/inject-field.decorator";
 
 @Component({
-  template: formattableFieldTemplate
+  templateUrl: "../../../modules/fields/edit/field-types/formattable-edit-field/formattable-edit-field.component.html"
 })
 export class WorkPackageCommentFieldComponent extends FormattableEditFieldComponent implements OnInit {
-  public isBusy:boolean = false;
+  public isBusy = false;
+  public name = 'comment';
 
   @InjectField() public ConfigurationService:ConfigurationService;
-
-  public get name() {
-    return 'comment';
-  }
 
   public get required() {
     return true;
@@ -52,6 +48,5 @@ export class WorkPackageCommentFieldComponent extends FormattableEditFieldCompon
 
   ngOnInit() {
     super.ngOnInit();
-    this.rawValue = this.rawValue || '';
   }
 }

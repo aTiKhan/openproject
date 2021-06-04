@@ -4,19 +4,19 @@ sidebar_navigation:
   priority: 990
 description: Sign in and registration in OpenProject.
 robots: index, follow
-keywords: sing in, login, registration
+keywords: sign in, login, registration
 ---
+
 # Sign in and registration
 
 Here you will get an overview how to sign in and register to an existing OpenProject installation.
 
 <div class="alert alert-info" role="alert">
-
-**Note**: If you do not have an OpenProject installation yet, please visit our site: [create an OpenProject trial installation](../../cloud-edition-guide/#create-an-openproject-trial-installation).
-
+**Note**: If you do not have an OpenProject installation yet, please visit our site on [how to create an OpenProject trial installation](../../cloud-edition-guide/#create-an-openproject-trial-installation).
 </div>
 
-| Feature                                                      | Documentation for                                            |
+
+| Topic                                                        | Content                                                      |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | [Sign in with an existing account](#sign-in-with-an-existing-account) | Sign in with an existing account to an OpenProject installation. |
 | [Sign in with Google](#sign-in-with-google)                  | Find out how to sign in with a Google account.               |
@@ -25,7 +25,7 @@ Here you will get an overview how to sign in and register to an existing OpenPro
 | [Choose your language](#choose-your-language)                | How to select your language in OpenProject?                  |
 | [Reset your password](#reset-your-password)                  | If you forgot your password find out how to reset it.        |
 
-<iframe width="620" height="440" src="https://www.youtube.com/embed/JO-ugpygx68" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<video src="https://www.openproject.org/wp-content/uploads/2020/12/OpenProject-Sign-in-and-Registration-2.mp4" type="video/mp4" controls="" style="width:100%"></video>
 
 ## Sign in with an existing account
 
@@ -107,8 +107,5 @@ You are then asked to enter you email address with which you have registered to 
 You will then receive an email with a link to reset your password.
 
 <div class="alert alert-info" role="alert">
-
-**Note**: If you have [signed-in with a Google account](#sign-in-with-a-google-account), your are not able to reset your password at this point.
-
+**Note**: If you have [signed-in with a Google account](#sign-in-with-a-google-account), you are not able to reset your password at this point.
 </div>
-

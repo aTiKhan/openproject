@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -42,7 +42,7 @@ class ::Query::SortCriteria < ::SortHelper::SortCriteria
   # Building the query sort criteria needs to respect
   # specific options of the column
   def to_a
-    @criteria
+    criteria_with_default_order
       .map { |attribute, order| [find_column(attribute), @available_criteria[attribute], order] }
       .reject { |column, criterion, _| column.nil? || criterion.nil? }
       .map { |column, criterion, order| [column, execute_criterion(criterion), order] }
@@ -64,7 +64,7 @@ class ::Query::SortCriteria < ::SortHelper::SortCriteria
   def append_order(column, criterion, asc = true)
     ordered_criterion = append_direction(criterion, asc)
 
-    ordered_criterion.map { |statement| "#{statement} #{column.null_handling(asc)}" }
+    ordered_criterion.map { |statement| "#{statement} #{column.null_handling(asc)}".strip }
   end
 
   def execute_criterion(criteria)
@@ -74,6 +74,14 @@ class ::Query::SortCriteria < ::SortHelper::SortCriteria
       else
         criterion
       end
+    end
+  end
+
+  def criteria_with_default_order
+    if @criteria.none? { |attribute, _| attribute == 'id' }
+      @criteria + [['id', false]]
+    else
+      @criteria
     end
   end
 end

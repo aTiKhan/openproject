@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,27 +24,31 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {OpenprojectCommonModule} from 'core-app/modules/common/openproject-common.module';
-import {NgModule} from '@angular/core';
-import {OpenprojectWorkPackagesModule} from "core-app/modules/work_packages/openproject-work-packages.module";
-import {WpGraphConfigurationModalComponent} from "core-app/modules/work-package-graphs/configuration-modal/wp-graph-configuration.modal";
-import {WpGraphConfigurationFiltersTab} from "core-app/modules/work-package-graphs/configuration-modal/tabs/filters-tab.component";
-import {WpGraphConfigurationSettingsTab} from "core-app/modules/work-package-graphs/configuration-modal/tabs/settings-tab.component";
-import {WpGraphConfigurationFiltersTabInner} from "core-app/modules/work-package-graphs/configuration-modal/tabs/filters-tab-inner.component";
-import {WpGraphConfigurationSettingsTabInner} from "core-app/modules/work-package-graphs/configuration-modal/tabs/settings-tab-inner.component";
-import {WorkPackageEmbeddedGraphComponent} from "core-app/modules/work-package-graphs/embedded/wp-embedded-graph.component";
-import {WorkPackageOverviewGraphComponent} from "core-app/modules/work-package-graphs/overview/wp-overview-graph.component";
-import {ChartsModule} from 'ng2-charts';
+import { NgModule } from '@angular/core';
+import { OpenprojectCommonModule } from 'core-app/modules/common/openproject-common.module';
+import { OpenprojectModalModule } from "core-app/modules/modal/modal.module";
+import { OpenprojectWorkPackagesModule } from "core-app/modules/work_packages/openproject-work-packages.module";
+import { WpGraphConfigurationModalComponent } from "core-app/modules/work-package-graphs/configuration-modal/wp-graph-configuration.modal";
+import { WpGraphConfigurationFiltersTab } from "core-app/modules/work-package-graphs/configuration-modal/tabs/filters-tab.component";
+import { WpGraphConfigurationSettingsTab } from "core-app/modules/work-package-graphs/configuration-modal/tabs/settings-tab.component";
+import { WpGraphConfigurationFiltersTabInner } from "core-app/modules/work-package-graphs/configuration-modal/tabs/filters-tab-inner.component";
+import { WpGraphConfigurationSettingsTabInner } from "core-app/modules/work-package-graphs/configuration-modal/tabs/settings-tab-inner.component";
+import { WorkPackageEmbeddedGraphComponent } from "core-app/modules/work-package-graphs/embedded/wp-embedded-graph.component";
+import { WorkPackageOverviewGraphComponent } from "core-app/modules/work-package-graphs/overview/wp-overview-graph.component";
+import { ChartsModule } from 'ng2-charts';
 import * as ChartDataLabels from 'chartjs-plugin-datalabels';
+import { OpenprojectTabsModule } from "core-app/modules/common/tabs/openproject-tabs.module";
 
 @NgModule({
   imports: [
     // Commons
     OpenprojectCommonModule,
+    OpenprojectModalModule,
 
     OpenprojectWorkPackagesModule,
+    OpenprojectTabsModule,
 
     ChartsModule,
   ],

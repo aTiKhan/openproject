@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -33,10 +33,24 @@ id:
         single: "Pilih \"%{name}\""
       remove: "Hapus %{name}"
       active: "Aktif %{label} %{name}"
+    backup:
+      attachments_disabled: Attachments may not be included since they exceed the maximum overall size allowed. You can change this via the configuration (requires a server restart).
+      info: >
+        You can trigger a backup here. The process can take some time depending on the amount of data (especially attachments) you have. You will receive an email once it's ready.
+      note: >
+        A new backup will override any previous one. Only a limited number of backups per day can be requested.
+      last_backup: Last backup
+      last_backup_from: Last backup from
+      title: Backup OpenProject
+      options: Opsi
+      include_attachments: Include attachments
+      download_backup: Download backup
+      request_backup: Request backup
     close_popup_title: "Tutup"
     close_filter_title: "Tutup Penyaring"
     close_form_title: "Tutup formulir"
     button_add_watcher: "Tambah pemantau"
+    button_add: "Tambah"
     button_back: "Kembali"
     button_back_to_list_view: "Kembali ke tampilan daftar"
     button_cancel: "Batal"
@@ -54,6 +68,8 @@ id:
     button_duplicate: "Duplikasi"
     button_edit: "Edit"
     button_filter: "Filter"
+    button_collapse_all: "Tutup semua"
+    button_expand_all: "Buka semua"
     button_advanced_filter: "Advanced filter"
     button_list_view: "Tampilan tabel"
     button_show_view: "Tampilan layar penuh"
@@ -71,6 +87,7 @@ id:
     button_update: "Update"
     button_export-pdf: "Download PDF"
     button_export-atom: "Download Atom"
+    button_create: "Buat baru"
     calendar:
       title: 'Kalender'
       too_many: 'There are %{count} work packages in total, but only %{max} can be shown.'
@@ -83,7 +100,7 @@ id:
     caption_rate_history: "Histori rate"
     clipboard:
       browser_error: "Browser Anda tidak mendukung menyalin ke clipboard. Harap menyalin teks yang dipilih secara manual."
-      copied_successful: "Berhasil disalin ke clipboard!"
+      copied_successful: "Successfully copied to clipboard!"
     chart:
       type: 'Chart type'
       axis_criteria: 'Axis criteria'
@@ -115,6 +132,11 @@ id:
         manual: 'Switch to Markdown source'
         wysiwyg: 'Switch to WYSIWYG editor'
       macro:
+        error: 'Cannot expand macro: %{message}'
+        attribute_reference:
+          macro_help_tooltip: 'This text segment is being dynamically rendered by a macro.'
+          not_found: 'Requested resource could not be found'
+          invalid_attribute: "The selected attribute '%{name}' does not exist."
         child_pages:
           button: 'Tautkan ke anak halaman'
           include_parent: 'Sertakan induk'
@@ -166,7 +188,8 @@ id:
       enterprise:
         trial:
           confirmation: "Confirmation of email address"
-          confirmation_info: "We sent you an email. Please check your emails and click the confirmation link provided to start your 14 days trial."
+          confirmation_info: >
+            Kami mengirimkan surel pada %{date} ke %{email}. Silakan periksa kotak surel Anda dan klik tautan konfirmasi untuk mendapatkan uji coba 14 hari.
           form:
             general_consent: >
               I agree with the <a target="_blank" href="%{link_terms}">terms of service</a> and the <a target="_blank" href="%{link_privacy}">privacy policy</a>.
@@ -181,9 +204,10 @@ id:
             label_starts_at: "Starts at"
             label_expires_at: "Berakhir masa berlaku pada"
             receive_newsletter: I want to receive the OpenProject <a target="_blank" href="%{link}">newsletter</a>.
+            taken_domain: There can only be one active trial per domain.
+            taken_email: Each user can only create one trial.
           email_not_received: "You did not receive an email? You can resend the email with the link on the right."
           try_another_email: "Or try it with another email address."
-          try_another_email_hint: "Please be aware that your previous email address gets invalid if you try again with a new one."
           next_steps: "Next steps"
           resend_link: "Kirim kembali"
           resend_success: "Email has been resent. Please check your emails and click the confirmation link provided."
@@ -197,7 +221,7 @@ id:
         upsale:
           become_hero: "Menjadi seorang pahlawan!"
           benefits:
-            description: "What are the benefits?"
+            description: "What are the benefits of the Enterprise on-premises Edition?"
             high_security: "Security features"
             high_security_text: "Single sign on (SAML, OpenID Connect, CAS), two-factor authentication and automatic sync of LDAP groups."
             installation: "Installation support"
@@ -248,7 +272,6 @@ id:
     general_text_yes: "yes"
     general_text_No: "No"
     general_text_Yes: "Yes"
-    global_roles: Peran global
     hal:
       error:
         update_conflict_refresh: "Click here to refresh the resource and update to the newest version."
@@ -262,13 +285,13 @@ id:
           text_new_features: "Read about new features and product updates."
           learn_about: "Learn more about the new features"
           standard:
-            learn_about_link: https://www.openproject.org/openproject-10-4
+            learn_about_link: https://www.openproject.org/openproject-11-3-release
             current_new_feature_html: >
-              The release contains various new features and improvements: <br><br> <ul> <li>Default <b>design templates</b> to select a light or dark theme (premium feature).</li> <li>New <b>time tracking widget</b> for <i>My page</i> to show spent time in a bar chart.</li> <li><b>XLS-exports for cost reports</b> and formatted text in PDF export of work packages.</li> <li><b>Improved design and usability</b>, i.e. tabs and more in project settings and administration.</li> </ul>
+              The release contains various new features and improvements: <br> <ul class="%{list_styling_class}"> <li>New button in header navigation to create projects, users and work packages.</li> <li>A new invite modal for users, groups and placeholder users allows to easily add or invite new users and assign them to work packages.</li> <li>GitHub integration into OpenProject.</li> <li>API v3 extensions for groups and more, i.e. create, read, update and delete groups and group members through the API.</li> <li>Multi-selection for project custom fields of type list.</li> <li>Creation of backup from the web interface.</li> </ul>
           bim:
-            learn_about_link: https://www.openproject.org/openproject-bim-10-4
+            learn_about_link: https://www.openproject.org/openproject-11-3-release
             current_new_feature_html: >
-              OpenProject contains a <b>new IFC module to integrate 3D models</b> into your project management application and to work collaboratively with these files with your team without installation of separate costly software or licenses. <br><br> <ul> <li><b>Import IFC files</b> of building models into your OpenProject application.</li> <li><b>Open 3D models and visualize building models</b> in your browser.</li> <li> Easily <b>work on multiple IFC files</b> with your team directly in OpenProject without installation of separate costly software. </li> </ul>
+              The release contains various new features and improvements: <br> <ul class="%{list_styling_class}"> <li>BIM: Improved performance of the IFC model viewer.</li> <li>BIM: The IFC viewer now supports double precision models, which is great for large construction sites such as bridges, roads etc.</li> <li>BIM: Toggle button for switching between perspective and orthogonal mode.</li> <li>BIM: A menu for editing, deleting or flipping section planes.</li> <li>New button in header navigation to create projects, users and work packages.</li> <li>A new invite modal for users, groups and placeholder users allows to easily add or invite new users and assign them to work packages.</li> <li>API v3 extensions for groups and more, i.e. create, read, update and delete groups and group members through the API.</li> <li>Multi-selection for project custom fields of type list.</li> <li>Creation of backup from the web interface.</li> </ul>
     label_activate: "Aktifkan"
     label_add_column_after: "Add column after"
     label_add_column_before: "Add column before"
@@ -279,7 +302,7 @@ id:
     label_add_row_before: "Add row before"
     label_add_selected_columns: "Tambahkan kolom terpilih"
     label_added_by: "ditambahkan oleh"
-    label_added_time_by: "Ditambahkan oleh %{author} %{age}"
+    label_added_time_by: "Added by <a href=%{authorLink}>%{author}</a> at %{age}"
     label_ago: "hari yang lalu"
     label_all: "semua"
     label_all_work_packages: "Semua paket kerja"
@@ -320,9 +343,11 @@ id:
     label_expand_all: "Buka semua"
     label_expand_project_menu: "Expand project menu"
     label_export: "Ekspor"
+    label_export_preparing: "The export is being prepared and will be downloaded shortly."
     label_filename: "File"
     label_filesize: "Size"
     label_general: "Umum"
+    label_global_roles: "Peran global"
     label_greater_or_equal: ">="
     label_group: 'Grup'
     label_group_by: "Pengelompokan"
@@ -352,7 +377,7 @@ id:
     label_next: "Lanjut"
     label_no_color: "No color"
     label_no_data: "Tidak ada data untuk ditampilkan"
-    label_no_due_date: "tidak ada tanggal berakhir"
+    label_no_due_date: "no finish date"
     label_no_start_date: "tidak ada tanggal mulai"
     label_no_value: "Kosongkan"
     label_none: "kosong"
@@ -371,6 +396,7 @@ id:
     label_quote_comment: "Quote this comment"
     label_recent: "Recent"
     label_reset: "Reset"
+    label_remove: "Remove"
     label_remove_column: "Remove column"
     label_remove_columns: "Hapus kolom terpilih"
     label_remove_row: "Remove row"
@@ -392,9 +418,10 @@ id:
     label_public_query: "Publik"
     label_sum: "Total"
     label_sum_for: "Jumlah"
+    label_total_sum: "Total sum"
     label_subject: "Perihal"
     label_this_week: "minggu ini"
-    label_today: "hari ini"
+    label_today: "Today"
     label_time_entry_plural: "Durasi"
     label_up: "Naik"
     label_user_plural: "User"
@@ -404,8 +431,10 @@ id:
     label_total_amount: "Total: %{amount}"
     label_updated_on: "diupdate pada"
     label_value_derived_from_children: "(value derived from children)"
+    label_children_derived_duration: "Work package's children derived duration"
     label_warning: "Warning"
     label_work_package: "Paket-Penugasan"
+    label_work_package_parent: "Parent work package"
     label_work_package_plural: "Paket-Penugasan"
     label_watch: "Pantau"
     label_watch_work_package: "Pantau Paket-Penugasan"
@@ -452,6 +481,7 @@ id:
         help_menu: 'In the <b>Help</b> menu you will find a user guide and additional help resources. <br> Enjoy your work with OpenProject!'
         members: 'Invite new <b>Members</b> to join your project.'
         project_selection: 'Please click on one of the projects with useful demo data to get started. <br> The <b>Demo project</b> suits best for classical project management, while the <b>Scrum project</b> is better for Agile project management.'
+        quick_add_button: 'Create a new project or invite coworkers.'
         sidebar_arrow: "With the arrow you can navigate back to the project's <b>Main menu</b>."
         welcome: 'Take a three minutes introduction tour to learn the most <b>important features</b>. <br> We recommend completing the steps until the end. You can restart the tour any time.'
         wiki: 'Within the <b>Wiki</b> you can document and share knowledge together with your team.'
@@ -467,7 +497,7 @@ id:
           drag: 'Drag & Drop your cards within a list to re-order, or to another list. A double click will open the details view.'
         wp:
           toggler: "Now let's have a look at the <b>Work package</b> section, which gives you a more detailed view of your work."
-          list: 'This is the <b>Work package</b> list with the important work within your project, such as tasks, features, milestones, bugs, and more. <br> You can create or edit a work package directly within this list. To see its details you can double click on a row.'
+          list: 'This is the <b>Work package</b> list with the important work within your project, such as tasks, milestones, phases, and more. <br> You can create or edit a work package directly within this list. To see its details you can double click on a row.'
           full_view: 'Within the <b>Work package details</b> you find all relevant information, such as description, status and priority, activities, dependencies or comments.'
           back_button: 'With the arrow you can navigate back to the work package list.'
           create_button: 'The <b>Create</b> button will add a new work package to your project.'
@@ -492,6 +522,11 @@ id:
       context: 'Konteks proyek'
       work_package_belongs_to: 'Paket kerja ini menjadi milik proyek %{projectname}.'
       click_to_switch_context: 'Buka paket kerja ini dalam proyek tersebut.'
+      confirm_template_load: 'Switching the template will reload the page and you will lose all input to this form. Continue?'
+      use_template: "Use template"
+      no_template_selected: "(None)"
+      copy:
+        copy_options: "Copy options"
       autocompleter:
         label: 'Penyelesaian Proyek secara otomatis'
     text_are_you_sure: "Anda yakin?"
@@ -502,7 +537,7 @@ id:
         reset_title: "Setel ulang konfigurasi formulir"
         confirm_reset: >
           Warning: Are you sure you want to reset the form configuration? This will reset the attributes to their default group and disable ALL custom fields.
-        upgrade_to_ee: "Tingkatkan ke edisi enterprise"
+        upgrade_to_ee: "Upgrade to Enterprise on-premises Edition"
         upgrade_to_ee_text: "Wow! Kalau Anda membutuhkan fitur ini, Anda adalah profesional yang super! Bersediakah Anda mendukung kami, pengembang OpenSource, untuk menjadi pelanggan Edisi Perusahaan?"
         more_information: "Informasi lebih lanjut"
         nevermind: "Tidak masalah"
@@ -519,7 +554,7 @@ id:
       duration: 'Durasi'
       spent_on: 'Tanggal'
       hours: 'Jam'
-      label: 'Time entry'
+      title: 'Catatan waktu'
     two_factor_authentication:
       label_two_factor_authentication: 'Autentikasi dua faktor'
     watchers:
@@ -575,11 +610,18 @@ id:
     relations_autocomplete:
       placeholder: "Type to search"
       parent_placeholder: "Choose new parent or press escape to cancel."
+    autocompleter:
+      placeholder: "Type to search"
+      notFoundText: "No items found"
+      typeToSearchText: "Type to search"
     repositories:
       select_tag: 'Pilih tag'
       select_branch: 'Pilih cabang'
     field_value_enter_prompt: "Masukkan nilai untuk '%{field}'"
     project_menu_details: "Detil"
+    scheduling:
+      manual: 'Manual scheduling'
+      automatic: 'Automatic scheduling'
     sort:
       sorted_asc: 'Urutan menaik diterapkan, '
       sorted_dsc: 'Urutan menurun diterapkan, '
@@ -745,6 +787,7 @@ id:
         startDate: "Tanggal start"
         status: "Status"
         subject: "Perihal"
+        subproject: "Sub-Project"
         title: "Judul"
         type: "Tipe"
         updatedAt: "Diperbarui"
@@ -790,6 +833,9 @@ id:
           not_found: "There is no such view"
           duplicate_query_title: "Name of this view already exists. Change anyway?"
         text_no_results: "No matching views were found."
+      scheduling:
+        is_parent: "The dates of this work package are automatically deduced from its children. Activate 'Manual scheduling' to set the dates."
+        is_switched_from_manual_to_automatic: "The dates of this work package may need to be recalculated after switching from manual to automatic scheduling due to relationships with other work packages."
       table:
         configure_button: 'Configure work package table'
         summary: "Table with rows of work package and columns of work package attributes."
@@ -823,7 +869,7 @@ id:
           automatic: 'Automatic'
           manually: 'Manually'
           warning: 'You will lose your previous sorting when activating the automatic sorting mode.'
-        columns_help_text: "Use the input above to add columns to your table view. You can drag and drop the columns to reorder them."
+        columns_help_text: "Use the input field above to add columns to your table view. You can drag and drop the columns to reorder them."
         upsale:
           attribute_highlighting: 'Need certain work packages to stand out from the mass?'
           relation_columns: 'Apakah perlu untuk melihat hubungan dalam daftar paker kerja?'
@@ -878,10 +924,14 @@ id:
         has_children: "Paket kerja memiliki %{childUnits}:"
         confirm_deletion_children: "I acknowledge that ALL descendants of the listed work packages will be recursively removed."
         deletes_children: "All child work packages and their descendants will also be recursively deleted."
+      destroy_time_entry:
+        title: "Confirm deletion of time entry"
+        text: "Apakah Anda ingin menghapus entri waktu berikut?"
     notice_no_results_to_display: "No visible results to display."
     notice_successful_create: "Berhasil dibuat."
     notice_successful_delete: "Berhasil dihapus."
     notice_successful_update: "Berhasil diperbarui."
+    notice_job_started: "job started."
     notice_bad_request: "Bad Request."
     relations:
       empty: Tidak ada yang berkaitan
@@ -913,8 +963,9 @@ id:
       child_work_packages:
         other: "Paket kerja %{count} turunan"
       hour:
-        zero: "0 h"
+        one: "1 h"
         other: "%{count} h"
+        zero: "0 h"
     zen_mode:
       button_activate: 'Mengaktifkan modus zen'
       button_deactivate: 'Menonaktifkan modus zen'
@@ -932,3 +983,78 @@ id:
       card: 'Cards'
       list: 'Table'
       timeline: 'Gantt'
+    invite_user_modal:
+      back: 'Kembali'
+      invite: 'Invite'
+      title:
+        invite: 'Invite user'
+        invite_to_project: 'Invite %{type} to %{project}'
+        User: 'user'
+        Group: 'group'
+        PlaceholderUser: 'placeholder user'
+        invite_principal_to_project: 'Invite %{principal} to %{project}'
+      project:
+        label: 'Project'
+        required: 'Please select a project'
+        lacking_permission: 'Please select a different project since you lack permissions to assign users to the currently selected.'
+        lacking_permission_info: 'You lack the permission to assign users to the project you are currently in. You need to select a different one.'
+        next_button: 'Lanjut'
+        no_results: 'No projects were found'
+        no_invite_rights: 'You are not allowed to invite members to this project'
+      type:
+        required: 'Please select the type to be invited'
+        user:
+          title: 'User'
+          description: 'Permissions based on the assigned role in the selected project'
+        group:
+          title: 'Grup'
+          description: 'Permissions based on the assigned role in the selected project'
+        placeholder:
+          title: 'Placeholder user'
+          title_no_ee: 'Placeholder user (Enterprise Edition only feature)'
+          description: 'Has no access to the project and no emails are sent out.'
+          description_no_ee: 'Has no access to the project and no emails are sent out. <br>Check out the <a href="%{eeHref}" target="_blank">Enterprise Edition</a>'
+      principal:
+        label:
+          name_or_email: 'Name or email address'
+          name: 'Nama'
+        already_member_message: 'Already a member of %{project}'
+        no_results_user: 'No users were found'
+        invite_user: 'Invite:'
+        change_user_selection: 'Change e-mail-address or select an existing user'
+        no_results_placeholder: 'No placeholders were found'
+        change_placeholder_selection: 'Change name or select an existing placeholder'
+        create_new_placeholder: 'Create new placeholder:'
+        no_results_group: 'No groups were found'
+        change_group_selection: 'Change name or select an existing group'
+        next_button: 'Lanjut'
+        required:
+          user: 'Please select a user'
+          placeholder: 'Please select a placeholder'
+          group: 'Please select a group'
+      role:
+        label: 'Role in %{project}'
+        no_roles_found: 'No roles were found'
+        description: 'This is the role that %{principal} will receive when they join your project. The role defines which actions they are allowed to take and which information they are allowed to see. <a href="https://docs.openproject.org/system-admin-guide/users-permissions/roles-permissions/#roles-and-permissions" target="_blank"> Learn more about roles and permissions. </a>'
+        required: 'Please select a role'
+        next_button: 'Lanjut'
+      message:
+        label: 'Invitation message'
+        description: 'We will send an email to %{principal}, to which you can add a personal message here. An explanation for the invitation could be useful, or perhaps a bit of information regarding the project to help them get started.'
+        next_button: 'Review invitation'
+      summary:
+        next_button: 'Kirim undangan'
+      success:
+        title: '%{principal} was invited!'
+        description:
+          user: 'The user can now log in to access %{project}. Meanwhile you can already plan with that user and assign work packages for instance.'
+          placeholder: 'The placeholder can now be used in %{project}. Meanwhile you can already plan with that user and assign work packages for instance.'
+          group: 'The group is now a part of %{project}. Meanwhile you can already plan with that group and assign work packages for instance.'
+        next_button: 'Lanjutkan'
+    forms:
+      submit_success_message: 'The form was successfully submitted'
+      load_error_message: 'There was an error loading the form'
+      validation_error_message: 'Please fix the errors present in the form'
+      advanced_settings: 'Advanced settings'
+
+

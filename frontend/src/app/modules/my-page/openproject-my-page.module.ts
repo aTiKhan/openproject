@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,13 +24,14 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {NgModule} from '@angular/core';
-import {OpenprojectCommonModule} from "core-app/modules/common/openproject-common.module";
-import {Ng2StateDeclaration, UIRouterModule} from "@uirouter/angular";
-import {OpenprojectGridsModule} from "core-app/modules/grids/openproject-grids.module";
-import {MyPageComponent} from "core-app/modules/my-page/my-page.component";
+import { NgModule } from '@angular/core';
+import { Ng2StateDeclaration, UIRouterModule } from "@uirouter/angular";
+import { OpenprojectCommonModule } from "core-app/modules/common/openproject-common.module";
+import { OpenprojectModalModule } from "core-app/modules/modal/modal.module";
+import { OpenprojectGridsModule } from "core-app/modules/grids/openproject-grids.module";
+import { MyPageComponent } from "core-app/modules/my-page/my-page.component";
 
 export const MY_PAGE_ROUTES:Ng2StateDeclaration[] = [
   {
@@ -47,8 +48,8 @@ export const MY_PAGE_ROUTES:Ng2StateDeclaration[] = [
 @NgModule({
   imports: [
     OpenprojectCommonModule,
-
     OpenprojectGridsModule,
+    OpenprojectModalModule,
 
     // Routes for my_page
     UIRouterModule.forChild({ states: MY_PAGE_ROUTES }),

@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -33,10 +34,9 @@ class GroupsController < ApplicationController
 
   helper_method :gon
 
-  before_action :require_admin
-  before_action :find_group, only: [:destroy,
-                                    :show, :create_memberships, :destroy_membership,
-                                    :edit_membership]
+  before_action :require_admin, except: %i[show]
+  before_action :find_group, only: %i[destroy update show create_memberships destroy_membership
+                                      edit_membership add_users]
 
   # GET /groups
   # GET /groups.xml
@@ -45,7 +45,7 @@ class GroupsController < ApplicationController
 
     respond_to do |format|
       format.html # index.html.erb
-      format.xml  do render xml: @groups end
+      format.xml { render xml: @groups }
     end
   end
 
@@ -53,8 +53,11 @@ class GroupsController < ApplicationController
   # GET /groups/1.xml
   def show
     respond_to do |format|
-      format.html # show.html.erb
-      format.xml  do render xml: @group end
+      format.html do
+        @group_users = group_members
+        render layout: 'no_menu'
+      end
+      format.xml { render xml: @group }
     end
   end
 
@@ -65,7 +68,7 @@ class GroupsController < ApplicationController
 
     respond_to do |format|
       format.html # new.html.erb
-      format.xml  do render xml: @group end
+      format.xml  { render xml: @group }
     end
   end
 
@@ -79,16 +82,20 @@ class GroupsController < ApplicationController
   # POST /groups
   # POST /groups.xml
   def create
-    @group = Group.new permitted_params.group
+    service_call = Groups::CreateService
+                     .new(user: current_user)
+                     .call(permitted_params.group)
+
+    @group = service_call.result
 
     respond_to do |format|
-      if @group.save
-        flash[:notice] = l(:notice_successful_create)
-        format.html do redirect_to(groups_path) end
-        format.xml  do render xml: @group, status: :created, location: @group end
+      if service_call.success?
+        flash[:notice] = I18n.t(:notice_successful_create)
+        format.html { redirect_to(groups_path) }
+        format.xml  { render xml: @group, status: :created, location: @group }
       else
-        format.html do render action: 'new' end
-        format.xml  do render xml: @group.errors, status: :unprocessable_entity end
+        format.html { render action: :new }
+        format.xml  { render xml: service_call.errors, status: :unprocessable_entity }
       end
     end
   end
@@ -96,16 +103,18 @@ class GroupsController < ApplicationController
   # PUT /groups/1
   # PUT /groups/1.xml
   def update
-    @group = Group.includes(:users).find(params[:id])
+    service_call = Groups::UpdateService
+                   .new(user: current_user, model: @group)
+                   .call(permitted_params.group)
 
     respond_to do |format|
-      if @group.update(permitted_params.group)
-        flash[:notice] = l(:notice_successful_update)
-        format.html do redirect_to(groups_path) end
-        format.xml  do head :ok end
+      if service_call.success?
+        flash[:notice] = I18n.t(:notice_successful_update)
+        format.html { redirect_to(groups_path) }
+        format.xml  { head :ok }
       else
-        format.html do render action: 'edit' end
-        format.xml  do render xml: @group.errors, status: :unprocessable_entity end
+        format.html { render action: 'edit' }
+        format.xml  { render xml: service_call.errors, status: :unprocessable_entity }
       end
     end
   end
@@ -113,60 +122,63 @@ class GroupsController < ApplicationController
   # DELETE /groups/1
   # DELETE /groups/1.xml
   def destroy
-    @group.destroy
+    Groups::DeleteService
+      .new(user: current_user, model: @group)
+      .call
 
     respond_to do |format|
-      flash[:notice] = l(:notice_successful_delete)
-      format.html do redirect_to(groups_url) end
-      format.xml  do head :ok end
+      format.html do
+        flash[:info] = I18n.t(:notice_deletion_scheduled)
+        redirect_to(action: :index)
+      end
+      format.xml { head 202 }
     end
   end
 
   def add_users
-    @group = Group.includes(:users).find(params[:id])
-    @users = User.includes(:memberships).where(id: params[:user_ids])
-    @group.users << @users
+    service_call = Groups::UpdateService
+                   .new(user: current_user, model: @group)
+                   .call(user_ids: @group.user_ids + Array(params[:user_ids]).map(&:to_i))
 
-    I18n.t :notice_successful_update
-    redirect_to controller: '/groups', action: 'edit', id: @group, tab: 'users'
+    respond_users_altered(service_call)
   end
 
   def remove_user
-    @group = Group.includes(:users).find(params[:id])
-    @group.users.delete(User.includes(:memberships).find(params[:user_id]))
+    @group = Group.includes(:group_users).find(params[:id])
 
-    I18n.t :notice_successful_update
-    redirect_to controller: '/groups', action: 'edit', id: @group, tab: 'users'
+    service_call = Groups::UpdateService
+                   .new(user: current_user, model: @group)
+                   .call(user_ids: @group.user_ids - Array(params[:user_id]).map(&:to_i))
+
+    respond_users_altered(service_call)
   end
 
   def create_memberships
-    membership_params = permitted_params.group_membership
-    membership_id = membership_params[:membership_id]
+    membership_params = permitted_params.group_membership[:new_membership]
 
-    if membership_id.present?
-      key = :membership
-      @membership = Member.find(membership_id)
-    else
-      key = :new_membership
-      @membership = Member.new(principal: @group)
-    end
+    service_call = Members::CreateService
+                   .new(user: current_user)
+                   .call(membership_params.merge(principal: @group))
 
-    service = ::Members::EditMembershipService.new(@membership, save: true, current_user: current_user)
-    result = service.call(attributes: membership_params[key])
-
-    if result.success?
-      flash[:notice] = I18n.t :notice_successful_update
-    else
-      flash[:error] = result.errors.full_messages.join("\n")
-    end
-    redirect_to controller: '/groups', action: 'edit', id: @group, tab: 'memberships'
+    respond_membership_altered(service_call)
   end
 
-  alias :edit_membership :create_memberships
+  def edit_membership
+    membership_params = permitted_params.group_membership
+
+    @membership = Member.find(membership_params[:membership_id])
+
+    service_call = Members::UpdateService
+                   .new(model: @membership, user: current_user)
+                   .call(membership_params[:membership])
+
+    respond_membership_altered(service_call)
+  end
 
   def destroy_membership
-    membership_params = permitted_params.group_membership
-    Member.find(membership_params[:membership_id]).destroy
+    Members::DeleteService
+      .new(model: Member.find(params[:membership_id]), user: current_user)
+      .call
 
     flash[:notice] = I18n.t :notice_successful_delete
     redirect_to controller: '/groups', action: 'edit', id: @group, tab: 'memberships'
@@ -178,8 +190,21 @@ class GroupsController < ApplicationController
     @group = Group.find(params[:id])
   end
 
+  def group_members
+    if visible_group_members?
+      @group.users
+    else
+      User.none
+    end
+  end
+
+  def visible_group_members?
+    current_user.allowed_to_globally?(:manage_members) ||
+      Group.in_project(Project.allowed_to(current_user, :view_members)).exists?
+  end
+
   def default_breadcrumb
-    if action_name == 'index'
+    if action_name == 'index' || !current_user.admin?
       t('label_group_plural')
     else
       ActionController::Base.helpers.link_to(t('label_group_plural'), groups_path)
@@ -188,5 +213,25 @@ class GroupsController < ApplicationController
 
   def show_local_breadcrumb
     true
+  end
+
+  def respond_membership_altered(service_call)
+    if service_call.success?
+      flash[:notice] = I18n.t :notice_successful_update
+    else
+      flash[:error] = service_call.errors.full_messages.join("\n")
+    end
+
+    redirect_to controller: '/groups', action: 'edit', id: @group, tab: 'memberships'
+  end
+
+  def respond_users_altered(service_call)
+    if service_call.success?
+      flash[:notice] = I18n.t(:notice_successful_update)
+    else
+      service_call.apply_flash_message!(flash)
+    end
+
+    redirect_to controller: '/groups', action: 'edit', id: @group, tab: 'users'
   end
 end

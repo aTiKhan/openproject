@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -31,13 +31,14 @@ require 'spec_helper'
 describe 'Enterprise token', type: :feature, js: true do
   include Redmine::I18n
 
-  using_shared_fixtures :admin
+  shared_let(:admin) { FactoryBot.create :admin }
   let(:token_object) do
     token = OpenProject::Token.new
     token.subscriber = 'Foobar'
     token.mail = 'foo@example.org'
     token.starts_at = Date.today
     token.expires_at = nil
+    token.domain = Setting.host_name
 
     token
   end
@@ -79,9 +80,9 @@ describe 'Enterprise token', type: :feature, js: true do
         expect(page).to have_selector('.enterprise--active-token')
 
         expect(page.all('.attributes-key-value--key').map(&:text))
-          .to eq ['Subscriber', 'Email', 'Maximum active users', 'Starts at', 'Expires at']
+          .to eq ['Subscriber', 'Email', 'Domain', 'Maximum active users', 'Starts at', 'Expires at']
         expect(page.all('.attributes-key-value--value').map(&:text))
-          .to eq ['Foobar', 'foo@example.org', 'Unlimited', format_date(Date.today), 'Unlimited']
+          .to eq ['Foobar', 'foo@example.org', Setting.host_name, 'Unlimited', format_date(Date.today), 'Unlimited']
 
         expect(page).to have_selector('.button.icon-delete', text: I18n.t(:button_delete))
 
@@ -91,9 +92,9 @@ describe 'Enterprise token', type: :feature, js: true do
         RequestStore.clear!
         expect(EnterpriseToken.current.encoded_token).to eq('foobar')
 
-        # Replace token
-        find('.collapsible-section--toggle-link').click
-        textarea.set 'blabla'
+        expect(page).to have_text("Successful update")
+        click_on "Replace your current support token"
+        fill_in 'enterprise_token_encoded_token', with: "blabla"
         submit_button.click
         expect(page).to have_selector('.flash.notice', text: I18n.t(:notice_successful_update))
 
@@ -102,7 +103,8 @@ describe 'Enterprise token', type: :feature, js: true do
         expect(EnterpriseToken.current.encoded_token).to eq('blabla')
 
         # Remove token
-        find('.button.icon-delete', text: I18n.t(:button_delete)).click
+        SeleniumHubWaiter.wait
+        click_on "Delete"
 
         # Expect modal
         find('.confirm-form-submit--continue').click

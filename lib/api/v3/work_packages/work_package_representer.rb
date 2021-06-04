@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -85,8 +85,7 @@ module API
           next if represented.new_record?
 
           {
-            href: new_work_package_time_entry_path(represented),
-            type: 'text/html',
+            href: api_v3_paths.time_entries,
             title: "Log time on #{represented.subject}"
           }
         end
@@ -286,9 +285,10 @@ module API
              cache_if: -> { view_time_entries_allowed? } do
           next if represented.new_record?
 
+          filters = [{ work_package_id: { operator: "=", values: [represented.id.to_s] } }]
+
           {
-            href: work_package_time_entries_path(represented.id),
-            type: 'text/html',
+            href: api_v3_paths.path_for(:time_entries, filters: filters),
             title: 'Time entries'
           }
         end
@@ -329,6 +329,10 @@ module API
 
         formattable_property :description
 
+        property :schedule_manually,
+                 exec_context: :decorator,
+                 getter: ->(*) { represented.schedule_manually? }
+
         date_property :start_date,
                       skip_render: ->(represented:, **) {
                         represented.milestone?
@@ -359,6 +363,18 @@ module API
                       skip_render: ->(represented:, **) {
                         !represented.milestone?
                       }
+
+        date_property :derived_start_date,
+                      skip_render: ->(represented:, **) {
+                        represented.milestone?
+                      },
+                      uncacheable: true
+
+        date_property :derived_due_date,
+                      skip_render: ->(represented:, **) {
+                        represented.milestone?
+                      },
+                      uncacheable: true
 
         property :estimated_time,
                  exec_context: :decorator,
@@ -395,16 +411,6 @@ module API
 
         date_time_property :updated_at
 
-        property :watchers,
-                 embedded: true,
-                 exec_context: :decorator,
-                 uncacheable: true,
-                 if: ->(*) {
-                   current_user_allowed_to(:view_work_package_watchers,
-                                           context: represented.project) &&
-                     embed_links
-                 }
-
         property :relations,
                  embedded: true,
                  exec_context: :decorator,
@@ -426,14 +432,18 @@ module API
                             representer: ::API::V3::Users::UserRepresenter
 
         associated_resource :responsible,
-                            getter: ::API::V3::Principals::AssociatedSubclassLambda.getter(:responsible),
+                            getter: ::API::V3::Principals::PrincipalRepresenterFactory
+                                      .create_getter_lambda(:responsible),
                             setter: PrincipalSetter.lambda(:responsible),
-                            link: ::API::V3::Principals::AssociatedSubclassLambda.link(:responsible)
+                            link: ::API::V3::Principals::PrincipalRepresenterFactory
+                                    .create_link_lambda(:responsible)
 
         associated_resource :assignee,
-                            getter: ::API::V3::Principals::AssociatedSubclassLambda.getter(:assigned_to),
+                            getter: ::API::V3::Principals::PrincipalRepresenterFactory
+                                      .create_getter_lambda(:assigned_to),
                             setter: PrincipalSetter.lambda(:assigned_to, :assignee),
-                            link: ::API::V3::Principals::AssociatedSubclassLambda.link(:assigned_to)
+                            link: ::API::V3::Principals::PrincipalRepresenterFactory
+                                    .create_link_lambda(:assigned_to)
 
         associated_resource :version,
                             v3_path: :version,
@@ -477,6 +487,13 @@ module API
                               represented.parent = new_parent
                             end
 
+        associated_resource :budget,
+                            as: :budget,
+                            v3_path: :budget,
+                            link_title_attribute: :subject,
+                            representer: ::API::V3::Budgets::BudgetRepresenter,
+                            skip_render: ->(*) { !view_budgets_allowed? }
+
         resources :customActions,
                   uncacheable_link: true,
                   link: ->(*) {
@@ -509,16 +526,6 @@ module API
           super
         end
 
-        def watchers
-          # TODO/LEGACY: why do we need to ensure a specific order here?
-          watchers = represented.watcher_users.order(User::USER_FORMATS_STRUCTURE[Setting.user_format])
-          self_link = api_v3_paths.work_package_watchers(represented.id)
-
-          Users::UserCollectionRepresenter.new(watchers,
-                                               self_link,
-                                               current_user: current_user)
-        end
-
         def current_user_watcher?
           represented.watchers.any? { |w| w.user_id == current_user.id }
         end
@@ -532,16 +539,21 @@ module API
           self_path = api_v3_paths.work_package_relations(represented.id)
           visible_relations = represented
                               .visible_relations(current_user)
+                              .direct
                               .non_hierarchy
                               .includes(::API::V3::Relations::RelationCollectionRepresenter.to_eager_load)
 
           ::API::V3::Relations::RelationCollectionRepresenter.new(visible_relations,
-                                                                  self_path,
+                                                                  self_link: self_path,
                                                                   current_user: current_user)
         end
 
         def visible_children
           @visible_children ||= represented.children.select(&:visible?)
+        end
+
+        def schedule_manually=(value)
+          represented.schedule_manually = value
         end
 
         def estimated_time=(value)
@@ -568,7 +580,8 @@ module API
         self.to_eager_load = %i[parent
                                 type
                                 watchers
-                                attachments]
+                                attachments
+                                budget]
 
         # The dynamic class generation introduced because of the custom fields interferes with
         # the class naming as well as prevents calls to super
@@ -586,7 +599,12 @@ module API
         end
 
         def view_time_entries_allowed?
-          current_user_allowed_to(:view_time_entries, context: represented.project)
+          current_user_allowed_to(:view_time_entries, context: represented.project) ||
+            current_user_allowed_to(:view_own_time_entries, context: represented.project)
+        end
+
+        def view_budgets_allowed?
+          current_user_allowed_to(:view_budgets, context: represented.project)
         end
 
         def load_complete_model(model)

@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -36,16 +36,23 @@ describe User, 'allowed_to?' do
   let(:role) { FactoryBot.build(:role) }
   let(:role2) { FactoryBot.build(:role) }
   let(:anonymous_role) { FactoryBot.build(:anonymous_role) }
-  let(:member) {
+  let(:member) do
     FactoryBot.build(:member, project: project,
-                               roles: [role],
-                               principal: user)
-  }
-  let(:member2) {
+                              roles: [role],
+                              principal: user)
+  end
+  let(:member2) do
     FactoryBot.build(:member, project: project2,
-                               roles: [role2],
-                               principal: user)
-  }
+                              roles: [role2],
+                              principal: user)
+  end
+  let(:global_permission) { OpenProject::AccessControl.permissions.find { |p| p.global? } }
+  let(:global_role) { FactoryBot.build(:global_role, permissions: [global_permission.name]) }
+  let(:global_member) do
+    FactoryBot.build(:global_member,
+                     principal: user,
+                     roles: [global_role])
+  end
 
   before do
     anonymous_role.save!
@@ -403,8 +410,26 @@ describe User, 'allowed_to?' do
       end
     end
 
+    context "w/o the user being member in a project
+             w/ the user having the global role
+             w/ the global role having the necessary permission" do
+      before do
+        project.save!
+
+        global_role.save!
+
+        global_member.save!
+      end
+
+      it 'is false' do
+        expect(user.allowed_to?(global_permission.name, project)).to be_falsey
+      end
+    end
+
     context 'w/ requesting a controller and action
              w/ the user being allowed the action' do
+      let(:permission) { :view_wiki_pages }
+
       before do
         role.add_permission! permission
 
@@ -414,7 +439,7 @@ describe User, 'allowed_to?' do
       end
 
       it 'should be true' do
-        expect(user.allowed_to?({ controller: 'work_packages', action: 'new' }, project))
+        expect(user.allowed_to?({ controller: 'wiki', action: 'show' }, project))
           .to be_truthy
       end
     end
@@ -486,6 +511,8 @@ describe User, 'allowed_to?' do
     context 'w/ the user being a member in the project
              w/ inquiring for controller and action
              w/ the role having the necessary permission' do
+      let(:permission) { :view_wiki_pages }
+
       before do
         role.add_permission! permission
 
@@ -495,7 +522,7 @@ describe User, 'allowed_to?' do
       end
 
       it 'should be true' do
-        expect(user.allowed_to?({ controller: 'work_packages', action: 'new' }, nil, global: true))
+        expect(user.allowed_to?({ controller: 'wiki', action: 'show' }, nil, global: true))
           .to be_truthy
       end
     end
@@ -528,6 +555,47 @@ describe User, 'allowed_to?' do
 
       it 'should be true' do
         expect(user.allowed_to?(permission, nil, global: true)).to be_truthy
+      end
+    end
+
+    context "w/o the user being member in a project
+             w/ the user having a global role
+             w/ the global role having the necessary permission" do
+      before do
+        global_role.save!
+
+        global_member.save!
+      end
+
+      it 'is true' do
+        expect(user.allowed_to?(global_permission.name, nil, global: true)).to be_truthy
+      end
+    end
+
+    context "w/o the user being member in a project
+             w/ the user having a global role
+             w/o the global role having the necessary permission" do
+      before do
+        global_role.permissions = []
+        global_role.save!
+
+        global_member.save!
+      end
+
+      it 'is false' do
+        expect(user.allowed_to?(global_permission.name, nil, global: true)).to be_falsey
+      end
+    end
+
+    context "w/o the user being member in a project
+             w/o the user having the global role
+             w/ the global role having the necessary permission" do
+      before do
+        global_role.save!
+      end
+
+      it 'is false' do
+        expect(user.allowed_to?(global_permission.name, nil, global: true)).to be_falsey
       end
     end
 
@@ -584,9 +652,9 @@ describe User, 'allowed_to?' do
 
   context 'w/ preloaded permissions' do
     it_behaves_like 'w/ inquiring for project' do
-      let(:final_setup_step) {
+      let(:final_setup_step) do
         user.preload_projects_allowed_to(permission)
-      }
+      end
     end
   end
 end

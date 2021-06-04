@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,23 +24,23 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {Component, OnDestroy, OnInit, Injector} from '@angular/core';
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
-import {CurrentProjectService} from "core-components/projects/current-project.service";
-import {BcfPathHelperService} from "core-app/modules/bim/bcf/helper/bcf-path-helper.service";
-import {IsolatedQuerySpace} from "core-app/modules/work_packages/query-space/isolated-query-space";
-import {QueryResource} from "core-app/modules/hal/resources/query-resource";
-import {UrlParamsHelperService} from "core-components/wp-query/url-params-helper";
-import {StateService} from "@uirouter/core";
-import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
-import {WpTableExportModal} from "core-components/modals/export-modal/wp-table-export.modal";
-import {OpModalService} from "core-components/op-modals/op-modal.service";
+import { Component, OnDestroy, OnInit, Injector } from '@angular/core';
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
+import { CurrentProjectService } from "core-components/projects/current-project.service";
+import { BcfPathHelperService } from "core-app/modules/bim/bcf/helper/bcf-path-helper.service";
+import { IsolatedQuerySpace } from "core-app/modules/work_packages/query-space/isolated-query-space";
+import { QueryResource } from "core-app/modules/hal/resources/query-resource";
+import { UrlParamsHelperService } from "core-components/wp-query/url-params-helper";
+import { StateService } from "@uirouter/core";
+import { UntilDestroyedMixin } from "core-app/helpers/angular/until-destroyed.mixin";
+import { WpTableExportModal } from "core-components/modals/export-modal/wp-table-export.modal";
+import { OpModalService } from "core-app/modules/modal/modal.service";
 
 @Component({
   template: `
-    <a [title]="text.export"
+    <a [title]="text.export_hover"
        class="button export-bcf-button"
        [attr.href]="exportLink"
        (click)="showDelayedExport($event)">
@@ -52,7 +52,8 @@ import {OpModalService} from "core-components/op-modals/op-modal.service";
 })
 export class BcfExportButtonComponent extends UntilDestroyedMixin implements OnInit, OnDestroy {
   public text = {
-    export: this.I18n.t('js.bcf.export')
+    export: this.I18n.t('js.bcf.export'),
+    export_hover: this.I18n.t('js.bcf.export_bcf_xml_file')
   };
   public query:QueryResource;
   public exportLink:string;
@@ -77,8 +78,8 @@ export class BcfExportButtonComponent extends UntilDestroyedMixin implements OnI
       .subscribe((query) => {
         this.query = query;
 
-        let projectIdentifier = this.currentProject.identifier;
-        let filters = this.queryUrlParamsHelper.buildV3GetFilters(this.query.filters);
+        const projectIdentifier = this.currentProject.identifier;
+        const filters = this.queryUrlParamsHelper.buildV3GetFilters(this.query.filters);
         this.exportLink = this.bcfPathHelper.projectExportIssuesPath(
           projectIdentifier!,
           JSON.stringify(filters)

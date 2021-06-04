@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -38,8 +38,8 @@ describe 'Query name inline edit', js: true do
   let(:type) { project.types.first }
   let(:role) do
     FactoryBot.create(:role,
-                      permissions: [:view_work_packages,
-                                    :save_queries])
+                      permissions: %i[view_work_packages
+                                      save_queries])
   end
 
   let(:work_package) do
@@ -90,6 +90,10 @@ describe 'Query name inline edit', js: true do
     # Expect unchanged
     query_title.expect_not_changed
 
+    # TODO: The notification should actually not be shown at all since no update
+    # has taken place
+    wp_table.expect_and_dismiss_notification message: 'Successful update.'
+
     assignee_query.reload
     expect(assignee_query.filters.count).to eq(1)
     expect(assignee_query.filters.first.name).to eq :status_id
@@ -100,7 +104,7 @@ describe 'Query name inline edit', js: true do
 
     # Rename query
     query_title.rename 'Not my assignee query'
-    wp_table.expect_notification message: 'Successful update.'
+    wp_table.expect_and_dismiss_notification message: 'Successful update.'
 
     assignee_query.reload
     expect(assignee_query.name).to eq 'Not my assignee query'
@@ -112,7 +116,7 @@ describe 'Query name inline edit', js: true do
     page.driver.browser.switch_to.active_element.send_keys('Some other name')
     page.driver.browser.switch_to.active_element.send_keys(:return)
 
-    wp_table.expect_notification message: 'Successful update.'
+    wp_table.expect_and_dismiss_notification message: 'Successful update.'
 
     assignee_query.reload
     expect(assignee_query.name).to eq 'Some other name'

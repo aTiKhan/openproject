@@ -1,12 +1,12 @@
 <%#-- copyright
 OpenProject is an open source project management software.
-Copyright (C) 2012-2020 the OpenProject GmbH
+Copyright (C) 2012-2021 the OpenProject GmbH
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License version 3.
 
 OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-Copyright (C) 2006-2017 Jean-Philippe Lang
+Copyright (C) 2006-2013 Jean-Philippe Lang
 Copyright (C) 2010-2013 the ChiliProject Team
 
 This program is free software; you can redistribute it and/or
@@ -27,9 +27,7 @@ See docs/COPYRIGHT.rdoc for more details.
 
 ++#%>
 
-<%= render partial: 'shared/costs_header' %>
-
-<% html_title l(:label_administration), t(:label_cost_type_plural) %>
+<% html_title t(:label_administration), t(:label_cost_type_plural) %>
 <%= toolbar title: CostType.model_name.human(count: 2) do %>
   <li class="toolbar-item">
     <a href="<%= new_cost_type_path %>" aria-label="<%= t(:button_add_cost_type) %>" title="<%= t(:button_add_cost_type) %>" class="button -alt-highlight">
@@ -44,7 +42,7 @@ See docs/COPYRIGHT.rdoc for more details.
     <legend><%= t(:label_filter_plural) %></legend>
     <ul class="simple-filters--filters">
       <li class="simple-filters--filter">
-        <%= styled_label_tag :fixed_date, t(:label_fixed_date), class: 'simple-filters--filter-name' %>
+        <%= styled_label_tag :fixed_date, t(:'attributes.fixed_date'), class: 'simple-filters--filter-name' %>
         <div class='simple-filters--filter-value'>
           <%= styled_text_field_tag :fixed_date, @fixed_date, class: '-augmented-datepicker' %>
         </div>

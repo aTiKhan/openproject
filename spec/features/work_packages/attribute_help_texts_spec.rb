@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -52,7 +52,7 @@ describe 'Work package attribute help texts', type: :feature, js: true do
 
   shared_examples 'allows to view help texts' do
     it 'shows an indicator for whatever help text exists' do
-      expect(page).to have_selector('.work-package--single-view .help-text--for-status')
+      expect(page).to have_selector('.work-package--single-view [data-qa-help-text-for="status"]')
 
       # Open help text modal
       modal.open!

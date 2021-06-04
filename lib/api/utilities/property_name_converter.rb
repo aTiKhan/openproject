@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -69,7 +70,7 @@ module API
           attribute = underscore_attribute attribute.to_s.underscore
           attribute = collapse_custom_field_name(attribute)
 
-          special_conversion = special_api_to_ar_conversions[attribute]
+          special_conversion = Constants::ARToAPIConversions.api_to_ar_conversions[attribute]
 
           if refer_to_ids
             special_conversion = denormalize_foreign_key_name(special_conversion, context)
@@ -85,13 +86,6 @@ module API
         end
 
         private
-
-        def special_api_to_ar_conversions
-          @api_to_ar_conversions ||= Constants::ARToAPIConversions.all.inject({}) do |result, (k, v)|
-            result[v.underscore] = k.to_s
-            result
-          end
-        end
 
         # Unifies different attributes refering to the same thing via a foreign key
         # e.g. status_id -> status

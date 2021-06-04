@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -28,10 +28,10 @@
 
 class DesignColor < ApplicationRecord
   after_commit -> do
-    # CustomStyle.current.updated_at determins the cache key for inline_css
+    # CustomStyle.current.updated_at determines the cache key for inline_css
     # in which the CSS color variables will be overwritten. That is why we need
     # to ensure that a CustomStyle.current exists and that the time stamps change
-    # whenever we chagen a color_variable.
+    # whenever we change a color_variable.
     if CustomStyle.current
       CustomStyle.current.touch
     else
@@ -46,12 +46,8 @@ class DesignColor < ApplicationRecord
   validates_format_of :hexcode, with: /\A#[0-9A-F]{6}\z/, unless: lambda { |e| e.hexcode.blank? }
 
   class << self
-    def defaults
-      OpenProject::CustomStyles::Design.resolved_variables
-    end
-
     def setables
-      overwritten_values = self.overwritten
+      overwritten_values = overwritten
       OpenProject::CustomStyles::Design.customizable_variables.map do |varname|
         overwritten_value = overwritten_values.detect { |var| var.variable == varname }
         overwritten_value || new(variable: varname)
@@ -62,14 +58,9 @@ class DesignColor < ApplicationRecord
       overridable = OpenProject::CustomStyles::Design.customizable_variables
 
       all.to_a.select do |color|
-        overridable.include?(color.variable) && self.defaults[color] != color.get_hexcode
+        overridable.include?(color.variable) && color.hexcode.present?
       end
     end
-  end
-
-  # shortcut to get the color's value
-  def get_hexcode
-    hexcode.presence || self.class.defaults[variable]
   end
 
   protected

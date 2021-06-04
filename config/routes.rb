@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -42,7 +42,9 @@ OpenProject::Application.routes.draw do
   get '/issues(/)'    => redirect("#{rails_relative_url_root}/work_packages")
   # The URI.escape doesn't escape / unless you ask it to.
   # see https://github.com/rails/rails/issues/5688
-  get '/issues/*rest' => redirect { |params, _req| "#{rails_relative_url_root}/work_packages/#{URI.escape(params[:rest])}" }
+  get '/issues/*rest' => redirect { |params, _req|
+    "#{rails_relative_url_root}/work_packages/#{URI::RFC2396_Parser.new.escape(params[:rest])}"
+  }
 
   # Respond with 410 gone for APIV2 calls
   match '/api/v2(/*unmatched_route)', to: proc { [410, {}, ['']] }, via: :all
@@ -50,7 +52,9 @@ OpenProject::Application.routes.draw do
 
   # Redirect wp short url for work packages to full URL
   get '/wp(/)'    => redirect("#{rails_relative_url_root}/work_packages")
-  get '/wp/*rest' => redirect { |params, _req| "#{rails_relative_url_root}/work_packages/#{URI.escape(params[:rest])}" }
+  get '/wp/*rest' => redirect { |params, _req|
+    "#{rails_relative_url_root}/work_packages/#{URI::RFC2396_Parser.new.escape(params[:rest])}"
+  }
 
   # Add catch method for Rack OmniAuth to allow route helpers
   # Note: This renders a 404 in rails but is caught by omniauth in Rack before
@@ -62,7 +66,7 @@ OpenProject::Application.routes.draw do
   # forward requests to the proxy
   if FrontendAssetHelper.assets_proxied?
     match '/assets/frontend/*appendix',
-          to: redirect("http://localhost:4200/assets/frontend/%{appendix}", status: 307),
+          to: redirect(FrontendAssetHelper.cli_proxy + "/assets/frontend/%{appendix}", status: 307),
           format: false,
           via: :all
   end
@@ -162,20 +166,17 @@ OpenProject::Application.routes.draw do
     match '/unwatch' => 'watchers#unwatch', via: :delete
   end
 
-  resources :projects, except: %i[show edit] do
+  resources :projects, except: %i[show edit create] do
     member do
       ProjectSettingsHelper.project_settings_tabs.each do |tab|
         get "settings/#{tab[:name]}", controller: "project_settings/#{tab[:name]}", action: 'show', as: "settings_#{tab[:name]}"
       end
-      get "settings", controller: "project_settings/generic", action: 'show', as: "project_settings"
+      get "settings"
 
       get 'identifier', action: 'identifier'
       patch 'identifier', action: 'update_identifier'
 
-      match 'copy_project_from_(:coming_from)' => 'copy_projects#copy_project', via: :get, as: :copy_from,
-            constraints: { coming_from: /(admin|settings)/ }
-      match 'copy_from_(:coming_from)' => 'copy_projects#copy', via: :post, as: :copy,
-            constraints: { coming_from: /(admin|settings)/ }
+      get :copy
 
       put :modules
       put :custom_fields
@@ -207,11 +208,6 @@ OpenProject::Application.routes.draw do
     match '/roadmap' => 'versions#index', via: :get
 
     resources :news, only: %i[index new create]
-
-    namespace :time_entries do
-      resource :report, controller: 'reports', only: [:show]
-    end
-    resources :time_entries, controller: 'timelog', except: [:show]
 
     # Match everything to be the ID of the wiki page except the part that
     # is reserved for the format. This assumes that we have only two formats:
@@ -281,8 +277,7 @@ OpenProject::Application.routes.draw do
 
     resources :members, only: %i[index create update destroy], shallow: true do
       collection do
-        get :paginate_users
-        match :autocomplete_for_member, via: %i[get post]
+        match :autocomplete_for_member, via: %i[get]
       end
     end
 
@@ -300,29 +295,29 @@ OpenProject::Application.routes.draw do
       get '(/revisions/:rev)/diff(/*repo_path)',
           action: :diff,
           format: 'html',
-          constraints: { rev: /[\w0-9\.\-_]+/, repo_path: /.*/ }
+          constraints: { rev: /[\w0-9.\-_]+/, repo_path: /.*/ }
 
       get '(/revisions/:rev)/:format/*repo_path',
           action: :entry,
           format: /raw/,
-          rev: /[\w0-9\.\-_]+/
+          rev: /[\w0-9.\-_]+/
 
       %w{diff annotate changes entry browse}.each do |action|
         get "(/revisions/:rev)/#{action}(/*repo_path)",
             format: 'html',
             action: action,
-            constraints: { rev: /[\w0-9\.\-_]+/, repo_path: /.*/ },
+            constraints: { rev: /[\w0-9.\-_]+/, repo_path: /.*/ },
             as: "#{action}_revision"
       end
 
-      get '/revision(/:rev)', rev: /[\w0-9\.\-_]+/,
+      get '/revision(/:rev)', rev: /[\w0-9.\-_]+/,
                               action: :revision,
                               as: 'show_revision'
 
       get '(/revisions/:rev)(/*repo_path)',
           action: :show,
           format: 'html',
-          constraints: { rev: /[\w0-9\.\-_]+/, repo_path: /.*/ },
+          constraints: { rev: /[\w0-9.\-_]+/, repo_path: /.*/ },
           as: 'show_revisions_path'
     end
   end
@@ -342,6 +337,7 @@ OpenProject::Application.routes.draw do
       resource :enterprise, only: %i[show create destroy]
       scope controller: 'enterprises' do
         post 'enterprise/save_trial_key' => 'enterprises#save_trial_key'
+        delete 'enterprise/delete_trial_key' => 'enterprises#delete_trial_key'
       end
     end
     resources :enumerations
@@ -356,7 +352,7 @@ OpenProject::Application.routes.draw do
 
     resources :attribute_help_texts, only: %i(index new create edit update destroy)
 
-    resources :groups do
+    resources :groups, except: %i[show] do
       member do
         # this should be put into it's own resource
         match '/members' => 'groups#add_users', via: :post, as: 'members_of'
@@ -389,14 +385,33 @@ OpenProject::Application.routes.draw do
   end
 
   namespace :admin do
-    resource :incoming_mails, only: %i[show update]
-    resource :mail_notifications, only: %i[show update]
-  end
+    namespace :settings do
+      SettingsHelper.system_settings_tabs.each do |tab|
+        get tab[:name], controller: tab[:controller], action: :show, as: tab[:name].to_s
+        patch tab[:name], controller: tab[:controller], action: :update, as: "update_#{tab[:name]}"
+      end
 
-  resource :settings, as: :general_settings, only: %i(update show) do
-    # We should fix this crappy routing (split up and rename controller methods)
-    collection do
-      match 'plugin/:id', action: 'plugin', via: %i[get post]
+      resource :authentication, controller: '/admin/settings/authentication_settings', only: %i[show update]
+      resource :incoming_mails, controller: '/admin/settings/incoming_mails_settings', only: %i[show update]
+      resource :mail_notifications, controller: '/admin/settings/mail_notifications_settings', only: %i[show update]
+      resource :work_packages, controller: '/admin/settings/work_packages_settings', only: %i[show update]
+      resource :users, controller: '/admin/settings/users_settings', only: %i[show update]
+
+      # Redirect /settings to general settings
+      get '/', to: redirect('/admin/settings/general')
+
+      # Plugin settings
+      get 'plugin/:id', action: :show_plugin
+      post 'plugin/:id', action: :update_plugin
+    end
+
+    resource :backups, controller: '/admin/backups', only: %i[show] do
+      collection do
+        get :reset_token
+        post :reset_token, action: :perform_token_reset
+
+        post :delete_token
+      end
     end
   end
 
@@ -409,19 +424,11 @@ OpenProject::Application.routes.draw do
 
   namespace :work_packages do
     match 'auto_complete' => 'auto_completes#index', via: %i[get post]
-    resources :exports, only: [:show] do
-      get 'status', action: :status, on: :member
-    end
     resources :calendar, controller: 'calendars', only: [:index]
     resource :bulk, controller: 'bulk', only: %i[edit update destroy]
     # FIXME: this is kind of evil!! We need to remove this soonest and
     # cover the functionality. Route is being used in work-package-service.js:331
     get '/bulk' => 'bulk#destroy'
-  end
-
-  scope controller: 'work_packages/settings' do
-    get 'work_package_tracking' => 'work_packages/settings#index'
-    post 'work_package_tracking' => 'work_packages/settings#edit'
   end
 
   resources :work_packages, only: [:index] do
@@ -430,12 +437,6 @@ OpenProject::Application.routes.draw do
     post 'move' => 'work_packages/moves#create', on: :collection, as: 'move'
     # move individual wp
     resource :move, controller: 'work_packages/moves', only: %i[new create]
-
-    # this duplicate mapping is required for the timelog_helper
-    namespace :time_entries do
-      resource :report, controller: 'reports'
-    end
-    resources :time_entries, controller: 'timelog'
 
     # states managed by client-side routing on work_package#index
     get 'details/*state' => 'work_packages#index', on: :collection, as: :details
@@ -455,20 +456,13 @@ OpenProject::Application.routes.draw do
     end
   end
 
-  namespace :time_entries do
-    resource :report, controller: 'reports',
-                      only: [:show]
-  end
-
-  resources :time_entries, controller: 'timelog'
-
   resources :activity, :activities, only: :index, controller: 'activities'
 
-  resources :users do
+  resources :users, except: :edit do
     resources :memberships, controller: 'users/memberships', only: %i[update create destroy]
 
     member do
-      match '/edit/:tab' => 'users#edit', via: :get, as: 'tab_edit'
+      get '/edit(/:tab)' => 'users#edit', as: 'edit'
       match '/change_status/:change_action' => 'users#change_status_info', via: :get, as: 'change_status_info'
       post :change_status
       post :resend_invitation
@@ -476,10 +470,17 @@ OpenProject::Application.routes.draw do
     end
   end
 
-  scope controller: 'users_settings' do
-    get 'users_settings' => 'users_settings#index'
-    post 'users_settings' => 'users_settings#edit'
+  resources :placeholder_users, except: :edit do
+    resources :memberships, controller: 'placeholder_users/memberships', only: %i[update create destroy]
+
+    member do
+      get '/edit(/:tab)' => 'placeholder_users#edit', as: 'edit'
+      get :deletion_info
+    end
   end
+
+  # The show page of groups is public and thus moved out of the admin scope
+  resources :groups, only: %i[show], as: :show_group
 
   resources :forums, only: [] do
     resources :topics, controller: 'messages', except: [:index], shallow: true do
@@ -530,7 +531,8 @@ OpenProject::Application.routes.draw do
   # alternate routes for the current user
   scope 'my' do
     match '/deletion_info' => 'users#deletion_info', via: :get, as: 'delete_my_account_info'
-    match '/oauth/revoke_application/:application_id' => 'oauth/grants#revoke_application', via: :post, as: 'revoke_my_oauth_application'
+    match '/oauth/revoke_application/:application_id' => 'oauth/grants#revoke_application', via: :post,
+          as: 'revoke_my_oauth_application'
   end
 
   scope controller: 'my' do
@@ -554,12 +556,6 @@ OpenProject::Application.routes.draw do
     patch 'user_settings', action: 'user_settings'
   end
 
-  scope controller: 'authentication' do
-    get 'authentication' => 'authentication#index'
-    get 'authentication_settings' => 'authentication#authentication_settings'
-    post 'authentication_settings' => 'authentication#edit'
-  end
-
   resources :colors do
     member do
       get :confirm_destroy
@@ -567,12 +563,6 @@ OpenProject::Application.routes.draw do
       post :move
     end
   end
-
-  # This route should probably be removed, but it's used at least by one cuke and we don't
-  # want to break it.
-  # This route intentionally occurs after the admin/roles/new route, so that one takes
-  # precedence when creating routes (possibly via helpers).
-  get 'roles/new' => 'roles#new', as: 'deprecated_roles_new'
 
   get '/robots' => 'homescreen#robots', defaults: { format: :txt }
 

@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -50,7 +50,7 @@ describe ::API::V3::Queries::Schemas::QuerySchemaRepresenter do
     query
   end
 
-  let(:instance) { described_class.new(query, self_link, current_user: user, form_embedded: form_embedded) }
+  let(:instance) { described_class.new(query, self_link: self_link, current_user: user, form_embedded: form_embedded) }
   let(:user) do
     FactoryBot.build_stubbed(:user).tap do |user|
       allow(user)
@@ -161,6 +161,7 @@ describe ::API::V3::Queries::Schemas::QuerySchemaRepresenter do
           let(:required) { true }
           let(:writable) { false }
           let(:has_default) { true }
+          let(:location) { '_links' }
         end
       end
 
@@ -172,6 +173,7 @@ describe ::API::V3::Queries::Schemas::QuerySchemaRepresenter do
           let(:name) { Query.human_attribute_name('project') }
           let(:required) { false }
           let(:writable) { true }
+          let(:location) { '_links' }
         end
 
         it_behaves_like 'does not link to allowed values'
@@ -329,6 +331,7 @@ describe ::API::V3::Queries::Schemas::QuerySchemaRepresenter do
           let(:required) { false }
           let(:writable) { true }
           let(:has_default) { true }
+          let(:location) { '_links' }
         end
 
         it_behaves_like 'does not link to allowed values'
@@ -375,6 +378,7 @@ describe ::API::V3::Queries::Schemas::QuerySchemaRepresenter do
           let(:required) { false }
           let(:writable) { true }
           let(:has_default) { true }
+          let(:location) { '_links' }
         end
 
         it_behaves_like 'does not link to allowed values'
@@ -441,6 +445,7 @@ describe ::API::V3::Queries::Schemas::QuerySchemaRepresenter do
           let(:name) { Query.human_attribute_name('group_by') }
           let(:required) { false }
           let(:writable) { true }
+          let(:location) { '_links' }
         end
 
         it_behaves_like 'does not link to allowed values'
@@ -473,6 +478,7 @@ describe ::API::V3::Queries::Schemas::QuerySchemaRepresenter do
           let(:required) { false }
           let(:writable) { true }
           let(:has_default) { true }
+          let(:location) { '_links' }
         end
 
         it_behaves_like 'does not link to allowed values'

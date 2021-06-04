@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -46,6 +46,18 @@ module API
           resolved_value = maximum_page_size
         end
         resolved_value
+      end
+
+      ##
+      # Determine the page size from the minimum of
+      # * the provided value
+      # * the page size specified for the relation (per_page)
+      # * the minimum of the per page options specified in the settings
+      # * the maximum page size
+      def resulting_page_size(value, relation = nil)
+        [value || relation&.base_class&.per_page || Setting.per_page_options_array.min, maximum_page_size]
+           .map(&:to_i)
+           .min
       end
 
       ##

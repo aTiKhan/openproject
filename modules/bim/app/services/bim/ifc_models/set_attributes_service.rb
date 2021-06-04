@@ -1,14 +1,14 @@
 #-- encoding: UTF-8
 
 #-- copyright
-# OpenProject is a project management system.
-# Copyright (C) 2012-2018 the OpenProject Foundation (OPF)
+# OpenProject is an open source project management software.
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -38,8 +38,8 @@ module Bim
 
         super
 
-        change_by_system do
-          model.uploader = model.ifc_attachment&.author if model.ifc_attachment&.new_record?
+        model.change_by_system do
+          model.uploader = model.ifc_attachment&.author if model.ifc_attachment&.new_record? || model.ifc_attachment&.pending_direct_upload?
         end
       end
 
@@ -61,14 +61,22 @@ module Bim
       end
 
       def set_title
-        model.title = model.ifc_attachment&.file&.filename&.gsub(/\.\w+$/, '')
+        model.title ||= model.ifc_attachment&.file&.filename&.gsub(/\.\w+$/, '')
       end
 
       def set_ifc_attachment(ifc_attachment)
         return unless ifc_attachment
 
         model.attachments.each(&:mark_for_destruction)
-        model.attach_files('first' => {'file' => ifc_attachment, 'description' => 'ifc'})
+
+        if ifc_attachment.is_a?(Attachment)
+          ifc_attachment.description = "ifc"
+          ifc_attachment.save! unless ifc_attachment.new_record?
+
+          model.attachments << ifc_attachment
+        else
+          model.attach_files('first' => { 'file' => ifc_attachment, 'description' => 'ifc' })
+        end
       end
     end
   end

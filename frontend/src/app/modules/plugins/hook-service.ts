@@ -1,12 +1,12 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
 //
 // OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-// Copyright (C) 2006-2017 Jean-Philippe Lang
+// Copyright (C) 2006-2013 Jean-Philippe Lang
 // Copyright (C) 2010-2013 the ChiliProject Team
 //
 // This program is free software; you can redistribute it and/or
@@ -26,11 +26,13 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {Injectable} from "@angular/core";
+import { Injectable } from '@angular/core';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class HookService {
-  private hooks:{[hook:string]:Function[]} = {};
+  private hooks:{ [hook:string]:Function[] } = {};
 
   public register(id:string, callback:Function) {
     if (!callback) {
@@ -45,11 +47,11 @@ export class HookService {
   }
 
   public call(id:string, ...params:any[]):any[] {
-    let results = [];
+    const results = [];
 
     if (this.hooks[id]) {
       for (let x = 0; x < this.hooks[id].length; x++) {
-        let result = this.hooks[id][x](...params);
+        const result = this.hooks[id][x](...params);
 
         if (result) {
           results.push(result);

@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -31,47 +32,45 @@ namespace :ldap_groups do
   desc 'Synchronize groups and their users from the LDAP auth source.' \
        'Will only synchronize for those users already present in the application.'
   task synchronize: :environment do
-    ::LdapGroups::SynchronizationJob.perform_now
+    ::LdapGroups::SynchronizationService.synchronize!
   end
 
   namespace :development do
     desc 'Create a development LDAP server from the fixtures LDIF'
     task :ldap_server do
       require 'ladle'
-      ldif = File.expand_path('../../../spec/fixtures/users.ldif', __FILE__)
+      ldif = ENV['LDIF_FILE'] || Rails.root.join('spec/fixtures/ldap/users.ldif')
       ldap_server = Ladle::Server.new(quiet: false, port: '12389', domain: 'dc=example,dc=com', ldif: ldif).start
 
       puts <<~EOS
-      
-      LDAP server ready at localhost:12389
-      Users Base dn: ou=people,dc=example,dc=com
-      Admin account: uid=admin,ou=system
-      Admin password: secret
-
-      --------------------------------------------------------
-
-      Attributes
-      Login: uid
-      First name: givenName
-      Last name: sn
-      Email: mail
-      memberOf: (Hard-coded, not virtual)
-
-      --------------------------------------------------------
-        
-      Users:
-      uid=aa729,ou=people,dc=example,dc=com (Password: smada)
-      uid=bb459,ou=people,dc=example,dc=com (Password: niwdlab)
-      uid=cc414,ou=people,dc=example,dc=com (Password: retneprac)
-
-      --------------------------------------------------------
-
-      Groups:
-      cn=foo,ou=groups,dc=example,dc=com (Members: aa729)
-      cn=bar,ou=groups,dc=example,dc=com (Members: aa729, bb459, cc414)
-
+                #{'        '}
+                        LDAP server ready at localhost:12389
+                        Users Base dn: ou=people,dc=example,dc=com
+                        Admin account: uid=admin,ou=system
+                        Admin password: secret
+        #{'        '}
+                        --------------------------------------------------------
+        #{'        '}
+                        Attributes
+                        Login: uid
+                        First name: givenName
+                        Last name: sn
+                        Email: mail
+                        memberOf: (Hard-coded, not virtual)
+        #{'        '}
+                        --------------------------------------------------------
+                #{'          '}
+                        Users:
+                        uid=aa729,ou=people,dc=example,dc=com (Password: smada)
+                        uid=bb459,ou=people,dc=example,dc=com (Password: niwdlab)
+                        uid=cc414,ou=people,dc=example,dc=com (Password: retneprac)
+        #{'        '}
+                        --------------------------------------------------------
+        #{'        '}
+                        Groups:
+                        cn=foo,ou=groups,dc=example,dc=com (Members: aa729)
+                        cn=bar,ou=groups,dc=example,dc=com (Members: aa729, bb459, cc414)
       EOS
-
 
       puts "Send CTRL+D to stop the server"
       require 'irb'; binding.irb

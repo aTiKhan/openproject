@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,13 +26,13 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {DisplayField} from "core-app/modules/fields/display/display-field.module";
+import { DisplayField } from "core-app/modules/fields/display/display-field.module";
 
 export class CurrencyDisplayField extends DisplayField {
 
-    public isEmpty():boolean {
-        return !this.value ||
+  public isEmpty():boolean {
+    return !this.value ||
             !parseFloat(this.value.match(/\d+/g)[0]);
-    }
+  }
 }
 

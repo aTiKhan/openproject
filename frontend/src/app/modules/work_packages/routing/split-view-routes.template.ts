@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,16 +24,17 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {WorkPackageOverviewTabComponent} from 'core-components/wp-single-view-tabs/overview-tab/overview-tab.component';
-import {WorkPackageActivityTabComponent} from 'core-components/wp-single-view-tabs/activity-panel/activity-tab.component';
-import {WorkPackageRelationsTabComponent} from 'core-components/wp-single-view-tabs/relations-tab/relations-tab.component';
-import {WorkPackageWatchersTabComponent} from 'core-components/wp-single-view-tabs/watchers-tab/watchers-tab.component';
-import {WorkPackageNewSplitViewComponent} from 'core-components/wp-new/wp-new-split-view.component';
-import {Ng2StateDeclaration} from "@uirouter/angular";
-import {ComponentType} from "@angular/cdk/overlay";
-import {WorkPackageCopySplitViewComponent} from "core-components/wp-copy/wp-copy-split-view.component";
+import { WorkPackageOverviewTabComponent } from 'core-components/wp-single-view-tabs/overview-tab/overview-tab.component';
+import { WorkPackageActivityTabComponent } from 'core-components/wp-single-view-tabs/activity-panel/activity-tab.component';
+import { WorkPackageRelationsTabComponent } from 'core-components/wp-single-view-tabs/relations-tab/relations-tab.component';
+import { WorkPackageWatchersTabComponent } from 'core-components/wp-single-view-tabs/watchers-tab/watchers-tab.component';
+import { WorkPackageNewSplitViewComponent } from 'core-components/wp-new/wp-new-split-view.component';
+import { Ng2StateDeclaration } from '@uirouter/angular';
+import { ComponentType } from '@angular/cdk/overlay';
+import { WorkPackageCopySplitViewComponent } from 'core-components/wp-copy/wp-copy-split-view.component';
+import { WpTabWrapperComponent } from 'core-components/wp-tabs/components/wp-tab-wrapper/wp-tab-wrapper.component';
 
 /**
  * Return a set of routes for a split view mounted under the given base route,
@@ -55,68 +56,54 @@ import {WorkPackageCopySplitViewComponent} from "core-components/wp-copy/wp-copy
  * @param showComponent The split view component to mount
  */
 export function makeSplitViewRoutes(baseRoute:string,
-                                    menuItemClass:string|undefined,
-                                    showComponent:ComponentType<any>,
-                                    newComponent:ComponentType<any> = WorkPackageNewSplitViewComponent):Ng2StateDeclaration[] {
+  menuItemClass:string|undefined,
+  showComponent:ComponentType<any>,
+  newComponent:ComponentType<any> = WorkPackageNewSplitViewComponent,
+  makeFullWidth?:boolean,
+  routeName = baseRoute):Ng2StateDeclaration[] {
+  // makeFullWidth configuration
+  const views:any = makeFullWidth ?
+    { 'content-left@^.^': { component: showComponent } } :
+    { 'content-right@^.^': { component: showComponent } };
+  const partition = makeFullWidth ? '-left-only' : '-split';
+
   return [
     {
-      name: baseRoute + '.details',
+      name: routeName + '.details',
       url: '/details/{workPackageId:[0-9]+}',
-      redirectTo: baseRoute + '.details.overview',
+      redirectTo: (trans) => {
+        const params = trans.params('to');
+        return {
+          state: routeName + '.details.tabs',
+          params: { ...params, tabIdentifier: 'overview' }
+        };
+      },
       reloadOnSearch: false,
       data: {
         bodyClasses: 'router--work-packages-partitioned-split-view-details',
         menuItem: menuItemClass,
         // Remember the base route so we can route back to it anywhere
         baseRoute: baseRoute,
-        partition: '-split',
-        newRoute: baseRoute + '.new',
+        newRoute: routeName + '.new',
+        partition,
       },
-      views: {
-        // Retarget and by that override the grandparent views
-        // https://ui-router.github.io/guide/views#relative-parent-state
-        'content-right@^.^': { component: showComponent }
-      }
+      // Retarget and by that override the grandparent views
+      // https://ui-router.github.io/guide/views#relative-parent-state
+      views,
     },
     {
-      name: baseRoute + '.details.overview',
-      url: '/overview',
-      component: WorkPackageOverviewTabComponent,
+      name: routeName + '.details.tabs',
+      url: '/:tabIdentifier',
+      component: WpTabWrapperComponent,
       data: {
+        baseRoute: baseRoute,
         menuItem: menuItemClass,
-        parent: baseRoute + '.details'
-      }
-    },
-    {
-      name: baseRoute + '.details.activity',
-      url: '/activity',
-      component: WorkPackageActivityTabComponent,
-      data: {
-        menuItem: menuItemClass,
-        parent: baseRoute + '.details'
-      }
-    },
-    {
-      name: baseRoute + '.details.relations',
-      url: '/relations',
-      component: WorkPackageRelationsTabComponent,
-      data: {
-        menuItem: menuItemClass,
-        parent: baseRoute + '.details'
-      }
-    },
-    {
-      name: baseRoute + '.details.watchers',
-      url: '/watchers',
-      component: WorkPackageWatchersTabComponent,
-      data: {
-        menuItem: menuItemClass,
-        parent: baseRoute + '.details'
+        parent: routeName + '.details'
       }
     },
     // Split create route
     {
-      name: baseRoute + '.new',
+      name: routeName + '.new',
       url: '/create_new?{type:[0-9]+}&{parent_id:[0-9]+}',
       reloadOnSearch: false,
       data: {
@@ -135,7 +122,7 @@ export function makeSplitViewRoutes(baseRoute:string,
     },
     // Split copy route
     {
-      name: baseRoute + '.copy',
+      name: routeName + '.copy',
       url: '/details/{copiedFromWorkPackageId:[0-9]+}/copy',
       views: {
         'content-right@^.^': { component: WorkPackageCopySplitViewComponent }

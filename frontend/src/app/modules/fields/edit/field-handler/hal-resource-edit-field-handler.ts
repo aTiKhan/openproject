@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,28 +24,28 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {keyCodes} from 'core-app/modules/common/keyCodes.enum';
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
-import {ConfigurationService} from 'core-app/modules/common/config/configuration.service';
-import {Injector} from '@angular/core';
-import {FocusHelperService} from 'core-app/modules/common/focus/focus-helper';
-import {EditFieldHandler} from "core-app/modules/fields/edit/editing-portal/edit-field-handler";
-import {ClickPositionMapper} from "core-app/modules/common/set-click-position/set-click-position";
-import {debugLog} from "core-app/helpers/debug_output";
-import {IFieldSchema} from "core-app/modules/fields/field.base";
-import {Subject} from 'rxjs';
-import {PathHelperService} from "core-app/modules/common/path-helper/path-helper.service";
-import {EditForm} from "core-app/modules/fields/edit/edit-form/edit-form";
-import {HalResource} from "core-app/modules/hal/resources/hal-resource";
-import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
+import { keyCodes } from 'core-app/modules/common/keyCodes.enum';
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
+import { ConfigurationService } from 'core-app/modules/common/config/configuration.service';
+import { Injector } from '@angular/core';
+import { FocusHelperService } from 'core-app/modules/focus/focus-helper';
+import { EditFieldHandler } from "core-app/modules/fields/edit/editing-portal/edit-field-handler";
+import { ClickPositionMapper } from "core-app/modules/common/set-click-position/set-click-position";
+import { debugLog } from "core-app/helpers/debug_output";
+import { IFieldSchema } from "core-app/modules/fields/field.base";
+import { Subject } from 'rxjs';
+import { PathHelperService } from "core-app/modules/common/path-helper/path-helper.service";
+import { EditForm } from "core-app/modules/fields/edit/edit-form/edit-form";
+import { HalResource } from "core-app/modules/hal/resources/hal-resource";
+import { InjectField } from "core-app/helpers/angular/inject-field.decorator";
 
 export class HalResourceEditFieldHandler extends EditFieldHandler {
   // Injections
   @InjectField() FocusHelper:FocusHelperService;
   @InjectField() ConfigurationService:ConfigurationService;
-  @InjectField() I18n:I18nService;
+  @InjectField() I18n!:I18nService;
 
   // Subject to fire when user demanded activation
   public $onUserActivate = new Subject<void>();
@@ -66,6 +66,9 @@ export class HalResourceEditFieldHandler extends EditFieldHandler {
     if (withErrors !== undefined) {
       this.setErrors(withErrors);
     }
+
+    this.htmlId = `wp-${this.resource.id}-inline-edit--field-${this.fieldName}`;
+    this.fieldLabel = this.schema.name || this.fieldName;
   }
 
   /**
@@ -82,10 +85,6 @@ export class HalResourceEditFieldHandler extends EditFieldHandler {
 
   public get inFlight() {
     return this.form.change.inFlight;
-  }
-
-  public get active() {
-    return true;
   }
 
   public focus(setClickOffset?:number) {
@@ -122,6 +121,8 @@ export class HalResourceEditFieldHandler extends EditFieldHandler {
    * Handle a user submitting the field (e.g, ng-change)
    */
   public handleUserSubmit():Promise<any> {
+    this.onBeforeSubmit();
+
     if (this.inFlight || this.form.editMode) {
       return Promise.resolve();
     }
@@ -137,7 +138,7 @@ export class HalResourceEditFieldHandler extends EditFieldHandler {
    * In an edit mode, we can't derive from a submit event wheteher the user pressed enter
    * (and on what field he did that).
    */
-  public handleUserKeydown(event:JQuery.TriggeredEvent, onlyCancel:boolean = false) {
+  public handleUserKeydown(event:JQuery.TriggeredEvent, onlyCancel = false) {
     // Only handle submission in edit mode
     if (this.inEditMode && !onlyCancel) {
       if (event.which === keyCodes.ENTER) {
@@ -176,7 +177,7 @@ export class HalResourceEditFieldHandler extends EditFieldHandler {
   /**
    * Close the field, resetting it with its display value.
    */
-  public deactivate(focus:boolean = false) {
+  public deactivate(focus = false) {
     delete this.form.activeFields[this.fieldName];
     this.onDestroy.next();
     this.onDestroy.complete();
@@ -211,26 +212,12 @@ export class HalResourceEditFieldHandler extends EditFieldHandler {
     return this.form.change.projectedResource.project;
   }
 
-  /**
-   * Return a unique ID for this edit field
-   */
-  public get htmlId() {
-    return `wp-${this.resource.id}-inline-edit--field-${this.fieldName}`;
-  }
-
-  /**
-   * Return the field label
-   */
-  public get fieldLabel() {
-    return this.schema.name || this.fieldName;
-  }
-
-  public get errorMessageOnLabel() {
+  public errorMessageOnLabel() {
     if (!this.isErrorenous) {
       return '';
     } else {
       return this.I18n.t('js.inplace.errors.messages_on_field',
-        {messages: this.errors.join(' ')});
+        { messages: this.errors.join(' ') });
     }
   }
 

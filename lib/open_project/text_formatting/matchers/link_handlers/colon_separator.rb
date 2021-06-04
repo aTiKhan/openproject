@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -32,7 +32,7 @@ module OpenProject::TextFormatting::Matchers
   module LinkHandlers
     class ColonSeparator < Base
       def self.allowed_prefixes
-        %w(commit source export version project user attachment)
+        %w(commit source export version project user attachment document meeting)
       end
 
       ##
@@ -93,7 +93,8 @@ module OpenProject::TextFormatting::Matchers
         if project&.repository &&
            (changeset = Changeset.where(['repository_id = ? AND scmid LIKE ?', project.repository.id, "#{oid}%"]).first)
           link_to h("#{matcher.project_prefix}#{matcher.identifier}"),
-                  { only_path: context[:only_path], controller: '/repositories', action: 'revision', project_id: project, rev: changeset.identifier },
+                  { only_path: context[:only_path], controller: '/repositories', action: 'revision', project_id: project,
+                    rev: changeset.identifier },
                   class: 'changeset',
                   title: truncate_single_line(changeset.comments, length: 100)
         end
@@ -139,6 +140,36 @@ module OpenProject::TextFormatting::Matchers
       def render_user
         if (user = User.find_by(login: oid))
           link_to_user(user, only_path: context[:only_path], class: 'user-mention')
+        end
+      end
+
+      def render_document
+        scope = project ? project.documents : Document
+        document = scope
+          .visible
+          .where(['LOWER(title) = :s', { s: oid.downcase }])
+          .first
+
+        if document
+          link_to document.title,
+                  { only_path: context[:only_path],
+                    controller: '/documents',
+                    action: 'show',
+                    id: document.id },
+                  class: 'document'
+        end
+      end
+
+      def render_meeting
+        scope = project ? project.meetings : Meeting
+        meeting = scope
+          .where(['LOWER(title) = :s', { s: oid.downcase }])
+          .first
+
+        if meeting && meeting.visible?(User.current)
+          link_to meeting.title,
+                  { only_path: context[:only_path], controller: '/meetings', action: 'show', id: meeting.id },
+                  class: 'meeting'
         end
       end
     end

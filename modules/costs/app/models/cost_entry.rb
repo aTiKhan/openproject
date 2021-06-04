@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -30,9 +30,9 @@ class CostEntry < ApplicationRecord
   belongs_to :project
   belongs_to :work_package
   belongs_to :user
-  include ::OpenProject::Costs::DeletedUserFallback
+  include ::Costs::DeletedUserFallback
   belongs_to :cost_type
-  belongs_to :cost_object
+  belongs_to :budget
   belongs_to :rate, class_name: 'CostRate'
 
   include ActiveModel::ForbiddenAttributesProtection
@@ -49,12 +49,12 @@ class CostEntry < ApplicationRecord
   scope :on_work_packages, ->(work_packages) { where(work_package_id: work_packages) }
 
   extend CostEntryScopes
+  include Entry::Costs
+  include Entry::SplashedDates
 
   def after_initialize
-    if new_record? && cost_type.nil?
-      if default_cost_type = CostType.default
-        self.cost_type_id = default_cost_type.id
-      end
+    if new_record? && cost_type.nil? && default_cost_type = CostType.default
+      self.cost_type_id = default_cost_type.id
     end
   end
 
@@ -63,7 +63,7 @@ class CostEntry < ApplicationRecord
   end
 
   def validate
-    errors.add :units, :invalid if units && (units < 0)
+    errors.add :units, :invalid if units&.negative?
     errors.add :project_id, :invalid if project.nil?
     errors.add :work_package_id, :invalid if work_package.nil? || (project != work_package.project)
     errors.add :cost_type_id, :invalid if cost_type.present? && cost_type.deleted_at.present?
@@ -71,7 +71,7 @@ class CostEntry < ApplicationRecord
 
     begin
       spent_on.to_date
-    rescue Exception
+    rescue StandardError
       errors.add :spent_on, :invalid
     end
   end
@@ -87,44 +87,6 @@ class CostEntry < ApplicationRecord
 
   def units=(units)
     write_attribute(:units, CostRate.parse_number_string(units))
-  end
-
-  # tyear, tmonth, tweek assigned where setting spent_on attributes
-  # these attributes make time aggregations easier
-  def spent_on=(date)
-    super
-    self.tyear = spent_on ? spent_on.year : nil
-    self.tmonth = spent_on ? spent_on.month : nil
-    self.tweek = spent_on ? Date.civil(spent_on.year, spent_on.month, spent_on.day).cweek : nil
-  end
-
-  def real_costs
-    # This methods returns the actual assigned costs of the entry
-    overridden_costs || costs || calculated_costs
-  end
-
-  def calculated_costs(rate_attr = nil)
-    rate_attr ||= current_rate
-    units * rate_attr.rate
-  rescue
-    0.0
-  end
-
-  def update_costs(rate_attr = nil)
-    rate_attr ||= current_rate
-    if rate_attr.nil?
-      self.costs = 0.0
-      self.rate = nil
-      return
-    end
-
-    self.costs = calculated_costs(rate_attr)
-    self.rate = rate_attr
-  end
-
-  def update_costs!(rate_attr = nil)
-    update_costs(rate_attr)
-    self.save!
   end
 
   def current_rate
@@ -145,5 +107,11 @@ class CostEntry < ApplicationRecord
   def costs_visible_by?(usr)
     usr.allowed_to?(:view_cost_rates, project) ||
       (usr.id == user_id && !overridden_costs.nil?)
+  end
+
+  private
+
+  def cost_attribute
+    units
   end
 end

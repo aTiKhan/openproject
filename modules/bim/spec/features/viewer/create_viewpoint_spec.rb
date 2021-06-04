@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -28,8 +28,11 @@
 
 require_relative '../../spec_helper'
 
-describe 'Create viewpoint from BCF details page', type: :feature, js: true do
-  let(:project) { FactoryBot.create :project, enabled_module_names: [:bim, :work_package_tracking] }
+describe 'Create viewpoint from BCF details page',
+         type: :feature,
+         with_config: { edition: 'bim' },
+         js: true do
+  let(:project) { FactoryBot.create :project, enabled_module_names: %i[bim work_package_tracking] }
   let(:user) { FactoryBot.create :admin }
 
   let!(:model) do
@@ -52,39 +55,45 @@ describe 'Create viewpoint from BCF details page', type: :feature, js: true do
     it do
       show_model_page.visit!
       show_model_page.finished_loading
-      card_view.expect_work_package_listed work_package
-      card_view.open_full_screen_by_details work_package
+      card_view.expect_work_package_listed(work_package)
+      card_view.open_full_screen_by_details(work_package)
 
       # Expect no viewpoint
       bcf_details.ensure_page_loaded
-      bcf_details.expect_viewpoint_count 0
+      bcf_details.expect_viewpoint_count(0)
 
-      # Uncheck the second checkbox for testing
-      model_tree.select_sidebar_tab 'Objects'
-      model_tree.expect_checked 'minimal'
+      model_tree.select_sidebar_tab('Objects')
+      model_tree.expect_checked('minimal')
+
+      # Expand all nodes until the storeys get listed.
+      model_tree.expand_tree
+      model_tree.expand_tree
       model_tree.expand_tree
 
-      item, checkbox = model_tree.all_checkboxes.second
+      # Uncheck the "4OG"
+      item, checkbox = model_tree.all_checkboxes.last
       text = item.text
       checkbox.uncheck
 
       bcf_details.add_viewpoint
-      bcf_details.expect_viewpoint_count 1
+      bcf_details.expect_viewpoint_count(1)
 
       page.driver.browser.navigate.refresh
 
       bcf_details.ensure_page_loaded
-      bcf_details.expect_viewpoint_count 1
+      bcf_details.expect_viewpoint_count(1)
       bcf_details.show_current_viewpoint
 
       sleep 1
 
       # Uncheck the second checkbox for testing
-      model_tree.select_sidebar_tab 'Objects'
-      model_tree.expect_checked 'minimal'
+      model_tree.select_sidebar_tab('Objects')
+      model_tree.expect_checked('minimal')
       model_tree.expand_tree
-
-      model_tree.expect_unchecked text
+      model_tree.expand_tree
+      model_tree.expand_tree
+      # With the applied viewpoint the "4OG" shall be invisible
+      model_tree.expect_unchecked(text)
     end
   end
 

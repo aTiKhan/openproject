@@ -1,12 +1,12 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
 //
 // OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-// Copyright (C) 2006-2017 Jean-Philippe Lang
+// Copyright (C) 2006-2013 Jean-Philippe Lang
 // Copyright (C) 2010-2013 the ChiliProject Team
 //
 // This program is free software; you can redistribute it and/or
@@ -28,21 +28,21 @@
 
 /*jshint expr: true*/
 
-import {TestBed} from '@angular/core/testing';
-import {HttpClientModule} from '@angular/common/http';
-import {PathHelperService} from 'core-app/modules/common/path-helper/path-helper.service';
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
-import {ConfigurationService} from 'core-app/modules/common/config/configuration.service';
-import {TimezoneService} from 'core-components/datetime/timezone.service';
+import { TestBed } from '@angular/core/testing';
+import { HttpClientModule } from '@angular/common/http';
+import { PathHelperService } from 'core-app/modules/common/path-helper/path-helper.service';
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
+import { ConfigurationService } from 'core-app/modules/common/config/configuration.service';
+import { TimezoneService } from 'core-components/datetime/timezone.service';
 
 describe('TimezoneService', function () {
 
-  let TIME = '2013-02-08T09:30:26';
-  let DATE = '2013-02-08';
+  const TIME = '2013-02-08T09:30:26';
+  const DATE = '2013-02-08';
   let timezoneService:TimezoneService;
 
-  let compile = (timezone?:string) => {
-    let ConfigurationServiceStub = {
+  const compile = (timezone?:string) => {
+    const ConfigurationServiceStub = {
       isTimezoneSet: () => !!timezone,
       timezone: () => timezone
     };
@@ -59,7 +59,7 @@ describe('TimezoneService', function () {
       ]
     });
 
-    timezoneService = TestBed.get(TimezoneService);
+    timezoneService = TestBed.inject(TimezoneService);
   };
 
   describe('without time zone set', function () {
@@ -89,7 +89,7 @@ describe('TimezoneService', function () {
     describe('Non-UTC timezone', function () {
 
       it('is in the given timezone' , function () {
-        let date = timezoneService.parseDatetime(TIME);
+        const date = timezoneService.parseDatetime(TIME);
         expect(date.format('HH:mm')).toEqual('01:30');
       });
 

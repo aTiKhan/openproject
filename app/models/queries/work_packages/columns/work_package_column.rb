@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -41,13 +41,17 @@ class Queries::WorkPackages::Columns::WorkPackageColumn < Queries::Columns::Base
     WorkPackage.human_attribute_name(name)
   end
 
-  def sum_of(work_packages)
-    if work_packages.is_a?(Array)
-      # TODO: Sums::grouped_sums might call through here without an AR::Relation
-      # Ensure that this also calls using a Relation and drop this (slow!) implementation
-      work_packages.map { |wp| value(wp) }.compact.reduce(:+)
+  def self.scoped_column_sum(scope, select, group_by)
+    scope = scope
+              .except(:order, :select)
+
+    if group_by
+      scope
+        .group(group_by)
+        .select("#{group_by} id", select)
     else
-      work_packages.sum(name)
+      scope
+        .select(select)
     end
   end
 end

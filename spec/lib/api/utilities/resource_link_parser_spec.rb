@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -62,12 +62,12 @@ describe ::API::Utilities::ResourceLinkParser do
         end
       end
 
-      describe 'accepts and parses all valid segment characters as id' do
+      describe 'accepts a nested namespace resource' do
         it_behaves_like 'accepts resource link' do
-          let(:result) { subject.parse '/api/v3/string_object/foo-2_~!$&\'()*+.,:;=@%40' }
+          let(:result) { subject.parse '/api/v3/time_entries/activities/12' }
           let(:version) { '3' }
-          let(:namespace) { 'string_object' }
-          let(:id) { 'foo-2_~!$&\'()*+.,:;=@@' }
+          let(:namespace) { 'time_entries/activities' }
+          let(:id) { '12' }
         end
       end
 
@@ -95,41 +95,6 @@ describe ::API::Utilities::ResourceLinkParser do
         end
       end
     end
-
-    describe 'string object resource' do
-      describe 'accepts a simple string' do
-        it_behaves_like 'accepts resource link' do
-          let(:result) { subject.parse '/api/v3/string_objects/foobar' }
-          let(:version) { '3' }
-          let(:namespace) { 'string_objects' }
-          let(:id) { 'foobar' }
-        end
-      end
-
-      describe 'accepts and parses all valid segment characters as value' do
-        it_behaves_like 'accepts resource link' do
-          let(:result) { subject.parse '/api/v3/string_objects?value=foo-2_~!$&\'()*+.,:;=@%40' }
-          let(:version) { '3' }
-          let(:namespace) { 'string_objects' }
-          let(:id) { 'foo' }
-        end
-      end
-
-      describe 'accepts string objects with empty value parameter' do
-        it_behaves_like 'accepts resource link' do
-          let(:result) { subject.parse '/api/v3/string_objects?value=' }
-          let(:version) { '3' }
-          let(:namespace) { 'string_objects' }
-          let(:id) { '' }
-        end
-      end
-
-      describe 'rejects resource with missing value parameter' do
-        it_behaves_like 'rejects resource link' do
-          let(:result) { subject.parse '/api/v3/string_objects' }
-        end
-      end
-    end
   end
 
   describe '#parse_id' do
@@ -137,51 +102,55 @@ describe ::API::Utilities::ResourceLinkParser do
       expect(subject.parse_id('/api/v3/statuses/14', property: 'foo')).to eql('14')
     end
 
-    it 'parses an empty value as empty string' do
-      expect(subject.parse_id('/api/v3/string_objects?value=', property: 'foo')).to eql('')
+    it 'parses the id with nested namespace' do
+      expect(subject.parse_id('/api/v3/statuses/nested/14', property: 'foo')).to eql('14')
+    end
+
+    it 'parses a non decimal id with nested namespace' do
+      expect(subject.parse_id('/api/v3/statuses/nested/=', property: 'foo')).to eql('=')
     end
 
     it 'accepts on matching version' do
-      expect {
+      expect do
         subject.parse_id('/api/v3/statuses/14', property: 'foo', expected_version: '3')
-      }.not_to raise_error
+      end.not_to raise_error
     end
 
     it 'accepts on matching version as integer' do
-      expect {
+      expect do
         subject.parse_id('/api/v3/statuses/14', property: 'foo', expected_version: 3)
-      }.not_to raise_error
+      end.not_to raise_error
     end
 
     it 'accepts on matching namespace' do
-      expect {
+      expect do
         subject.parse_id('/api/v3/statuses/14', property: 'foo', expected_namespace: 'statuses')
-      }.not_to raise_error
+      end.not_to raise_error
     end
 
     it 'accepts on matching namespace as symbol' do
-      expect {
+      expect do
         subject.parse_id('/api/v3/statuses/14', property: 'foo', expected_namespace: :statuses)
-      }.not_to raise_error
+      end.not_to raise_error
     end
 
     it 'raises on version mismatch' do
-      expect {
+      expect do
         subject.parse_id('/api/v4/statuses/14', property: 'foo', expected_version: '3')
-      }.to raise_error(::API::Errors::InvalidResourceLink)
+      end.to raise_error(::API::Errors::InvalidResourceLink)
     end
 
     it 'raises on namespace mismatch' do
-      expect {
+      expect do
         subject.parse_id('/api/v3/types/14', property: 'foo', expected_namespace: 'statuses')
-      }.to raise_error(::API::Errors::InvalidResourceLink)
+      end.to raise_error(::API::Errors::InvalidResourceLink)
     end
 
     it 'contains the property name in exception messages' do
       property_name = 'My Property Name'
-      expect {
+      expect do
         subject.parse_id('/api/v4/statuses/14', property: property_name, expected_version: '3')
-      }.to raise_error(Regexp.compile(property_name))
+      end.to raise_error(Regexp.compile(property_name))
     end
   end
 end

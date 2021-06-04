@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -29,7 +29,7 @@
 require 'spec_helper'
 
 describe WikiController, type: :controller do
-  using_shared_fixtures :admin
+  shared_let(:admin) { FactoryBot.create :admin }
 
   describe 'actions' do
     before do
@@ -43,11 +43,11 @@ describe WikiController, type: :controller do
 
       # creating pages
       @existing_page = FactoryBot.create(:wiki_page, wiki_id: @project.wiki.id,
-                                                      title:   'ExistingPage')
+                                                     title: 'ExistingPage')
 
       # creating page contents
-      FactoryBot.create(:wiki_content, page_id:   @existing_page.id,
-                                        author_id: admin.id)
+      FactoryBot.create(:wiki_content, page_id: @existing_page.id,
+                                       author_id: admin.id)
     end
 
     shared_examples_for "a 'new' action" do
@@ -101,6 +101,22 @@ describe WikiController, type: :controller do
         get 'new_child', params: { project_id: @project, id: 'foobar' }
 
         expect(response.status).to eq(404) # not found
+      end
+    end
+
+    describe 'show' do
+      let(:get_page) { get :show, params: { project_id: @project, id: 'wiki' } }
+
+      describe 'with an empty wiki and no permission to edit' do
+        let(:view_role) { FactoryBot.create :role, permissions: %w[view_wiki_pages] }
+        let(:user) { FactoryBot.create(:user, member_in_project: @project, member_through_role: view_role) }
+
+        it 'visiting the start page redirects to index' do
+          login_as user
+          get_page
+          expect(response).to redirect_to action: :index
+          expect(flash[:info]).to include I18n.t('wiki.page_not_editable_index')
+        end
       end
     end
 
@@ -204,7 +220,7 @@ describe WikiController, type: :controller do
           let(:redirect_page_after_destroy) { wiki.find_page(wiki.start_page) || wiki.pages.first }
 
           before do
-            another_wiki_page = FactoryBot.create :wiki_page, wiki: wiki
+            FactoryBot.create :wiki_page, wiki: wiki
           end
 
           it 'redirects to wiki#index' do
@@ -221,7 +237,7 @@ describe WikiController, type: :controller do
         end
       end
     end
-  end # describe 'actions'
+  end
 
   describe 'view related stuff' do
     render_views
@@ -235,7 +251,7 @@ describe WikiController, type: :controller do
       @anon = User.anonymous.nil? ? FactoryBot.create(:anonymous) : User.anonymous
 
       Role.anonymous.update name: I18n.t(:default_role_anonymous),
-                                       permissions: [:view_wiki_pages]
+                            permissions: [:view_wiki_pages]
 
       allow(User).to receive(:current).and_return admin
 
@@ -243,29 +259,33 @@ describe WikiController, type: :controller do
       @project.reload # to get the wiki into the proxy
 
       # creating pages
-      @page_default = FactoryBot.create(:wiki_page, wiki_id: @project.wiki.id,
-                                                    title:   'Wiki')
-      @page_with_content = FactoryBot.create(:wiki_page, wiki_id: @project.wiki.id,
-                                                         title:   'PagewithContent')
-      @page_without_content = FactoryBot.create(:wiki_page, wiki_id: @project.wiki.id,
-                                                            title:   'PagewithoutContent')
-      @unrelated_page = FactoryBot.create(:wiki_page, wiki_id: @project.wiki.id,
-                                                      title:   'UnrelatedPage')
+      @page_default = FactoryBot.create(:wiki_page,
+                                        wiki_id: @project.wiki.id,
+                                        title: 'Wiki')
+      @page_with_content = FactoryBot.create(:wiki_page,
+                                             wiki_id: @project.wiki.id,
+                                             title: 'PagewithContent')
+      @page_without_content = FactoryBot.create(:wiki_page,
+                                                wiki_id: @project.wiki.id,
+                                                title: 'PagewithoutContent')
+      @unrelated_page = FactoryBot.create(:wiki_page,
+                                          wiki_id: @project.wiki.id,
+                                          title: 'UnrelatedPage')
 
       # creating page contents
-      FactoryBot.create(:wiki_content, page_id:   @page_default.id,
+      FactoryBot.create(:wiki_content, page_id: @page_default.id,
                                        author_id: admin.id)
-      FactoryBot.create(:wiki_content, page_id:   @page_with_content.id,
+      FactoryBot.create(:wiki_content, page_id: @page_with_content.id,
                                        author_id: admin.id)
-      FactoryBot.create(:wiki_content, page_id:   @unrelated_page.id,
+      FactoryBot.create(:wiki_content, page_id: @unrelated_page.id,
                                        author_id: admin.id)
 
       # creating some child pages
       @children = {}
       [@page_with_content].each do |page|
-        child_page = FactoryBot.create(:wiki_page, wiki_id:   @project.wiki.id,
+        child_page = FactoryBot.create(:wiki_page, wiki_id: @project.wiki.id,
                                                    parent_id: page.id,
-                                                   title:     page.title + ' child')
+                                                   title: page.title + ' child')
         FactoryBot.create(:wiki_content, page_id: child_page.id,
                                          author_id: admin.id)
 
@@ -275,17 +295,20 @@ describe WikiController, type: :controller do
 
     describe '- main menu links' do
       before do
-        @main_menu_item_for_page_with_content = FactoryBot.create(:wiki_menu_item, navigatable_id: @project.wiki.id,
-                                                                                    title:    'Item for Page with Content',
-                                                                                    name:   @page_with_content.slug)
+        @main_menu_item_for_page_with_content = FactoryBot.create(:wiki_menu_item,
+                                                                  navigatable_id: @project.wiki.id,
+                                                                  title: 'Item for Page with Content',
+                                                                  name: @page_with_content.slug)
 
-        @main_menu_item_for_new_wiki_page = FactoryBot.create(:wiki_menu_item, navigatable_id: @project.wiki.id,
-                                                                                title:    'Item for new WikiPage',
-                                                                                name:   'new-wiki-page')
+        @main_menu_item_for_new_wiki_page = FactoryBot.create(:wiki_menu_item,
+                                                              navigatable_id: @project.wiki.id,
+                                                              title: 'Item for new WikiPage',
+                                                              name: 'new-wiki-page')
 
-        @other_menu_item = FactoryBot.create(:wiki_menu_item, navigatable_id: @project.wiki.id,
-                                                               title:    'Item for other page',
-                                                               name:   @unrelated_page.slug)
+        @other_menu_item = FactoryBot.create(:wiki_menu_item,
+                                             navigatable_id: @project.wiki.id,
+                                             title: 'Item for other page',
+                                             name: @unrelated_page.slug)
       end
 
       shared_examples_for 'all wiki menu items' do
@@ -370,9 +393,10 @@ describe WikiController, type: :controller do
 
       describe '- wiki_menu_item containing special chars only' do
         before do
-          @wiki_menu_item = FactoryBot.create(:wiki_menu_item, navigatable_id: @project.wiki.id,
-                                                                title:    '?',
-                                                                name:   'help')
+          @wiki_menu_item = FactoryBot.create(:wiki_menu_item,
+                                              navigatable_id: @project.wiki.id,
+                                              title: '?',
+                                              name: 'help')
           @other_wiki_menu_item = @other_menu_item
         end
 
@@ -448,7 +472,9 @@ describe WikiController, type: :controller do
                 # Expect to set back ref id
                 expect(flash[:_related_wiki_page_id]).to eq @page_with_content.id
 
-                assert_select "#content a[href='#{new_child_project_wiki_path(project_id: @project, id: @page_with_content.slug)}']", 'Wiki page'
+                path = new_child_project_wiki_path(project_id: @project, id: @page_with_content.slug)
+
+                assert_select "#content a[href='#{path}']", 'Wiki page'
               end
             end
 
@@ -488,7 +514,8 @@ describe WikiController, type: :controller do
 
               expect(response).to be_successful
 
-              assert_select ".toolbar-items a[href='#{new_child_project_wiki_path(project_id: @project, id: 'wiki')}']", 'Wiki page'
+              assert_select ".toolbar-items a[href='#{new_child_project_wiki_path(project_id: @project, id: 'wiki')}']", 
+'Wiki page'
             end
           end
 

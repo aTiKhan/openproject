@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -97,16 +97,16 @@ class CustomActions::Actions::Base
   def validate_value_required(errors)
     if required? && values.empty?
       errors.add :actions,
-                 I18n.t(:'activerecord.errors.models.custom_actions.empty', name: human_name),
-                 error_symbol: :empty
+                 :empty,
+                 name: human_name
     end
   end
 
   def validate_only_one_value(errors)
     if !multi_value? && values.length > 1
       errors.add :actions,
-                 I18n.t(:'activerecord.errors.models.custom_actions.only_one_allowed', name: human_name),
-                 error_symbol: :only_one_allowed
+                 :only_one_allowed,
+                 name: human_name
     end
   end
 end

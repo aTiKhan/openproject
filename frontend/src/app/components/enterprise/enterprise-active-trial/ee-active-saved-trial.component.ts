@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,11 +24,11 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {Component, ElementRef} from "@angular/core";
-import {I18nService} from "app/modules/common/i18n/i18n.service";
-import {EEActiveTrialBase} from "core-components/enterprise/enterprise-active-trial/ee-active-trial.base";
+import { Component, ElementRef } from "@angular/core";
+import { I18nService } from "app/modules/common/i18n/i18n.service";
+import { EEActiveTrialBase } from "core-components/enterprise/enterprise-active-trial/ee-active-trial.base";
 
 export const enterpriseActiveSavedTrialSelector = 'enterprise-active-saved-trial';
 
@@ -40,11 +40,11 @@ export const enterpriseActiveSavedTrialSelector = 'enterprise-active-saved-trial
 export class EEActiveSavedTrialComponent extends EEActiveTrialBase {
   public subscriber = this.elementRef.nativeElement.dataset['subscriber'];
   public email = this.elementRef.nativeElement.dataset['email'];
+  public company = this.elementRef.nativeElement.dataset['company'];
+  public domain = this.elementRef.nativeElement.dataset['domain'];
   public userCount = this.elementRef.nativeElement.dataset['userCount'];
   public startsAt = this.elementRef.nativeElement.dataset['startsAt'];
   public expiresAt = this.elementRef.nativeElement.dataset['expiresAt'];
-  public company:string;
-  public domain:string;
 
   constructor(readonly elementRef:ElementRef,
               readonly I18n:I18nService) {

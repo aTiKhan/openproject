@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,13 +24,13 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {OpModalComponent} from "core-components/op-modals/op-modal.component";
-import {OpModalLocalsToken} from "core-components/op-modals/op-modal.service";
-import {ChangeDetectorRef, Component, ElementRef, Inject} from "@angular/core";
-import {OpModalLocalsMap} from "core-components/op-modals/op-modal.types";
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
+import { ChangeDetectorRef, Component, ElementRef, Inject } from "@angular/core";
+import { OpModalComponent } from "core-app/modules/modal/modal.component";
+import { OpModalLocalsToken } from "core-app/modules/modal/modal.service";
+import { OpModalLocalsMap } from "core-app/modules/modal/modal.types";
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
 
 export interface ConfirmDialogOptions {
   text:{
@@ -42,11 +42,12 @@ export interface ConfirmDialogOptions {
   closeByEscape?:boolean;
   showClose?:boolean;
   closeByDocument?:boolean;
+  passedData?:string[];
+  dangerHighlighting?:boolean;
 }
 
 @Component({
-  templateUrl: './confirm-dialog.modal.html',
-  styleUrls:['./confirm-dialog.modal.sass']
+  templateUrl: './confirm-dialog.modal.html'
 })
 export class ConfirmDialogModal extends OpModalComponent {
 
@@ -64,18 +65,23 @@ export class ConfirmDialogModal extends OpModalComponent {
     close_popup: this.I18n.t('js.close_popup_title')
   };
 
+  public passedData:string[];
+
+  public dangerHighlighting:boolean;
+
   constructor(readonly elementRef:ElementRef,
               @Inject(OpModalLocalsToken) public locals:OpModalLocalsMap,
               readonly cdRef:ChangeDetectorRef,
               readonly I18n:I18nService) {
 
     super(locals, cdRef, elementRef);
-
     this.options = locals.options || {};
+
+    this.dangerHighlighting = _.defaultTo(this.options.dangerHighlighting, false);
+    this.passedData = _.defaultTo(this.options.passedData, []);
     this.closeOnEscape = _.defaultTo(this.options.closeByEscape, true);
     this.closeOnOutsideClick = _.defaultTo(this.options.closeByDocument, true);
     this.showClose = _.defaultTo(this.options.showClose, true);
-
     // override default texts if any
     this.text = _.defaults(this.options.text, this.text);
   }

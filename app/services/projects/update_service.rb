@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -44,12 +44,19 @@ module Projects
       ret
     end
 
+    def persist(service_result)
+      # Needs to take place before awesome_nested_set reloads the model (in case the parent changes)
+      persist_status
+
+      super
+    end
+
     def after_perform(service_call)
       touch_on_custom_values_update
       notify_on_identifier_renamed
       send_update_notification
       update_wp_versions_on_parent_change
-      persist_status
+      handle_archiving
 
       service_call
     end
@@ -61,11 +68,11 @@ module Projects
     def notify_on_identifier_renamed
       return unless memoized_changes['identifier']
 
-      OpenProject::Notifications.send('project_renamed', project: model)
+      OpenProject::Notifications.send(OpenProject::Events::PROJECT_RENAMED, project: model)
     end
 
     def send_update_notification
-      OpenProject::Notifications.send('project_updated', project: model)
+      OpenProject::Notifications.send(OpenProject::Events::PROJECT_UPDATED, project: model)
     end
 
     def only_custom_values_updated?
@@ -80,6 +87,22 @@ module Projects
 
     def persist_status
       model.status.save if model.status.changed?
+    end
+
+    def handle_archiving
+      return unless model.saved_change_to_active?
+
+      if model.active?
+        # was unarchived
+        Projects::UnarchiveService
+          .new(user: user, model: model)
+          .call
+      else
+        # as archived
+        Projects::ArchiveService
+          .new(user: user, model: model)
+          .call
+      end
     end
   end
 end

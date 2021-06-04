@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -33,10 +33,24 @@ cs:
         single: "Vybrat \"%{name}\""
       remove: "Odstranit %{name}"
       active: "Aktivní %{label} %{name}"
+    backup:
+      attachments_disabled: Attachments may not be included since they exceed the maximum overall size allowed. You can change this via the configuration (requires a server restart).
+      info: >
+        You can trigger a backup here. The process can take some time depending on the amount of data (especially attachments) you have. You will receive an email once it's ready.
+      note: >
+        A new backup will override any previous one. Only a limited number of backups per day can be requested.
+      last_backup: Last backup
+      last_backup_from: Last backup from
+      title: Backup OpenProject
+      options: Možnosti
+      include_attachments: Include attachments
+      download_backup: Download backup
+      request_backup: Request backup
     close_popup_title: "Zavřít okno"
     close_filter_title: "Zavřít filtr"
     close_form_title: "Zavřít formulář"
     button_add_watcher: "Přidat sledující"
+    button_add: "Přidat"
     button_back: "Zpět"
     button_back_to_list_view: "Zpět na seznam"
     button_cancel: "Zrušit"
@@ -54,6 +68,8 @@ cs:
     button_duplicate: "Kopie"
     button_edit: "Upravit"
     button_filter: "Filtr"
+    button_collapse_all: "Sbalit vše"
+    button_expand_all: "Rozbalit vše"
     button_advanced_filter: "Pokročilý filtr"
     button_list_view: "Zobrazit jako seznam"
     button_show_view: "Celá obrazovka"
@@ -71,6 +87,7 @@ cs:
     button_update: "Aktualizovat"
     button_export-pdf: "Stáhnout PDF"
     button_export-atom: "Stáhnout Atom"
+    button_create: "Vytvořit"
     calendar:
       title: 'Kalendář'
       too_many: 'Celkem je zde %{count} pracovních balíčků, ale pouze %{max} lze zobrazit.'
@@ -83,7 +100,7 @@ cs:
     caption_rate_history: "Historie kurzů"
     clipboard:
       browser_error: "Váš prohlížeč nepodporuje, kopírování do schránky. Ručně zkopírujte vybraný text."
-      copied_successful: "Úspešně zkopírováno do schránky!"
+      copied_successful: "Successfully copied to clipboard!"
     chart:
       type: 'Typ grafu'
       axis_criteria: 'Kritéria osy'
@@ -115,6 +132,11 @@ cs:
         manual: 'Přepněte do Markdown zdroje'
         wysiwyg: 'Přepnout na WYSIWYG Editor'
       macro:
+        error: 'Cannot expand macro: %{message}'
+        attribute_reference:
+          macro_help_tooltip: 'This text segment is being dynamically rendered by a macro.'
+          not_found: 'Requested resource could not be found'
+          invalid_attribute: "The selected attribute '%{name}' does not exist."
         child_pages:
           button: 'Odkazy na podřízené stránky'
           include_parent: 'Zahrnout rodiče'
@@ -166,7 +188,8 @@ cs:
       enterprise:
         trial:
           confirmation: "Confirmation of email address"
-          confirmation_info: "We sent you an email. Please check your emails and click the confirmation link provided to start your 14 days trial."
+          confirmation_info: >
+            We sent you an email on %{date} to %{email}. Please check your inbox and click the confirmation link provided to start your 14 days trial.
           form:
             general_consent: >
               I agree with the <a target="_blank" href="%{link_terms}">terms of service</a> and the <a target="_blank" href="%{link_privacy}">privacy policy</a>.
@@ -181,9 +204,10 @@ cs:
             label_starts_at: "Starts at"
             label_expires_at: "Vyprší za"
             receive_newsletter: I want to receive the OpenProject <a target="_blank" href="%{link}">newsletter</a>.
+            taken_domain: There can only be one active trial per domain.
+            taken_email: Each user can only create one trial.
           email_not_received: "You did not receive an email? You can resend the email with the link on the right."
           try_another_email: "Or try it with another email address."
-          try_another_email_hint: "Please be aware that your previous email address gets invalid if you try again with a new one."
           next_steps: "Next steps"
           resend_link: "Resend"
           resend_success: "Email has been resent. Please check your emails and click the confirmation link provided."
@@ -197,7 +221,7 @@ cs:
         upsale:
           become_hero: "Staň se hrdinou!"
           benefits:
-            description: "Jaké jsou výhody?"
+            description: "What are the benefits of the Enterprise on-premises Edition?"
             high_security: "Security features"
             high_security_text: "Single sign on (SAML, OpenID Connect, CAS), two-factor authentication and automatic sync of LDAP groups."
             installation: "Installation support"
@@ -248,7 +272,6 @@ cs:
     general_text_yes: "ano"
     general_text_No: "Ne"
     general_text_Yes: "Ano"
-    global_roles: Globální role
     hal:
       error:
         update_conflict_refresh: "Click here to refresh the resource and update to the newest version."
@@ -262,13 +285,13 @@ cs:
           text_new_features: "Přečtěte si o nových funkcích a aktualizacích produktů."
           learn_about: "Learn more about the new features"
           standard:
-            learn_about_link: https://www.openproject.org/openproject-10-4
+            learn_about_link: https://www.openproject.org/openproject-11-3-release
             current_new_feature_html: >
-              The release contains various new features and improvements: <br><br> <ul> <li>Default <b>design templates</b> to select a light or dark theme (premium feature).</li> <li>New <b>time tracking widget</b> for <i>My page</i> to show spent time in a bar chart.</li> <li><b>XLS-exports for cost reports</b> and formatted text in PDF export of work packages.</li> <li><b>Improved design and usability</b>, i.e. tabs and more in project settings and administration.</li> </ul>
+              The release contains various new features and improvements: <br> <ul class="%{list_styling_class}"> <li>New button in header navigation to create projects, users and work packages.</li> <li>A new invite modal for users, groups and placeholder users allows to easily add or invite new users and assign them to work packages.</li> <li>GitHub integration into OpenProject.</li> <li>API v3 extensions for groups and more, i.e. create, read, update and delete groups and group members through the API.</li> <li>Multi-selection for project custom fields of type list.</li> <li>Creation of backup from the web interface.</li> </ul>
           bim:
-            learn_about_link: https://www.openproject.org/openproject-bim-10-4
+            learn_about_link: https://www.openproject.org/openproject-11-3-release
             current_new_feature_html: >
-              OpenProject contains a <b>new IFC module to integrate 3D models</b> into your project management application and to work collaboratively with these files with your team without installation of separate costly software or licenses. <br><br> <ul> <li><b>Import IFC files</b> of building models into your OpenProject application.</li> <li><b>Open 3D models and visualize building models</b> in your browser.</li> <li> Easily <b>work on multiple IFC files</b> with your team directly in OpenProject without installation of separate costly software. </li> </ul>
+              The release contains various new features and improvements: <br> <ul class="%{list_styling_class}"> <li>BIM: Improved performance of the IFC model viewer.</li> <li>BIM: The IFC viewer now supports double precision models, which is great for large construction sites such as bridges, roads etc.</li> <li>BIM: Toggle button for switching between perspective and orthogonal mode.</li> <li>BIM: A menu for editing, deleting or flipping section planes.</li> <li>New button in header navigation to create projects, users and work packages.</li> <li>A new invite modal for users, groups and placeholder users allows to easily add or invite new users and assign them to work packages.</li> <li>API v3 extensions for groups and more, i.e. create, read, update and delete groups and group members through the API.</li> <li>Multi-selection for project custom fields of type list.</li> <li>Creation of backup from the web interface.</li> </ul>
     label_activate: "Aktivovat"
     label_add_column_after: "Přidat sloupec za"
     label_add_column_before: "Přidat sloupec před"
@@ -279,7 +302,7 @@ cs:
     label_add_row_before: "Přidat řádek před"
     label_add_selected_columns: "Přidat vybrané sloupce"
     label_added_by: "přidal"
-    label_added_time_by: "Přidal %{author} %{age}"
+    label_added_time_by: "Added by <a href=%{authorLink}>%{author}</a> at %{age}"
     label_ago: "dnů před"
     label_all: "vše"
     label_all_work_packages: "všechny pracovní balíčky"
@@ -320,9 +343,11 @@ cs:
     label_expand_all: "Rozbalit vše"
     label_expand_project_menu: "Rozbalit nabídku projektu"
     label_export: "Export"
+    label_export_preparing: "The export is being prepared and will be downloaded shortly."
     label_filename: "Soubor"
     label_filesize: "Velikost"
     label_general: "Obecné"
+    label_global_roles: "Globální role"
     label_greater_or_equal: ">="
     label_group: 'Skupina'
     label_group_by: "Seskupit podle"
@@ -352,7 +377,7 @@ cs:
     label_next: "Další"
     label_no_color: "Bez barvy"
     label_no_data: "Žádná data k zobrazení"
-    label_no_due_date: "žádné datum ukončení"
+    label_no_due_date: "no finish date"
     label_no_start_date: "žádné datum začátku"
     label_no_value: "Žádná hodnota"
     label_none: "žádný"
@@ -371,6 +396,7 @@ cs:
     label_quote_comment: "Citovat tento komentář"
     label_recent: "Recent"
     label_reset: "Obnovit"
+    label_remove: "Odstranit"
     label_remove_column: "Odstranit sloupec"
     label_remove_columns: "Odstranit vybrané sloupce"
     label_remove_row: "Odstranit řádek"
@@ -392,9 +418,10 @@ cs:
     label_public_query: "Veřejné"
     label_sum: "Sum"
     label_sum_for: "Součet pro"
+    label_total_sum: "Total sum"
     label_subject: "Předmět"
     label_this_week: "tento týden"
-    label_today: "dnes"
+    label_today: "Today"
     label_time_entry_plural: "Strávený čas"
     label_up: "Nahoru"
     label_user_plural: "Uživatelé"
@@ -404,8 +431,10 @@ cs:
     label_total_amount: "Celkem: %{amount}"
     label_updated_on: "aktualizováno"
     label_value_derived_from_children: "(hodnota odvozená od dětí)"
+    label_children_derived_duration: "Work package's children derived duration"
     label_warning: "Varování"
     label_work_package: "Pracovní balíček"
+    label_work_package_parent: "Parent work package"
     label_work_package_plural: "Pracovní balíčky"
     label_watch: "Sledovat"
     label_watch_work_package: "Sledovat pracovní balíček"
@@ -452,6 +481,7 @@ cs:
         help_menu: 'V nabídce <b>Nápověda</b> najdete uživatelského průvodce a další zdroje pomoci. <br> Užijte si vaši práci s OpenProject!'
         members: 'Pozvěte nové <b>členy</b> , aby se připojili k vašemu projektu.'
         project_selection: 'Pro začátek klikněte na jeden z projektů s užitečnými ukázkovými daty. <br> <b>Demo projekt</b> vyhovuje nejlepší pro klasické řízení projektu, zatímco projekt <b>Scrum</b> je lepší pro řízení projektu Agile'
+        quick_add_button: 'Create a new project or invite coworkers.'
         sidebar_arrow: "Pomocí šipky můžete přejít zpět na <b>Hlavní menu projektu</b>."
         welcome: 'Naučte se během tří minut <b>důležité funkce</b>. <br> Doporučujeme dokončit prohlídku až do konce. Prohlídku můžete kdykoliv restartovat.'
         wiki: 'V rámci <b>Wiki</b> můžete dokumentovat a sdílet znalosti společně se svým týmem.'
@@ -467,7 +497,7 @@ cs:
           drag: 'Přetáhněte karty do seznamu pro změnu pořadí nebo do jiného seznamu. Dvojitým kliknutím se otevře zobrazení podrobností.'
         wp:
           toggler: "Nyní se podívejme na část <b>Pracovní balíček</b> , která vám poskytne podrobnější přehled vaší práce."
-          list: 'Toto je seznam <b>pracovního balíčku</b> s důležitou prací ve vašem projektu, jako jsou úkoly, funkce, milníky, chyby a další. <br> Pracovní balíček můžete vytvořit nebo upravit přímo v tomto seznamu. Pro zobrazení podrobností můžete dvojitým kliknutím na řádek.'
+          list: 'This is the <b>Work package</b> list with the important work within your project, such as tasks, milestones, phases, and more. <br> You can create or edit a work package directly within this list. To see its details you can double click on a row.'
           full_view: 'V <b>detailech pracovního balíčku</b> najdete všechny relevantní informace jako popis, stav, prioritu, activity, návaznosti a komentáře.'
           back_button: 'Pomocí šipky můžete přejít zpět do seznamu pracovních balíčků.'
           create_button: 'Tlačítko <b>Vytvořit</b> přidá do vašeho projektu nový pracovní balíček.'
@@ -492,6 +522,11 @@ cs:
       context: 'Kontext projektu'
       work_package_belongs_to: 'Tento pracovní balíček náleží projektu %{projectname}.'
       click_to_switch_context: 'Otevřete tento pracovní balíček v tomto projektu.'
+      confirm_template_load: 'Switching the template will reload the page and you will lose all input to this form. Continue?'
+      use_template: "Use template"
+      no_template_selected: "(None)"
+      copy:
+        copy_options: "Copy options"
       autocompleter:
         label: 'Automatické doplňování projektu'
     text_are_you_sure: "Jste si jisti?"
@@ -502,7 +537,7 @@ cs:
         reset_title: "Vyčistit konfiguraci formuláře"
         confirm_reset: >
           Upozornění: Opravdu chcete resetovat konfiguraci formuláře? Tato akce obnoví atributy na jejich výchozí skupinu a zakáže VŠECHNY vlastní pole.
-        upgrade_to_ee: "Upgradovat na Enterprise Edition"
+        upgrade_to_ee: "Upgrade to Enterprise on-premises Edition"
         upgrade_to_ee_text: "Páni! Pokud potřebujete tuto funkci, jste super pro! Nevadili byste nám podpořit OpenSource vývojáře tím, že se stanete klientem Enterprise Edition?"
         more_information: "Více informací"
         nevermind: "Nevadí"
@@ -519,7 +554,7 @@ cs:
       duration: 'Doba trvání'
       spent_on: 'Datum'
       hours: 'Hodiny'
-      label: 'Time entry'
+      title: 'Čas protokolu'
     two_factor_authentication:
       label_two_factor_authentication: 'Two-factor authentication'
     watchers:
@@ -575,11 +610,18 @@ cs:
     relations_autocomplete:
       placeholder: "Zadejte hledaný text"
       parent_placeholder: "Vyberte nového rodiče nebo stiskněte úniku pro zrušení."
+    autocompleter:
+      placeholder: "Zadejte hledaný text"
+      notFoundText: "No items found"
+      typeToSearchText: "Zadejte hledaný text"
     repositories:
       select_tag: 'Vybrat štítek'
       select_branch: 'Vybrat větev'
     field_value_enter_prompt: "Zadejte hodnotu pro '%{field}'"
     project_menu_details: "Podrobnosti"
+    scheduling:
+      manual: 'Manual scheduling'
+      automatic: 'Automatic scheduling'
     sort:
       sorted_asc: 'Použito vzestupné řazení, '
       sorted_dsc: 'Použité sestupně '
@@ -745,6 +787,7 @@ cs:
         startDate: "Datum zahájení"
         status: "Stav"
         subject: "Předmět"
+        subproject: "Dílčí projekt"
         title: "Název"
         type: "Typ"
         updatedAt: "Aktualizováno"
@@ -790,6 +833,9 @@ cs:
           not_found: "Takový pohled není"
           duplicate_query_title: "Název tohoto zobrazení již existuje. Chcete přesto změnit?"
         text_no_results: "Nebyly nalezeny žádné odpovídající zobrazení."
+      scheduling:
+        is_parent: "The dates of this work package are automatically deduced from its children. Activate 'Manual scheduling' to set the dates."
+        is_switched_from_manual_to_automatic: "The dates of this work package may need to be recalculated after switching from manual to automatic scheduling due to relationships with other work packages."
       table:
         configure_button: 'Konfigurovat tabulku pracovních balíčků'
         summary: "Tabulka s řádky pracovního balíčku a atributy sloupců pracovního balíčku."
@@ -823,7 +869,7 @@ cs:
           automatic: 'Automaticky'
           manually: 'Ručně'
           warning: 'Při aktivaci režimu automatického řazení ztratíte své předchozí řazení.'
-        columns_help_text: "Use the input above to add columns to your table view. You can drag and drop the columns to reorder them."
+        columns_help_text: "Use the input field above to add columns to your table view. You can drag and drop the columns to reorder them."
         upsale:
           attribute_highlighting: 'Potřebujete určité pracovní balíčky, aby vyšly z celkového objemu?'
           relation_columns: 'Potřebujete vidět vztahy v seznamu pracovních balíčků?'
@@ -878,10 +924,14 @@ cs:
         has_children: "Pracovní balíček má %{childUnits}:"
         confirm_deletion_children: "Jsem si vědom, že všechny potomky uvedených pracovních balíčků budou rekurzivně odstraněny."
         deletes_children: "Všechny podřízené pracovní balíčky a jejich potomci budou také rekurzivně odstraněny."
+      destroy_time_entry:
+        title: "Confirm deletion of time entry"
+        text: "Are you sure you want to delete the following time entry?"
     notice_no_results_to_display: "Žádné viditelné výsledky k zobrazení."
     notice_successful_create: "Úspěšné vytvoření."
     notice_successful_delete: "Úspěšné odstranění."
     notice_successful_update: "Úspěšná aktualizace."
+    notice_job_started: "job started."
     notice_bad_request: "Chybný požadavek."
     relations:
       empty: Neexistuje žádný vztah
@@ -919,11 +969,9 @@ cs:
         many: "%{count} podřazených pracovních balíčků"
         other: "%{count} podřazených pracovních balíčků"
       hour:
-        zero: "0 h"
         one: "1 h"
-        few: "%{count} h"
-        many: "%{count} h"
         other: "%{count} h"
+        zero: "0 h"
     zen_mode:
       button_activate: 'Aktivovat zen režim'
       button_deactivate: 'Deaktivovat zen režim'
@@ -941,3 +989,78 @@ cs:
       card: 'Karty'
       list: 'Tabulka'
       timeline: 'Ganttův diagram'
+    invite_user_modal:
+      back: 'Zpět'
+      invite: 'Invite'
+      title:
+        invite: 'Pozvat uživatele'
+        invite_to_project: 'Invite %{type} to %{project}'
+        User: 'user'
+        Group: 'group'
+        PlaceholderUser: 'placeholder user'
+        invite_principal_to_project: 'Invite %{principal} to %{project}'
+      project:
+        label: 'Projekt'
+        required: 'Please select a project'
+        lacking_permission: 'Please select a different project since you lack permissions to assign users to the currently selected.'
+        lacking_permission_info: 'You lack the permission to assign users to the project you are currently in. You need to select a different one.'
+        next_button: 'Další'
+        no_results: 'No projects were found'
+        no_invite_rights: 'You are not allowed to invite members to this project'
+      type:
+        required: 'Please select the type to be invited'
+        user:
+          title: 'Uživatel'
+          description: 'Permissions based on the assigned role in the selected project'
+        group:
+          title: 'Skupina'
+          description: 'Permissions based on the assigned role in the selected project'
+        placeholder:
+          title: 'Placeholder user'
+          title_no_ee: 'Placeholder user (Enterprise Edition only feature)'
+          description: 'Has no access to the project and no emails are sent out.'
+          description_no_ee: 'Has no access to the project and no emails are sent out. <br>Check out the <a href="%{eeHref}" target="_blank">Enterprise Edition</a>'
+      principal:
+        label:
+          name_or_email: 'Name or email address'
+          name: 'Jméno'
+        already_member_message: 'Already a member of %{project}'
+        no_results_user: 'No users were found'
+        invite_user: 'Invite:'
+        change_user_selection: 'Change e-mail-address or select an existing user'
+        no_results_placeholder: 'No placeholders were found'
+        change_placeholder_selection: 'Change name or select an existing placeholder'
+        create_new_placeholder: 'Create new placeholder:'
+        no_results_group: 'No groups were found'
+        change_group_selection: 'Change name or select an existing group'
+        next_button: 'Další'
+        required:
+          user: 'Please select a user'
+          placeholder: 'Please select a placeholder'
+          group: 'Please select a group'
+      role:
+        label: 'Role in %{project}'
+        no_roles_found: 'No roles were found'
+        description: 'This is the role that %{principal} will receive when they join your project. The role defines which actions they are allowed to take and which information they are allowed to see. <a href="https://docs.openproject.org/system-admin-guide/users-permissions/roles-permissions/#roles-and-permissions" target="_blank"> Learn more about roles and permissions. </a>'
+        required: 'Please select a role'
+        next_button: 'Další'
+      message:
+        label: 'Invitation message'
+        description: 'We will send an email to %{principal}, to which you can add a personal message here. An explanation for the invitation could be useful, or perhaps a bit of information regarding the project to help them get started.'
+        next_button: 'Review invitation'
+      summary:
+        next_button: 'Odeslat pozvánku'
+      success:
+        title: '%{principal} was invited!'
+        description:
+          user: 'The user can now log in to access %{project}. Meanwhile you can already plan with that user and assign work packages for instance.'
+          placeholder: 'The placeholder can now be used in %{project}. Meanwhile you can already plan with that user and assign work packages for instance.'
+          group: 'The group is now a part of %{project}. Meanwhile you can already plan with that group and assign work packages for instance.'
+        next_button: 'Pokračovat'
+    forms:
+      submit_success_message: 'The form was successfully submitted'
+      load_error_message: 'There was an error loading the form'
+      validation_error_message: 'Please fix the errors present in the form'
+      advanced_settings: 'Pokročilá nastavení'
+
+

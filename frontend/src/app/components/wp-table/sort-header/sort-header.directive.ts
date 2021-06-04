@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,19 +24,19 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input} from '@angular/core';
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
-import {RelationQueryColumn, TypeRelationQueryColumn} from 'core-components/wp-query/query-column';
-import {WorkPackageTable} from 'core-components/wp-fast-table/wp-fast-table';
-import {QUERY_SORT_BY_ASC, QUERY_SORT_BY_DESC} from 'core-app/modules/hal/resources/query-sort-by-resource';
-import {WorkPackageViewHierarchiesService} from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-hierarchy.service";
-import {WorkPackageViewSortByService} from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-sort-by.service";
-import {WorkPackageViewGroupByService} from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-group-by.service";
-import {WorkPackageViewRelationColumnsService} from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-relation-columns.service";
-import {combineLatest} from "rxjs";
-import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Input } from '@angular/core';
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
+import { RelationQueryColumn, TypeRelationQueryColumn } from 'core-components/wp-query/query-column';
+import { WorkPackageTable } from 'core-components/wp-fast-table/wp-fast-table';
+import { QUERY_SORT_BY_ASC, QUERY_SORT_BY_DESC } from 'core-app/modules/hal/resources/query-sort-by-resource';
+import { WorkPackageViewHierarchiesService } from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-hierarchy.service";
+import { WorkPackageViewSortByService } from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-sort-by.service";
+import { WorkPackageViewGroupByService } from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-group-by.service";
+import { WorkPackageViewRelationColumnsService } from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-relation-columns.service";
+import { combineLatest } from "rxjs";
+import { UntilDestroyedMixin } from "core-app/helpers/angular/until-destroyed.mixin";
 
 
 @Component({
@@ -100,9 +100,9 @@ export class SortHeaderDirective extends UntilDestroyedMixin implements AfterVie
         this.untilDestroyed()
       )
       .subscribe(() => {
-        let latestSortElement = this.wpTableSortBy.current[0];
+        const latestSortElement = this.wpTableSortBy.current[0];
 
-        if (!latestSortElement || this.headerColumn.$href !== latestSortElement.column.$href) {
+        if (!latestSortElement || this.headerColumn.href !== latestSortElement.column.href) {
           this.currentSortDirection = null;
         } else {
           this.currentSortDirection = latestSortElement.direction;
@@ -200,13 +200,13 @@ export class SortHeaderDirective extends UntilDestroyedMixin implements AfterVie
       return '';
     }
 
-    switch (this.currentSortDirection.$href) {
-      case QUERY_SORT_BY_ASC:
-        return 'asc';
-      case QUERY_SORT_BY_DESC:
-        return 'desc';
-      default:
-        return '';
+    switch (this.currentSortDirection.href) {
+    case QUERY_SORT_BY_ASC:
+      return 'asc';
+    case QUERY_SORT_BY_DESC:
+      return 'desc';
+    default:
+      return '';
     }
   }
 

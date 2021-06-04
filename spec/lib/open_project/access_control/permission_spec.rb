@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -45,6 +45,30 @@ describe OpenProject::AccessControl::Permission do
       it 'is empty' do
         expect(subject.dependencies)
           .to be_empty
+      end
+    end
+  end
+
+  describe '#global?' do
+    describe 'setting global permission' do
+      before { @permission = OpenProject::AccessControl::Permission.new(:perm, { cont: [:action] }, { global: true }) }
+
+      it { expect(@permission.global?).to be_truthy }
+    end
+
+    describe 'setting non global permission' do
+      before { @permission = OpenProject::AccessControl::Permission.new :perm, { cont: [:action] }, { global: false } }
+
+      it 'is false' do
+        expect(@permission.global?).to be_falsey
+      end
+    end
+
+    describe 'not specifying -> default' do
+      before { @permission = OpenProject::AccessControl::Permission.new :perm, { cont: [:action] }, {} }
+
+      it 'is false' do
+        expect(@permission.global?).to be_falsey
       end
     end
   end

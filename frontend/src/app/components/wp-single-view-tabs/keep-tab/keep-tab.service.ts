@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,24 +24,26 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {StateService, Transition, TransitionService} from '@uirouter/core';
-import {ReplaySubject} from 'rxjs';
-import {Injectable} from "@angular/core";
+import { StateService, Transition, TransitionService, UIRouterGlobals } from '@uirouter/core';
+import { ReplaySubject } from 'rxjs';
+import { Injectable } from "@angular/core";
+import { splitViewRoute } from "core-app/modules/work_packages/routing/split-view-routes.helper";
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class KeepTabService {
-  protected currentTab:string = 'overview';
+  protected currentTab = 'overview';
 
   protected subject = new ReplaySubject<{ [tab:string]:string; }>(1);
 
   constructor(protected $state:StateService,
+              protected uiRouterGlobals:UIRouterGlobals,
               protected $transitions:TransitionService) {
 
     this.updateTabs();
     $transitions.onSuccess({}, (transition:Transition) => {
-      this.updateTabs(transition.to().name);
+      this.updateTabs(transition.params('to').tabIdentifier);
     });
   }
 
@@ -60,16 +62,32 @@ export class KeepTabService {
     return this.currentDetailsTab;
   }
 
-  public get currentShowState():string {
-    return 'work-packages.show.' + this.currentShowTab;
+  public goCurrentShowState(params:Record<string, unknown> = {}):void {
+    this.$state.go(
+      'work-packages.show.tabs',
+      {
+        ...this.uiRouterGlobals.params,
+        ...params,
+        tabIdentifier: this.currentShowTab,
+      },
+    );
   }
 
-  public get currentDetailsState():string {
-    return 'work-packages.partitioned.list.details.' + this.currentDetailsTab;
+  public goCurrentDetailsState(params:Record<string, unknown> = {}):void {
+    const route = splitViewRoute(this.$state);
+
+    this.$state.go(
+      route + '.tabs',
+      {
+        ...this.uiRouterGlobals.params,
+        ...params,
+        tabIdentifier: this.currentDetailsTab,
+      },
+    );
   }
 
-  public isDetailsState(stateName:string) {
-    return stateName === 'work-packages.partitioned.list.details';
+  public isDetailsState(stateName:string):boolean {
+    return !!stateName && stateName.includes('.details');
   }
 
   public get currentShowTab():string {
@@ -90,15 +108,14 @@ export class KeepTabService {
     // Notify when updated
     this.subject.next({
       active: this.lastActiveTab,
-      show: this.currentShowState,
-      details: this.currentDetailsState
+      show: this.currentShowTab,
+      details: this.currentDetailsTab,
     });
   }
 
   protected updateTab(stateName:string) {
     if (this.isCurrentState(stateName)) {
-      const current = this.$state.current.name as string;
-      this.currentTab = (current.split('.') as any[]).pop();
+      this.currentTab = this.uiRouterGlobals.params.tabIdentifier;
 
       this.notify();
     }
@@ -108,24 +125,20 @@ export class KeepTabService {
     if (stateName === 'show') {
       return this.$state.includes('work-packages.show.*');
     }
-
     if (stateName === 'details') {
-      return this.$state.includes('work-packages.partitioned.list.details.*');
+      return this.$state.includes('**.details.*');
     }
 
     return false;
   }
 
-  public updateTabs(stateName?:string) {
-
+  public updateTabs(currentTab?:string) {
     // Ignore the switch from show#activity to details#activity
     // and show details#overview instead
-
-    if (stateName === 'work-packages.show.activity') {
+    if (this.isCurrentState('show') && currentTab === 'activity') {
       this.currentTab = 'overview';
       return this.notify();
     }
-
     this.updateTab('show');
     this.updateTab('details');
   }

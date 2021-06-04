@@ -4,7 +4,7 @@ sidebar_navigation:
   priority: 780
 description: Find out how to create and manage budgets for a project in OpenProject.
 robots: index, follow
-keywords: budgets
+keywords: budgets, project budget, costs
 ---
 
 # Budgets
@@ -15,14 +15,14 @@ You can add planned **unit costs** as well as **labor costs** for the project.
 
 Then, you will assign work packages to a budgets. If you log time or costs to this work package the costs will booked to this budget and show the percentage spent for a project budget.
 
-| Feature                                                      | Documentation for                                            |
+| Topic                                                        | Content                                                      |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | [Create a project budget](#create-a-project-budget)          | How to set up a project budget in OpenProject?               |
 | [Add planned unit costs](#add-planned-unit-costs)            | How to add planned unit costs to a budget?                   |
 | [Add planned labor costs](#add-planned-labor-costs)          | How to add planned labor costs to a budget?                  |
-| [Assign a work package to a budget](#assign-work-package-to-a-budget) | How to assign a work package to book time and costs to a project budget? |
+| [Assign a work package to a budget](#assign-a-work-package-to-a-budget) | How to assign a work package to book time and costs to a project budget? |
 | [View details and update budget](#view-details-and-update-budget) | How to display the details, update, copy or delete a project budget? |
-|                                                              |                                                              |
+| [Frequently asked questions (FAQ)](#frequently-asked-questions-(faq)) | What are frequent questions regarding budgets?               |
 
 ## Create a project budget
 
@@ -43,14 +43,13 @@ In the detailed view you can enter the details for your project budget, add plan
 
 ### Add planned unit costs
 
-You can add planned unit costs to a budget in your project. These [unit costs first need to be configured in the system's administration](../../system-admin-guide).
+You can add planned unit costs to a budget in your project. These [unit costs first need to be configured in the system's administration](../../system-admin-guide/time-and-costs/#create-and-manage-cost-types).
 
 5. Enter the number of **units** of the cost type to add to your project budgets.
 
-6. Choose the **cost type** you would like to plan for your budget from the drop-down list. The [cost types first need to be configured in the system administration](../../system-admin-guide).
-
-   The **unit name** will be set automatically according to the configuration of the cost types in your system administration. 
-
+6. Choose the **cost type** you would like to plan for your budget from the drop-down list. 
+The **unit name** will be set automatically according to the configuration of the cost types in your system administration. 
+   
 7. Add a **comment** to specify the unit costs.
 
 8. The **planned costs** for this cost type will be calculated automatically based on the configuration of the cost per unit for this cost type. The cost rate will be taken from the fixed date you have configured for your budget.
@@ -69,7 +68,7 @@ You can also add planned labor costs to a budget.
 11. Set the **hours** that will be planned for a user on this budget.
 12. Add a **user** from the drop-down list.
 13. You can include a **comment** for your planned labor costs if needed.
-14. The total amount of planned costs will be calculated based on the entered hours and the [hourly rate configured](../time-and-costs/cost-tracking/#define-hourly-rate-for-labor-costs) for this user in the user profile.
+14. The total amount of planned costs will be calculated based on the entered hours and the [hourly rate configured](../time-and-costs/time-tracking/#define-hourly-rate-for-labor-costs) for this user in the user profile.
     You can manually overwrite the calculated planned labor costs by clicking the edit icon (pen) next to the calculated amount.
     The costs will be calculated based on the hourly rate taken from the fixed date for your budget.
 15. With the **delete** icon you can remove the planned labor costs from the budget.
@@ -113,3 +112,11 @@ You will get and overview of planned as well as spent costs and the available co
 <div class="alert alert-info" role="alert">
 **Note**: The costs are calculated based on the [configuration for cost types](../../system-admin-guide) and the [configured hourly rate](../time-and-costs/#define-hourly-rate-for-labor-costs) in the user profile.
 </div>
+
+## Frequently asked questions (FAQ)
+
+### How do I prepare a budget in OpenProject?
+
+Budgets are currently limited to a single project. They cannot be shared across multiple projects.
+This means that you would have to set up a separate budget for the different main and sub projects.
+You can however use cost reports to analyze the time (and cost) spent across multiple projects. For details, you can take a look at our [time and cost reports user guide](../time-and-costs/reporting/).

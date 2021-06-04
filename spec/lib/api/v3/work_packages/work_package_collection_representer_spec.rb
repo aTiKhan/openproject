@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -49,7 +49,7 @@ describe ::API::V3::WorkPackages::WorkPackageCollectionRepresenter do
   let(:representer) do
     described_class.new(
       work_packages,
-      self_base_link,
+      self_link: self_base_link,
       query: query,
       project: project,
       groups: groups,
@@ -387,7 +387,9 @@ describe ::API::V3::WorkPackages::WorkPackageCollectionRepresenter do
       let(:total_sums) { OpenStruct.new(estimated_hours: 1) }
 
       it 'renders the groups object as json' do
-        expected = { 'estimatedTime': 'PT1H' }
+        expected = { 'estimatedTime': 'PT1H',
+                     'remainingTime': nil,
+                     'storyPoints': nil }
         is_expected.to be_json_eql(expected.to_json).at_path('totalSums')
       end
 
@@ -464,6 +466,5 @@ describe ::API::V3::WorkPackages::WorkPackageCollectionRepresenter do
           .at_path('_links/customFields')
       end
     end
-
   end
 end

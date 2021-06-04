@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -52,7 +52,7 @@ describe 'Work package index accessibility', type: :feature, selenium: true do
   end
 
   describe 'Sort link', js: true do
-    before do visit_index_page end
+    before { visit_index_page }
 
     def click_sort_ascending_link
       expect(page).to have_selector(sort_ascending_selector)
@@ -84,9 +84,8 @@ describe 'Work package index accessibility', type: :feature, selenium: true do
       it_behaves_like 'sort column'
     end
 
-
     shared_examples_for 'sortable column' do
-      before do expect(page).to have_selector(column_header_selector) end
+      before { expect(page).to have_selector(column_header_selector) }
 
       describe 'Initial sort' do
         it_behaves_like 'unsorted column'
@@ -115,7 +114,7 @@ describe 'Work package index accessibility', type: :feature, selenium: true do
 
     describe 'id column' do
       let(:link_caption) { 'ID' }
-      let(:column_header_selector) { '.work-package-table--container th:nth-of-type(3)' }
+      let(:column_header_selector) { '.work-package-table--container th:nth-of-type(2)' }
       let(:column_header_link_selector) { column_header_selector + ' a' }
 
       it_behaves_like 'sortable column'
@@ -123,7 +122,7 @@ describe 'Work package index accessibility', type: :feature, selenium: true do
 
     describe 'subject column' do
       let(:link_caption) { 'Subject' }
-      let(:column_header_selector) { '.work-package-table--container th:nth-of-type(4)' }
+      let(:column_header_selector) { '.work-package-table--container th:nth-of-type(3)' }
       let(:column_header_link_selector) { column_header_selector + ' #subject' }
 
       it_behaves_like 'sortable column'
@@ -131,7 +130,7 @@ describe 'Work package index accessibility', type: :feature, selenium: true do
 
     describe 'type column' do
       let(:link_caption) { 'Type' }
-      let(:column_header_selector) { '.work-package-table--container th:nth-of-type(2)' }
+      let(:column_header_selector) { '.work-package-table--container th:nth-of-type(4)' }
       let(:column_header_link_selector) { column_header_selector + ' a' }
 
       it_behaves_like 'sortable column'
@@ -155,20 +154,20 @@ describe 'Work package index accessibility', type: :feature, selenium: true do
   end
 
   describe 'hotkeys', js: true do
-    let!(:another_work_package) {
+    let!(:another_work_package) do
       FactoryBot.create(:work_package,
-                         project: project)
-    }
+                        project: project)
+    end
     before do
       visit_index_page
     end
 
     context 'focus' do
       let(:first_link_selector) do
-        ".wp-row-#{work_package.id} .inline-edit--display-field.type"
+        ".wp-row-#{work_package.id} .inline-edit--display-field.id a"
       end
       let(:second_link_selector) do
-        ".wp-row-#{another_work_package.id} .inline-edit--display-field.type"
+        ".wp-row-#{another_work_package.id} .inline-edit--display-field.id a"
       end
 
       it 'navigates with J and K' do
@@ -229,14 +228,14 @@ describe 'Work package index accessibility', type: :feature, selenium: true do
       it_behaves_like 'context menu' do
         let(:target_link) { '#work-package-context-menu a.detailsViewMenuItem' }
         let(:source_link) { '.work-package-table--container tr.issue td.id a' }
-        let(:keys) { [:shift, :alt, :f10] }
+        let(:keys) { %i[shift alt f10] }
         let(:sets_focus) { true }
       end
 
       it_behaves_like 'context menu' do
         let(:target_link) { '#work-package-context-menu a.openFullScreenView' }
         let(:source_link) { '.work-package-table--container tr.issue td.id a' }
-        let(:keys) { [:shift, :alt, :f10] }
+        let(:keys) { %i[shift alt f10] }
         let(:sets_focus) { false }
       end
     end

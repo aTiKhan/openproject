@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,19 +24,18 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {Component, EventEmitter, Output} from '@angular/core';
-import {I18nService} from "app/modules/common/i18n/i18n.service";
-import {WorkPackageViewFiltersService} from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-filters.service";
-import {WorkPackageCacheService} from "app/components/work-packages/work-package-cache.service";
-import {Subject} from "rxjs";
-import {debounceTime, distinctUntilChanged, map, tap} from "rxjs/operators";
-import {IsolatedQuerySpace} from "core-app/modules/work_packages/query-space/isolated-query-space";
-import {QueryFilterInstanceResource} from "core-app/modules/hal/resources/query-filter-instance-resource";
-import {input} from "reactivestates";
-import {QueryFilterResource} from "core-app/modules/hal/resources/query-filter-resource";
-import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
+import { Component, EventEmitter, Output } from '@angular/core';
+import { I18nService } from "app/modules/common/i18n/i18n.service";
+import { WorkPackageViewFiltersService } from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-filters.service";
+import { Subject } from "rxjs";
+import { debounceTime, distinctUntilChanged, map, tap } from "rxjs/operators";
+import { IsolatedQuerySpace } from "core-app/modules/work_packages/query-space/isolated-query-space";
+import { input } from "reactivestates";
+import { QueryFilterResource } from "core-app/modules/hal/resources/query-filter-resource";
+import { UntilDestroyedMixin } from "core-app/helpers/angular/until-destroyed.mixin";
+import { APIV3Service } from "core-app/modules/apiv3/api-v3.service";
 
 @Component({
   selector: 'wp-filter-by-text-input',
@@ -61,8 +60,7 @@ export class WorkPackageFilterByTextInputComponent extends UntilDestroyedMixin {
 
   constructor(readonly I18n:I18nService,
               readonly querySpace:IsolatedQuerySpace,
-              readonly wpTableFilters:WorkPackageViewFiltersService,
-              readonly wpCacheService:WorkPackageCacheService) {
+              readonly wpTableFilters:WorkPackageViewFiltersService) {
     super();
 
     this.wpTableFilters
@@ -96,7 +94,7 @@ export class WorkPackageFilterByTextInputComponent extends UntilDestroyedMixin {
             filter.values = [term];
           });
         } else {
-          let filter = this.wpTableFilters.find('search');
+          const filter = this.wpTableFilters.find('search');
 
           this.wpTableFilters.remove(filter!);
 

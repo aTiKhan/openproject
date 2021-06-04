@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -41,16 +41,16 @@ describe ApplicationJob do
 
   describe 'resets request store' do
     it 'resets request store on each perform' do
-      job = JobMock.new(->() do
+      job = JobMock.new(-> do
         expect(RequestStore[:test_value]).to be_nil
         RequestStore[:test_value] = 42
       end)
 
       RequestStore[:test_value] = 'my value'
-      expect { job.perform }.not_to change { RequestStore[:test_value] }
+      expect { job.perform_now }.not_to change { RequestStore[:test_value] }
 
       RequestStore[:test_value] = 'my value2'
-      expect { job.perform }.not_to change { RequestStore[:test_value] }
+      expect { job.perform_now }.not_to change { RequestStore[:test_value] }
 
       expect(RequestStore[:test_value]).to eq 'my value2'
     end

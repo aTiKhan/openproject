@@ -1,12 +1,12 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
 //
 // OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-// Copyright (C) 2006-2017 Jean-Philippe Lang
+// Copyright (C) 2006-2013 Jean-Philippe Lang
 // Copyright (C) 2010-2013 the ChiliProject Team
 //
 // This program is free software; you can redistribute it and/or
@@ -26,9 +26,10 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {OpenProjectPluginContext} from 'core-app/modules/plugins/plugin-context';
-import {input, InputState} from 'reactivestates';
-import {take} from 'rxjs/operators';
+import { OpenProjectPluginContext } from 'core-app/modules/plugins/plugin-context';
+import { input, InputState } from 'reactivestates';
+import { take } from 'rxjs/operators';
+import { GlobalHelpers } from "core-app/globals/global-helpers";
 
 /**
  * OpenProject instance methods
@@ -37,11 +38,19 @@ export class OpenProject {
 
   public pluginContext:InputState<OpenProjectPluginContext> = input<OpenProjectPluginContext>();
 
+  public helpers = new GlobalHelpers();
+
   /** Globally setable variable whether the page was edited */
-  public pageWasEdited:boolean = false;
+  public pageWasEdited = false;
   /** Globally setable variable whether the page form is submitted.
    * Necessary to avoid a data loss warning on beforeunload */
-  public pageIsSubmitted:boolean = false;
+  public pageIsSubmitted = false;
+  /** Globally setable variable whether any of the EditFormComponent
+   * contain changes.
+   * Necessary to show a data loss warning on beforeunload when clicking
+   * on a link out of the Angular app (ie: main side menu)
+   * */
+  public editFormsContainModelChanges:boolean;
 
   public getPluginContext():Promise<OpenProjectPluginContext> {
     return this.pluginContext

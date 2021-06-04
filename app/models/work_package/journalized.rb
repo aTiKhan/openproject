@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -32,7 +32,16 @@ module WorkPackage::Journalized
   extend ActiveSupport::Concern
 
   included do
-    acts_as_journalized calculate: -> { { parent_id: parent && parent.id } }
+    acts_as_journalized data_sql: ->(journable) do
+      <<~SQL
+        LEFT OUTER JOIN
+          (
+            #{Relation.hierarchy.direct.where(to_id: journable.id).limit(1).select('from_id parent_id, to_id').to_sql}
+          ) parent_relation
+        ON
+          #{journable.class.table_name}.id = parent_relation.to_id
+      SQL
+    end
 
     # This one is here only to ease reading
     module JournalizedProcs
@@ -79,20 +88,29 @@ module WorkPackage::Journalized
                   name: JournalizedProcs.event_name,
                   url: JournalizedProcs.event_url
 
+    register_journal_formatter(:cost_association) do |value, journable, field|
+      association = journable.class.reflect_on_association(field.to_sym)
+      if association
+        record = association.class_name.constantize.find_by_id(value.to_i)
+        record&.subject
+      end
+    end
+
     register_on_journal_formatter(:id, 'parent_id')
     register_on_journal_formatter(:fraction, 'estimated_hours')
     register_on_journal_formatter(:fraction, 'derived_estimated_hours')
     register_on_journal_formatter(:decimal, 'done_ratio')
     register_on_journal_formatter(:diff, 'description')
+    register_on_journal_formatter(:schedule_manually, 'schedule_manually')
     register_on_journal_formatter(:attachment, /attachments_?\d+/)
     register_on_journal_formatter(:custom_field, /custom_fields_\d+/)
+    register_on_journal_formatter(:cost_association, 'budget_id')
 
     # Joined
     register_on_journal_formatter :named_association, :parent_id, :project_id,
                                   :status_id, :type_id,
                                   :assigned_to_id, :priority_id,
                                   :category_id, :version_id,
-                                  :planning_element_status_id,
                                   :author_id, :responsible_id
     register_on_journal_formatter :datetime, :start_date, :due_date
     register_on_journal_formatter :plaintext, :subject

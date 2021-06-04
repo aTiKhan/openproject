@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -42,10 +42,10 @@ describe 'Status action board', type: :feature, js: true do
 
   let(:board_index) { Pages::BoardIndex.new(project) }
 
-  let(:permissions) {
+  let(:permissions) do
     %i[show_board_views manage_board_views add_work_packages
        edit_work_packages view_work_packages manage_public_queries]
-  }
+  end
 
   let!(:priority) { FactoryBot.create :default_priority }
   let!(:open_status) { FactoryBot.create :default_status, name: 'Open' }
@@ -55,20 +55,27 @@ describe 'Status action board', type: :feature, js: true do
 
   let(:filters) { ::Components::WorkPackages::Filters.new }
 
-  let!(:workflow_type) {
+  let!(:workflow_type) do
     FactoryBot.create(:workflow,
                       type: type,
                       role: role,
                       old_status_id: open_status.id,
                       new_status_id: closed_status.id)
-  }
-  let!(:workflow_type_back) {
+  end
+  let!(:workflow_type_back) do
     FactoryBot.create(:workflow,
                       type: type,
                       role: role,
                       old_status_id: other_status.id,
                       new_status_id: open_status.id)
-  }
+  end
+  let!(:workflow_type_back_open) do
+    FactoryBot.create(:workflow,
+                      type: type,
+                      role: role,
+                      old_status_id: closed_status.id,
+                      new_status_id: open_status.id)
+  end
 
   before do
     with_enterprise_token :board_view
@@ -77,6 +84,19 @@ describe 'Status action board', type: :feature, js: true do
   end
 
   context 'with full boards permissions' do
+    it 'can add a case-insensitive list (Regression #35744)' do
+      board_index.visit!
+
+      # Create new board
+      board_page = board_index.create_board action: :Status
+
+      # expect lists of default status
+      board_page.expect_list 'Open'
+
+      board_page.add_list option: 'Closed', query: 'closed'
+      board_page.expect_list 'Closed'
+    end
+
     it 'allows management of boards' do
       board_index.visit!
 
@@ -198,8 +218,28 @@ describe 'Status action board', type: :feature, js: true do
       expect(queries.last.name).to eq 'Closed'
       expect(queries.first.ordered_work_packages).to be_empty
 
-      subjects = WorkPackage.where(id: second.ordered_work_packages.pluck(:work_package_id)).pluck(:subject, :status_id)
-      expect(subjects).to match_array [['Task 1', closed_status.id]]
+      subjects = WorkPackage.where(id: second.ordered_work_packages.pluck(:work_package_id))
+      expect(subjects.pluck(:subject, :status_id)).to match_array [['Task 1', closed_status.id]]
+
+      # Open remaining in split view
+      wp = second.ordered_work_packages.first.work_package
+      card = board_page.card_for(wp)
+      split_view = card.open_details_view
+      split_view.expect_subject
+      split_view.edit_field(:status).update('Open')
+      split_view.expect_and_dismiss_notification message: 'Successful update.'
+
+      wp.reload
+      expect(wp.status).to eq(open_status)
+
+      board_page.expect_card('Open', 'Task 1', present: true)
+      board_page.expect_card('Closed', 'Task 1', present: false)
+
+      # Re-add task 1 to closed
+      board_page.reference('Closed', subjects.first)
+
+      board_page.expect_card('Open', 'Task 1', present: false)
+      board_page.expect_card('Closed', 'Task 1', present: true)
     end
   end
 end

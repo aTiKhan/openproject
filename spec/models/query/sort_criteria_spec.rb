@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -45,47 +45,72 @@ describe ::Query::SortCriteria, type: :model do
   end
 
   describe 'ordered handling' do
+    context 'with an empty sort_criteria' do
+      let(:sort_criteria) { [] }
+
+      it 'returns the default order by id' do
+        expect(subject)
+          .to eq [['work_packages.id DESC']]
+      end
+    end
+
+    context 'with a sort_criteria for id' do
+      let(:sort_criteria) { [['id']] }
+
+      it 'returns the default order by id only once' do
+        expect(subject)
+          .to eq [['work_packages.id']]
+      end
+    end
+
+    context 'with a sort_criteria for id ASC' do
+      let(:sort_criteria) { [%w[id asc]] }
+
+      it 'returns the custom order by id asc' do
+        expect(subject)
+          .to eq [['work_packages.id']]
+      end
+    end
+
     context 'with sort_criteria with order handling and no order statement' do
       let(:sort_criteria) { [['start_date']] }
 
-      it 'adds the order handling' do
-        expect(subject.length).to eq 1
-        expect(subject.first).to eq ['work_packages.start_date NULLS LAST']
+      it 'adds the order handling (and the default order by id)' do
+        expect(subject)
+          .to eq [['work_packages.start_date NULLS LAST'], ['work_packages.id DESC']]
       end
     end
 
     context 'with sort_criteria with order handling and ASC order statement' do
-      let(:sort_criteria) { [['start_date', 'asc']] }
+      let(:sort_criteria) { [%w[start_date asc]] }
 
-      it 'adds the order handling' do
-        expect(subject.length).to eq 1
-        expect(subject.first).to eq ['work_packages.start_date NULLS LAST']
+      it 'adds the order handling (and the default order by id)' do
+        expect(subject)
+          .to eq [['work_packages.start_date NULLS LAST'], ['work_packages.id DESC']]
       end
     end
 
     context 'with sort_criteria with order handling and DESC order statement' do
-      let(:sort_criteria) { [['start_date', 'desc']] }
+      let(:sort_criteria) { [%w[start_date desc]] }
 
-      it 'adds the order handling' do
-        expect(subject.length).to eq 1
-        expect(subject.first).to eq ['work_packages.start_date DESC NULLS LAST']
+      it 'adds the order handling (and the default order by id)' do
+        expect(subject)
+          .to eq [['work_packages.start_date DESC NULLS LAST'], ['work_packages.id DESC']]
       end
     end
 
     context 'with multiple sort_criteria with order handling and misc order statement' do
-      let(:sort_criteria) { [['version', 'desc'], ['start_date', 'asc']] }
+      let(:sort_criteria) { [%w[version desc], %w[start_date asc]] }
 
-      it 'adds the order handling' do
-        expect(subject.length)
-          .to eq 2
-
+      it 'adds the order handling (and the default order by id)' do
         sort_sql = <<~SQL
           array_remove(regexp_split_to_array(regexp_replace(substring(versions.name from '^[^a-zA-Z]+'), '\\D+', ' ', 'g'), ' '), '')::int[]
         SQL
 
-        expect(subject.first)
-          .to eq ["#{sort_sql} DESC NULLS LAST", 'name DESC NULLS LAST']
-        expect(subject.last).to eq ['work_packages.start_date NULLS LAST']
+        expect(subject)
+          .to eq [["#{sort_sql} DESC NULLS LAST", 'name DESC NULLS LAST'],
+                  ['work_packages.start_date NULLS LAST'],
+                  ['work_packages.id DESC']]
       end
     end
   end

@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -32,10 +32,11 @@ class CostQuery::Filter::WorkPackageId < Report::Filter::Base
   end
 
   def self.available_values(*)
-    work_packages = WorkPackage.where(project_id: Project.allowed_to(User.current, :view_work_packages))
-                    .order(:id)
-                    .pluck(:id, :subject)
-    work_packages.map { |id, subject| [text_for_tuple(id, subject), id] }
+    WorkPackage
+      .where(project_id: Project.allowed_to(User.current, :view_work_packages))
+      .order(:id)
+      .pluck(:id, :subject)
+      .map { |id, subject| [text_for_tuple(id, subject), id] }
   end
 
   def self.available_operators
@@ -47,6 +48,7 @@ class CostQuery::Filter::WorkPackageId < Report::Filter::Base
   # to achieve a more performant implementation
   def self.label_for_value(value)
     return nil unless value.to_i.to_s == value.to_s # we expect an work_package-id
+
     work_package = WorkPackage.find(value.to_i)
     [text_for_work_package(work_package), work_package.id] if work_package and work_package.visible?(User.current)
   end

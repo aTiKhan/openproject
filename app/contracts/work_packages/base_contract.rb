@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -59,7 +59,8 @@ module WorkPackages
               }
 
     attribute :estimated_hours
-    attribute :derived_estimated_hours, writeable: false
+    attribute :derived_estimated_hours,
+              writeable: false
 
     attribute :parent_id,
               permission: :manage_subtasks
@@ -69,7 +70,7 @@ module WorkPackages
 
       validate_people_visible :assigned_to,
                               'assigned_to_id',
-                              model.project.possible_assignee_members
+                              assignable_assignees
     end
 
     attribute :responsible_id do
@@ -77,14 +78,16 @@ module WorkPackages
 
       validate_people_visible :responsible,
                               'responsible_id',
-                              model.project.possible_responsible_members
+                              assignable_responsibles
     end
+
+    attribute :schedule_manually
 
     attribute :start_date,
               writeable: ->(*) {
-                model.leaf?
+                model.leaf? || model.schedule_manually?
               } do
-      if start_before_soonest_start?
+      if !model.schedule_manually? && start_before_soonest_start?
         message = I18n.t('activerecord.errors.models.work_package.attributes.start_date.violates_relationships',
                          soonest_start: model.soonest_start)
 
@@ -94,8 +97,10 @@ module WorkPackages
 
     attribute :due_date,
               writeable: ->(*) {
-                model.leaf?
+                model.leaf? || model.schedule_manually?
               }
+
+    attribute :budget
 
     validates :due_date,
               date: { after_or_equal_to: :start_date,
@@ -128,18 +133,6 @@ module WorkPackages
       super
 
       @can = WorkPackagePolicy.new(user)
-    end
-
-    def writable_attributes
-      ret = super
-
-      # If we're in a readonly status and did not move into that status right now
-      # only allow other status transitions
-      if model.readonly_status? && !model.status_id_change
-        ret &= %w(status status_id)
-      end
-
-      ret
     end
 
     def assignable_statuses(include_default = false)
@@ -181,6 +174,19 @@ module WorkPackages
       model.try(:assignable_versions) if model.project
     end
 
+    def assignable_budgets
+      model.project&.budgets
+    end
+
+    def assignable_assignees
+      if model.project
+        Principal.possible_assignee(model.project)
+      else
+        Principal.none
+      end
+    end
+    alias_method :assignable_responsibles, :assignable_assignees
+
     private
 
     attr_reader :can
@@ -193,13 +199,13 @@ module WorkPackages
 
     def validate_enabled_type
       # Checks that the issue can not be added/moved to a disabled type
-      if type_context_changed?
-        errors.add :type_id, :inclusion unless model.project.types.include?(model.type)
+      if type_context_changed? && !model.project.types.include?(model.type)
+        errors.add :type_id, :inclusion
       end
     end
 
     def validate_assigned_to_exists
-      errors.add :assigned_to, :does_not_exist if model.assigned_to&.is_a?(User::InexistentUser)
+      errors.add :assigned_to, :does_not_exist if model.assigned_to.is_a?(Users::InexistentUser)
     end
 
     def validate_type_exists
@@ -219,7 +225,7 @@ module WorkPackages
     end
 
     def validate_parent_exists
-      if model.parent&.is_a?(WorkPackage::InexistentWorkPackage)
+      if model.parent.is_a?(WorkPackage::InexistentWorkPackage)
 
         errors.add :parent, :does_not_exist
       end
@@ -255,7 +261,7 @@ module WorkPackages
     end
 
     def validate_priority_exists
-      errors.add :priority, :does_not_exist if model.priority&.is_a?(Priority::InexistentPriority)
+      errors.add :priority, :does_not_exist if model.priority.is_a?(Priority::InexistentPriority)
     end
 
     def validate_category
@@ -290,8 +296,18 @@ module WorkPackages
       end
     end
 
+    def reduce_by_writable_permissions(attributes)
+      # If we're in a readonly status and did not move into that status right now
+      # only allow other status transitions. But also prevent that if the associated version is closed.
+      if model.readonly_status? && !model.status_id_change
+        super & %w(status status_id)
+      else
+        super
+      end
+    end
+
     def principal_visible?(id, list)
-      list.exists?(user_id: id)
+      list.exists?(id: id)
     end
 
     def start_before_soonest_start?

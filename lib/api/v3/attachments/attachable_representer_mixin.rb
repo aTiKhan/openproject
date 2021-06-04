@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -43,6 +43,18 @@ module API
             }
           end
 
+          link :prepareAttachment do
+            next unless OpenProject::Configuration.direct_uploads?
+
+            # We may not generate this link for new resources
+            next if represented.new_record?
+
+            {
+              href: attachments_by_resource + '/prepare',
+              method: :post
+            }
+          end
+
           link :addAttachment,
                cache_if: -> do
                  represented.attachments_addable?(current_user)
@@ -61,7 +73,7 @@ module API
 
           def attachments
             ::API::V3::Attachments::AttachmentCollectionRepresenter.new(attachment_set,
-                                                                        attachments_by_resource,
+                                                                        self_link: attachments_by_resource,
                                                                         current_user: current_user)
           end
 

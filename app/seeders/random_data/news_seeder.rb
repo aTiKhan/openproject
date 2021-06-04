@@ -1,4 +1,5 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) 2012-2020 the OpenProject GmbH
@@ -31,10 +32,10 @@ module RandomData
       user = User.admin.first
 
       puts ''
-      print ' ↳ Creating news'
+      print_status ' ↳ Creating news'
 
       rand(30).times do
-        print '.'
+        print_status '.'
         news = News.create project: project,
                            author: user,
                            title: Faker::Lorem.characters(60),

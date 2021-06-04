@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -28,9 +28,9 @@
 
 class MeetingsController < ApplicationController
   around_action :set_time_zone
-  before_action :find_project, only: [:index, :new, :create]
-  before_action :find_meeting, except: [:index, :new, :create]
-  before_action :convert_params, only: [:create, :update]
+  before_action :find_project, only: %i[index new create]
+  before_action :find_meeting, except: %i[index new create]
+  before_action :convert_params, only: %i[create update]
   before_action :authorize
 
   helper :watchers
@@ -39,7 +39,7 @@ class MeetingsController < ApplicationController
   include WatchersHelper
   include PaginationHelper
 
-  menu_item :new_meeting, only: [:new, :create]
+  menu_item :new_meeting, only: %i[new create]
 
   def index
     scope = @project.meetings
@@ -68,13 +68,14 @@ class MeetingsController < ApplicationController
     if params[:copied_from_meeting_id].present? && params[:copied_meeting_agenda_text].present?
       @meeting.agenda = MeetingAgenda.new(
         text: params[:copied_meeting_agenda_text],
-        comment: "Copied from Meeting ##{params[:copied_from_meeting_id]}")
+        comment: "Copied from Meeting ##{params[:copied_from_meeting_id]}"
+      )
       @meeting.agenda.author = User.current
     end
     if @meeting.save
-      text = l(:notice_successful_create)
+      text = I18n.t(:notice_successful_create)
       if User.current.time_zone.nil?
-        link = l(:notice_timezone_missing, zone: Time.zone)
+        link = I18n.t(:notice_timezone_missing, zone: Time.zone)
         text += " #{view_context.link_to(link, { controller: '/my', action: :account }, class: 'link_to_profile')}"
       end
       flash[:notice] = text.html_safe
@@ -100,7 +101,7 @@ class MeetingsController < ApplicationController
 
   def destroy
     @meeting.destroy
-    flash[:notice] = l(:notice_successful_delete)
+    flash[:notice] = I18n.t(:notice_successful_delete)
     redirect_to action: 'index', project_id: @project
   end
 
@@ -110,7 +111,7 @@ class MeetingsController < ApplicationController
     @meeting.participants_attributes = @converted_params.delete(:participants_attributes)
     @meeting.attributes = @converted_params
     if @meeting.save
-      flash[:notice] = l(:notice_successful_update)
+      flash[:notice] = I18n.t(:notice_successful_update)
       redirect_to action: 'show', id: @meeting
     else
       render action: 'edit'
@@ -160,10 +161,8 @@ class MeetingsController < ApplicationController
     @converted_params[:participants_attributes].each { |p| p.reverse_merge! attended: false, invited: false }
   end
 
-  private
-
   def meeting_params
     params.require(:meeting).permit(:title, :location, :start_time, :duration, :start_date, :start_time_hour,
-      participants_attributes: [:email, :name, :invited, :attended, :user, :user_id, :meeting, :id])
+                                    participants_attributes: %i[email name invited attended user user_id meeting id])
   end
 end

@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -50,7 +50,7 @@ module API
               filters = Query.new.available_filters
 
               collection_representer.new(filters,
-                                         api_v3_paths.query_filter_instance_schemas,
+                                         self_link: api_v3_paths.query_filter_instance_schemas,
                                          current_user: current_user)
             end
 
@@ -65,7 +65,7 @@ module API
                 filter = filter_class.create! name: ar_name, context: OpenStruct.new(project: nil)
 
                 single_representer.new(filter,
-                                       api_v3_paths.query_filter_instance_schema(params[:id]),
+                                       self_link: api_v3_paths.query_filter_instance_schema(params[:id]),
                                        current_user: current_user)
               end
             end

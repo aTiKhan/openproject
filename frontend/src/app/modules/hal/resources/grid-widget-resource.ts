@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,13 +26,14 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {HalResource} from 'core-app/modules/hal/resources/hal-resource';
-import {GridResource} from "core-app/modules/hal/resources/grid-resource";
-import {Attachable} from "core-app/modules/hal/resources/mixins/attachable-mixin";
-import {AttachmentCollectionResource} from "core-app/modules/hal/resources/attachment-collection-resource";
-import {UploadFile} from "core-components/api/op-file-upload/op-file-upload.service";
+import { HalResource } from 'core-app/modules/hal/resources/hal-resource';
+import { GridResource } from "core-app/modules/hal/resources/grid-resource";
+import { SchemaResource } from "core-app/modules/hal/resources/schema-resource";
+import { InjectField } from "core-app/helpers/angular/inject-field.decorator";
+import { HalResourceService } from "core-app/modules/hal/services/hal-resource.service";
 
 export class GridWidgetResource extends HalResource {
+  @InjectField() protected halResource:HalResourceService;
   public identifier:string;
   public startRow:number;
   public endRow:number;
@@ -50,4 +51,8 @@ export class GridWidgetResource extends HalResource {
   }
 
   public grid:GridResource;
+
+  public get schema():SchemaResource {
+    return this.halResource.createHalResource({ '_type': 'Schema' }, true);
+  }
 }

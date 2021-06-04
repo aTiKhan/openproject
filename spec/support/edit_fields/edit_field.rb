@@ -65,11 +65,13 @@ class EditField
   def activate!(expect_open: true)
     retry_block do
       unless active?
+        SeleniumHubWaiter.wait
         scroll_to_and_click(display_element)
+        SeleniumHubWaiter.wait
       end
 
       if expect_open && !active?
-        raise "Expected field input type '#{field_type}' for attribute '#{property_name}'."
+        raise "Expected field for attribute '#{property_name}' to be active."
       end
     end
   end
@@ -123,7 +125,7 @@ class EditField
   end
 
   def submit_by_dashboard
-    field_container.find('.inplace-edit--control--save a', wait: 5).click
+    field_container.find('.inplace-edit--control--save', wait: 5).click
   end
 
   ##
@@ -132,7 +134,7 @@ class EditField
   def set_value(content)
     scroll_to_element(input_element)
     if field_type.end_with?('-autocompleter')
-      page.find('.ng-dropdown-panel .ng-option', text: content).click
+      page.find('.ng-dropdown-panel .ng-option', visible: :all, text: content).click
     else
       # A normal fill_in would cause the focus loss on the input for empty strings.
       # Thus the form would be submitted.
@@ -144,14 +146,14 @@ class EditField
   ##
   # Set or select the given value.
   # For fields of type select, will check for an option with that value.
-  def unset_value(content, multi=false)
+  def unset_value(content, multi = false)
     scroll_to_element(input_element)
 
     if field_type.end_with?('-autocompleter')
       if multi
-        page.find('.ng-value-label', text: content).sibling('.ng-value-icon').click
+        page.find('.ng-value-label', visible: :all, text: content).sibling('.ng-value-icon').click
       else
-        page.find('.ng-dropdown-panel .ng-option', text: '-').click
+        page.find('.ng-dropdown-panel .ng-option', visible: :all, text: '-').click
       end
     else
       input_element.set('')

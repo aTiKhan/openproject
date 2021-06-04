@@ -1,9 +1,9 @@
-import {createPointCB, getClientRect as getRect, pointInside} from 'dom-plane';
+import { createPointCB, getClientRect as getRect, pointInside } from 'dom-plane';
 
 export class DomAutoscrollService {
   public elements:Element[];
   public scrolling:boolean;
-  public down:boolean = false;
+  public down = false;
   public scrollWhenOutside:boolean;
   public autoScroll:() => boolean;
   public maxSpeed:number;
@@ -16,7 +16,7 @@ export class DomAutoscrollService {
   public pointCB:any;
 
   constructor(elements:Element[],
-              params:any) {
+    params:any) {
     this.elements = elements;
     this.scrollWhenOutside = params.scrollWhenOutside || false;
     this.maxSpeed = params.maxSpeed || 5;
@@ -31,9 +31,12 @@ export class DomAutoscrollService {
 
   public init() {
     jQuery(window).on('mousemove.domautoscroll touchmove.domautoscroll', (evt:any) => {
-      this.pointCB(evt);
-      this.onMove(evt);
+      if (this.down) {
+        this.pointCB(evt);
+        this.onMove(evt);
+      }
     });
+    jQuery(window).on('mousedown.domautoscroll touchstart.domautoscroll', () => this.down = true);
     jQuery(window).on('mouseup.domautoscroll touchend.domautoscroll', () => this.onUp());
     jQuery(window).on('scroll.domautoscroll', (evt:any) => this.setScroll(evt));
   }
@@ -45,11 +48,19 @@ export class DomAutoscrollService {
     this.cleanAnimation();
   }
 
-  public add(el:Element) {
-    this.elements.push(el);
+  public add(el:Element|Element[]) {
+    if (Array.isArray(el)) {
+      this.elements = this.elements.concat(el);
+
+      // Remove duplicates
+      this.elements = Array.from(new Set(this.elements));
+    } else {
+      this.elements.push(el);
+    }
   }
 
   public onUp() {
+    this.down = false;
     cancelAnimationFrame(this.animationFrame);
     cancelAnimationFrame(this.windowAnimationFrame);
   }
@@ -77,7 +88,7 @@ export class DomAutoscrollService {
       return [];
     }
 
-    let results = [];
+    const results = [];
     if (this.elements.includes(target)) {
       results.push(target);
     }
@@ -93,7 +104,7 @@ export class DomAutoscrollService {
   }
 
   public getElementsUnderPoint():HTMLElement[] {
-    let underPoint = [];
+    const underPoint = [];
 
     for (var i = 0; i < this.elements.length; i++) {
       if (this.inside(this.point, this.elements[i])) {
@@ -117,7 +128,7 @@ export class DomAutoscrollService {
     if (event.target !== null) {
       target.push(event.target as HTMLElement);
     }
-    let body = document.body;
+    const body = document.body;
 
     if (target.length > 0 && target[0].parentNode === body) {
       //The special condition to improve speed.
@@ -162,7 +173,7 @@ export class DomAutoscrollService {
 
 
   public scrollAutomatically(el:Element) {
-    let rect = getRect(el);
+    const rect = getRect(el);
     let scrollx:number;
     let scrolly:number;
 

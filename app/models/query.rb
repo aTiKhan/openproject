@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -77,22 +77,15 @@ class Query < ApplicationRecord
     end
   end
 
-  after_initialize :set_context
-  # For some reasons the filters loose their context
-  # between the after_save and the after_commit callback.
-  after_commit :set_context
-
-  def set_context
-    # We need to set the project for each filter if a project
-    # is present because the information is not available when
-    # deserializing the filters from the db.
-
-    # Allow to use AR's select(...) without
-    # the filters attribute
-    return unless respond_to?(:filters)
-
-    filters.each do |filter|
-      filter.context = self
+  ##
+  # Ensure the filters receive
+  # the query context as this appears to be lost
+  # whenever the field is reloaded from the serialized value
+  def filters
+    super.tap do |filters|
+      filters.each do |filter|
+        filter.context = self
+      end
     end
   end
 
@@ -129,7 +122,8 @@ class Query < ApplicationRecord
 
     (column_names - available_names).each do |name|
       errors.add :column_names,
-                 I18n.t(:error_invalid_query_column, value: name)
+                 :invalid,
+                 value: name
     end
   end
 
@@ -138,14 +132,14 @@ class Query < ApplicationRecord
 
     sort_criteria.each do |name, _dir|
       unless available_criteria.include? name.to_s
-        errors.add :sort_criteria, I18n.t(:error_invalid_sort_criterion, value: name)
+        errors.add :sort_criteria, :invalid, value: name
       end
     end
   end
 
   def validate_group_by
     unless group_by.blank? || groupable_columns.map(&:name).map(&:to_s).include?(group_by.to_s)
-      errors.add :group_by, I18n.t(:error_invalid_group_by, value: group_by)
+      errors.add :group_by, :invalid, value: group_by
     end
   end
 
@@ -184,28 +178,6 @@ class Query < ApplicationRecord
     filter.values = values
 
     filters << filter
-  end
-
-  def add_short_filter(field, expression)
-    return unless expression
-
-    parms = expression.scan(/\A(o|c|!\*|!|\*)?(.*)\z/).first
-    add_filter field, (parms[0] || '='), [parms[1] || '']
-  end
-
-  # Add multiple filters using +add_filter+
-  def add_filters(fields, operators, values)
-    values ||= {}
-
-    if fields.is_a?(Array) && operators.respond_to?(:[]) && values.respond_to?(:[])
-      fields.each do |field|
-        add_filter(field, operators[field], values[field])
-      end
-    end
-  end
-
-  def has_filter?(field)
-    filters.present? && filters.any? { |f| f.field.to_s == field.to_s }
   end
 
   def filter_for(field)
@@ -264,6 +236,10 @@ class Query < ApplicationRecord
 
     { 'id' => "#{WorkPackage.table_name}.id" }
       .merge(column_sortability)
+  end
+
+  def summed_up_columns
+    available_columns.select(&:summable?)
   end
 
   def columns
@@ -340,7 +316,7 @@ class Query < ApplicationRecord
       .detect { |candidate| candidate.name == attribute }
   end
 
-  def sorted?
+  def ordered?
     sort_criteria.any?
   end
 
@@ -350,11 +326,7 @@ class Query < ApplicationRecord
   end
 
   def display_sums?
-    display_sums && any_summable_columns?
-  end
-
-  def any_summable_columns?
-    Setting.work_package_list_summable_columns.any?
+    display_sums
   end
 
   def group_by_column
@@ -405,6 +377,8 @@ class Query < ApplicationRecord
   end
 
   def project_limiting_filter
+    return if subproject_filters_involved?
+
     subproject_filter = Queries::WorkPackages::Filter::SubprojectFilter.create!
     subproject_filter.context = self
 
@@ -418,15 +392,22 @@ class Query < ApplicationRecord
 
   private
 
+  ##
+  # Determine whether there are explicit filters
+  # on whether work packages from subprojects are used
+  def subproject_filters_involved?
+    filters.any? do |filter|
+      filter.is_a?(::Queries::WorkPackages::Filter::SubprojectFilter)
+    end
+  end
+
   def for_all?
     @for_all ||= project.nil?
   end
 
   def statement_filters
-    if filters.any? { |filter| filter.name == :subproject_id }
-      filters
-    elsif project
-      [project_limiting_filter] + filters
+    if project
+      filters + [project_limiting_filter].compact
     else
       filters
     end

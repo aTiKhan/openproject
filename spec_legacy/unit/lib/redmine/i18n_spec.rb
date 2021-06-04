@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -32,26 +33,22 @@ describe Redmine::I18n do
   include Redmine::I18n
   include ActionView::Helpers::NumberHelper
 
-  before do
-    @hook_module = Redmine::Hook
-  end
-
   it 'should date and time for each language' do
     Setting.date_format = ''
     valid_languages.each do |lang|
       set_language_if_valid lang
-      expect {
+      expect do
         format_date(Date.today)
         format_time(Time.now)
         format_time(Time.now, false)
         refute_equal 'default', ::I18n.l(Date.today, format: :default), "date.formats.default missing in #{lang}"
         refute_equal 'time',    ::I18n.l(Time.now, format: :time),      "time.formats.time missing in #{lang}"
-      }.not_to raise_error
-      assert l('date.day_names').is_a?(Array)
-      assert_equal 7, l('date.day_names').size
+      end.not_to raise_error
+      assert I18n.t('date.day_names').is_a?(Array)
+      assert_equal 7, I18n.t('date.day_names').size
 
-      assert l('date.month_names').is_a?(Array)
-      assert_equal 13, l('date.month_names').size
+      assert I18n.t('date.month_names').is_a?(Array)
+      assert_equal 13, I18n.t('date.month_names').size
     end
   end
 
@@ -102,23 +99,23 @@ describe Redmine::I18n do
   it 'should number to human size for each language' do
     valid_languages.each do |lang|
       set_language_if_valid lang
-      expect {
+      expect do
         number_to_human_size(1024 * 1024 * 4)
-      }.not_to raise_error
+      end.not_to raise_error
     end
   end
 
   it 'should fallback' do
     ::I18n.backend.store_translations(:en, untranslated: 'Untranslated string')
     ::I18n.locale = 'en'
-    assert_equal 'Untranslated string', l(:untranslated)
+    assert_equal 'Untranslated string', I18n.t(:untranslated)
     ::I18n.locale = 'de'
-    assert_equal 'Untranslated string', l(:untranslated)
+    assert_equal 'Untranslated string', I18n.t(:untranslated)
 
     ::I18n.backend.store_translations(:de, untranslated: 'Keine Übersetzung')
     ::I18n.locale = 'en'
-    assert_equal 'Untranslated string', l(:untranslated)
+    assert_equal 'Untranslated string', I18n.t(:untranslated)
     ::I18n.locale = 'de'
-    assert_equal 'Keine Übersetzung', l(:untranslated)
+    assert_equal 'Keine Übersetzung', I18n.t(:untranslated)
   end
 end

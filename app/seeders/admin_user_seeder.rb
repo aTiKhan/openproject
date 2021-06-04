@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -38,7 +39,7 @@ class AdminUserSeeder < Seeder
   end
 
   def applicable?
-    User.admin.empty?
+    User.not_builtin.admin.empty?
   end
 
   def not_applicable_message
@@ -52,10 +53,10 @@ class AdminUserSeeder < Seeder
       user.password = 'admin'
       user.firstname = 'OpenProject'
       user.lastname = 'Admin'
-      user.mail = ENV.fetch('ADMIN_EMAIL') { 'admin@example.net' }
+      user.mail = ENV['ADMIN_EMAIL'].presence || 'admin@example.net'
       user.mail_notification = User::USER_MAIL_OPTION_ONLY_MY_EVENTS.first
       user.language = I18n.locale.to_s
-      user.status = User::STATUSES[:active]
+      user.status = User.statuses[:active]
       user.force_password_change = force_password_change?
     end
   end

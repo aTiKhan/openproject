@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -41,7 +41,8 @@ class Attachment < ApplicationRecord
   validates_length_of :description, maximum: 255
 
   validate :filesize_below_allowed_maximum,
-           :container_changed_more_than_once
+           if: -> { !internal_container? }
+  validate :container_changed_more_than_once
 
   acts_as_journalized
   acts_as_event title: -> { file.name },
@@ -52,9 +53,6 @@ class Attachment < ApplicationRecord
   mount_uploader :file, OpenProject::Configuration.file_uploader
 
   after_commit :extract_fulltext, on: :create
-
-  after_create :schedule_cleanup_uncontainered_job,
-               unless: :containered?
 
   ##
   # Returns an URL if the attachment is stored in an external (fog) attachment storage
@@ -100,7 +98,7 @@ class Attachment < ApplicationRecord
 
   # images are sent inline
   def inlineable?
-    is_plain_text? || is_image?
+    is_plain_text? || is_image? || is_pdf?
   end
 
   def is_plain_text?
@@ -189,7 +187,7 @@ class Attachment < ApplicationRecord
     content_type || fallback
   end
 
-  def copy(&block)
+  def copy
     attachment = dup
     attachment.file = diskfile
 
@@ -251,16 +249,55 @@ class Attachment < ApplicationRecord
     end
   end
 
-  private
-
-  def schedule_cleanup_uncontainered_job
-    Attachments::CleanupUncontaineredJob.perform_later
+  def self.pending_direct_uploads
+    where(digest: "", downloads: -1)
   end
+
+  def self.create_pending_direct_upload(file_name:, author:, container: nil, content_type: nil, file_size: 0)
+    a = create(
+      container: container,
+      author: author,
+      content_type: content_type.presence || "application/octet-stream",
+      filesize: file_size,
+      digest: "",
+      downloads: -1
+    )
+
+    # We need to do it like this because `file` is an uploader which expects a File (not a string)
+    # to upload usually. But in this case the data has already been uploaded and we just point to it.
+    a[:file] = pending_direct_upload_filename(file_name)
+
+    a.save!
+    a.reload # necessary so that the fog file uploader path is correct
+
+    a
+  end
+
+  class << self
+    private
+
+    # The name has to be in the same format as what Carrierwave will produce later on. If they are different,
+    # Carrierwave will alter the name (both local and remote) whenever the attachment is saved with the remote
+    # file loaded.
+    def pending_direct_upload_filename(file_name)
+      CarrierWave::SanitizedFile.new(nil).send(:sanitize, file_name)
+    end
+  end
+
+  def pending_direct_upload?
+    digest == "" && downloads == -1
+  end
+
+  private
 
   def filesize_below_allowed_maximum
     if filesize > Setting.attachment_max_size.to_i.kilobytes
       errors.add(:file, :file_too_large, count: Setting.attachment_max_size.to_i.kilobytes)
     end
+  end
+
+  def internal_container?
+    container&.is_a?(Export)
   end
 
   def container_changed_more_than_once

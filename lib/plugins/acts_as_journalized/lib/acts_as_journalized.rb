@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -49,51 +49,47 @@
 
 require 'journal_changes'
 require 'journal_formatter'
-Dir[File.expand_path('../redmine/acts/journalized/*.rb', __FILE__)].each { |f| require f }
-Dir[File.expand_path('../acts/journalized/*.rb', __FILE__)].each { |f| require f }
 
-module Redmine
-  module Acts
-    module Journalized
-      def self.included(base)
-        base.extend ClassMethods
-        base.extend Journalized
+module Acts
+end
+
+Dir[File.expand_path('acts/journalized/*.rb', __dir__)].sort.each { |f| require f }
+
+module Acts
+  module Journalized
+    def self.included(base)
+      base.extend ClassMethods
+      base.extend Journalized
+    end
+
+    module ClassMethods
+      def plural_name
+        name.underscore.pluralize
       end
 
-      module ClassMethods
-        def plural_name
-          name.underscore.pluralize
-        end
+      # This call will start journaling the model.
+      def acts_as_journalized(options = {})
+        return if journaled?
 
-        # This call will add an activity and, if neccessary, start the journaling and
-        # add an event callback on the model.
-        # Versioning and acting as an Event may only be applied once.
-        # To apply more than on activity, use acts_as_activity
-        def acts_as_journalized(options = {}, &block)
-          return if journaled?
+        include_aaj_modules
 
-          include_aaj_modules
+        prepare_journaled_options(options)
 
-          journal_hash = prepare_journaled_options(options)
+        has_many :journals, -> {
+          order("#{Journal.table_name}.version ASC")
+        }, **has_many_journals_options
+      end
 
-          has_many :journals, -> {
-            order("#{Journal.table_name}.version ASC")
-          }, journal_hash, &block
-        end
+      private
 
-        private
-
-        def include_aaj_modules
-          include Options
-          include Creation
-          include Reversion
-          include Permissions
-          include SaveHooks
-          include FormatHooks
-
-          # FIXME: When the transition to the new API is complete, remove me
-          include Deprecated
-        end
+      def include_aaj_modules
+        include Options
+        include Creation
+        include Reversion
+        include Permissions
+        include SaveHooks
+        include FormatHooks
+        include DataClass
       end
     end
   end

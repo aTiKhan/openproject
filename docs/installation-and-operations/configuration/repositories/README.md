@@ -81,7 +81,7 @@ To enable remote managed repositories, pass an absolute URL to the `manages` key
 	    manages: https://example.org/repos
 	    accesstoken: <Fixed access token passed to the endpoint>
 
-Upon creating and deleting repositories in the frontend, OpenProject will POST to this endpoint a JSON object containg information on the repository.
+Upon creating and deleting repositories in the frontend, OpenProject will POST to this endpoint a JSON object containing information on the repository.
 
 	{
 		"identifier": "seeded_project.git",
@@ -102,7 +102,7 @@ When the response is successful, it must at least return a `url` property that c
 *Note* that for Git repositories, OpenProject currently can only read them locally (i.e, through an NFS mount), so a path is mandatory here.
 For Subversion, you can either return a `file:///<path>` URL, or a local path.
 
-Our main use-cases for this feature is to elimnate the complexity associated with permission issues around Subversion mainly in packager, for which a simple Apache wrapper script is used in `extra/Apache/OpenProjectRepoman.pm`.
+Our main use-cases for this feature is to eliminate the complexity associated with permission issues around Subversion mainly in packager, for which a simple Apache wrapper script is used in `extra/Apache/OpenProjectRepoman.pm`.
 This functionality is very limited but may be extended when other use cases arise.
 It supports notifications for creating repositories (action `create`), moving repositories (action `relocate`, when a project's identifier has changed), and deleting repositories (action `delete`).
 
@@ -191,7 +191,7 @@ This method requires some apache modules to be enabled and installed. The follow
 
 ### Permissions
 
-**Important:** If Apache and OpenProject run under separate users, you need to ensure OpenProject remains the owner of the repository in order to browse and delete it, when requsted through the user interface.
+**Important:** If Apache and OpenProject run under separate users, you need to ensure OpenProject remains the owner of the repository in order to browse and delete it, when requested through the user interface.
 
 Due to the implementation of `mod_svn`, we have no way to influence the permissions determined by apache when changing repositories (i.e., by committing changes).
 Without correcting the permissions, the following situation will occur:

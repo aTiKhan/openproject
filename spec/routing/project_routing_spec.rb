@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -53,34 +53,6 @@ describe ProjectsController, type: :routing do
     it do
       expect(get('/projects/new')).to route_to(
         controller: 'projects', action: 'new'
-      )
-    end
-  end
-
-  describe 'create' do
-    it do
-      expect(post('/projects')).to route_to(
-        controller: 'projects', action: 'create'
-      )
-    end
-
-    it do
-      expect(post('/projects.xml')).to route_to(
-        controller: 'projects', action: 'create', format: 'xml'
-      )
-    end
-  end
-
-  describe 'update' do
-    it do
-      expect(put('/projects/123')).to route_to(
-        controller: 'projects', action: 'update', id: '123'
-      )
-    end
-
-    it do
-      expect(put('/projects/123.xml')).to route_to(
-        controller: 'projects', action: 'update', id: '123', format: 'xml'
       )
     end
   end
@@ -133,27 +105,8 @@ describe ProjectsController, type: :routing do
     end
 
     it do
-      expect(get('projects/123/copy_project_from_settings')).to route_to(
-        controller: 'copy_projects', action: 'copy_project', id: '123',
-        coming_from: 'settings'
-      )
-    end
-
-    it do
-      expect(post('projects/123/copy_from_settings')).to route_to(
-        controller: 'copy_projects',
-        action: 'copy',
-        id: '123',
-        coming_from: 'settings'
-      )
-    end
-
-    it do
-      expect(post('projects/123/copy_from_admin')).to route_to(
-        controller: 'copy_projects',
-        action: 'copy',
-        id: '123',
-        coming_from: 'admin'
+      expect(get('projects/123/copy')).to route_to(
+        controller: 'projects', action: 'copy', id: '123'
       )
     end
   end

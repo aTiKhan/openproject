@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,23 +24,48 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {TimezoneService} from 'core-components/datetime/timezone.service';
-import {Highlighting} from "core-components/wp-fast-table/builders/highlighting/highlighting.functions";
-import {HighlightableDisplayField} from "core-app/modules/fields/display/field-types/highlightable-display-field.module";
-import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
+import { TimezoneService } from 'core-components/datetime/timezone.service';
+import { Highlighting } from "core-components/wp-fast-table/builders/highlighting/highlighting.functions";
+import { HighlightableDisplayField } from "core-app/modules/fields/display/field-types/highlightable-display-field.module";
+import { InjectField } from "core-app/helpers/angular/inject-field.decorator";
+import { APIV3Service } from "core-app/modules/apiv3/api-v3.service";
 
 export class DateDisplayField extends HighlightableDisplayField {
   @InjectField() timezoneService:TimezoneService;
+  @InjectField() apiV3Service:APIV3Service;
 
   public render(element:HTMLElement, displayText:string):void {
     super.render(element, displayText);
 
+    // Show scheduling mode in front of the start date field
+    if (this.showSchedulingMode()) {
+      const schedulingIcon = document.createElement('span');
+      schedulingIcon.classList.add('icon-context');
+
+      if (this.resource.scheduleManually) {
+        schedulingIcon.classList.add('icon-pin');
+      }
+
+      element.prepend(schedulingIcon);
+    }
+
     // Highlight overdue tasks
     if (this.shouldHighlight && this.canOverdue) {
       const diff = this.timezoneService.daysFromToday(this.value);
-      element.classList.add(Highlighting.overdueDate(diff));
+
+      this
+        .apiV3Service
+        .statuses
+        .id(this.resource.status.id)
+        .get()
+        .toPromise()
+        .then((status) => {
+          if (!status.isClosed) {
+            element.classList.add(Highlighting.overdueDate(diff));
+          }
+        });
     }
   }
 
@@ -54,5 +79,9 @@ export class DateDisplayField extends HighlightableDisplayField {
     } else {
       return '';
     }
+  }
+
+  private showSchedulingMode():boolean {
+    return this.name === 'startDate' || this.name === 'date';
   }
 }

@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -38,7 +38,7 @@ module API
 
         private
 
-        def present_success(_current_user, _call)
+        def present_success(_request, _call)
           raise NotImplementedError
         end
 
@@ -59,10 +59,8 @@ module API
           errors = ActiveModel::Errors.new call.result
 
           call.dependent_results.each do |dr|
-            dr.errors.keys.each do |field|
-              dr.errors.symbols_and_messages_for(field).each do |symbol, full_message, _|
-                errors.add :base, symbol, message: dependent_error_message(dr.result, full_message)
-              end
+            dr.errors.full_messages.each do |full_message|
+              errors.add :base, :dependent_invalid, message: dependent_error_message(dr.result, full_message)
             end
           end
 

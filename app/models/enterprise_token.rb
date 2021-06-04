@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@ class EnterpriseToken < ApplicationRecord
     end
 
     def table_exists?
-      connection.data_source_exists? self.table_name
+      connection.data_source_exists? table_name
     end
 
     def allows_to?(action)
@@ -56,14 +56,16 @@ class EnterpriseToken < ApplicationRecord
 
   validates_presence_of :encoded_token
   validate :valid_token_object
+  validate :valid_domain
 
   before_save :unset_current_token
   before_destroy :unset_current_token
 
   delegate :will_expire?,
-           :expired?,
            :subscriber,
            :mail,
+           :company,
+           :domain,
            :issued_at,
            :starts_at,
            :expires_at,
@@ -84,16 +86,32 @@ class EnterpriseToken < ApplicationRecord
     RequestStore.delete :current_ee_token
   end
 
+  def expired?
+    token_object.expired? || invalid_domain?
+  end
+
+  ##
+  # The domain is only validated for tokens from version 2.0 onwards.
+  def invalid_domain?
+    return false unless token_object&.validate_domain?
+
+    token_object.domain != Setting.host_name
+  end
+
   private
 
   def load_token!
     @token_object = OpenProject::Token.import(encoded_token)
-  rescue OpenProject::Token::ImportError => error
-    Rails.logger.error "Failed to load EE token: #{error}"
+  rescue OpenProject::Token::ImportError => e
+    Rails.logger.error "Failed to load EE token: #{e}"
     nil
   end
 
   def valid_token_object
     errors.add(:encoded_token, :unreadable) unless load_token!
+  end
+
+  def valid_domain
+    errors.add :domain, :invalid if invalid_domain?
   end
 end

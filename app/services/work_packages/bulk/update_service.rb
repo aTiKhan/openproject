@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -55,6 +55,11 @@ module WorkPackages
         errors = {}
 
         work_packages.each do |work_package|
+          # As updating one work package might have already saved another one,
+          # e.g. by changing the start/due date or the version
+          # we need to reload the work packages to avoid running into stale object errors.
+          work_package.reload
+
           work_package.add_journal(user, params[:notes])
 
           # filter parameters by whitelist and add defaults
@@ -64,7 +69,7 @@ module WorkPackages
 
           service_call = WorkPackages::UpdateService
                          .new(user: user, model: work_package)
-                         .call(attributes.merge(send_notifications: params[:send_notification] == '1').symbolize_keys)
+                         .call(**attributes.merge(send_notifications: params[:send_notification] == '1').symbolize_keys)
 
           if service_call.success?
             saved << work_package.id
@@ -76,6 +81,7 @@ module WorkPackages
         ServiceResult.new success: errors.empty?, result: saved, errors: errors
       end
 
+      # TODO: move params transformation out of here as this is not the responsibility of a service
       def parse_params_for_bulk_work_package_attributes(params, project)
         return {} unless params.has_key? :work_package
 

@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -35,7 +35,7 @@ import {
   OnInit,
   Output
 } from '@angular/core';
-import {TypeBannerService} from 'core-app/modules/admin/types/type-banner.service';
+import { TypeBannerService } from 'core-app/modules/admin/types/type-banner.service';
 
 @Component({
   selector: 'group-edit-in-place',
@@ -43,7 +43,7 @@ import {TypeBannerService} from 'core-app/modules/admin/types/type-banner.servic
   templateUrl: './group-edit-in-place.html'
 })
 export class GroupEditInPlaceComponent implements OnInit {
-  @Input() public placeholder:string = '';
+  @Input() public placeholder = '';
   @Input() public name:string;
 
   @Output() public onValueChange = new EventEmitter<string>();

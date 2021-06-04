@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,13 +24,13 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
-import {Component, ElementRef, OnInit, ViewChild} from "@angular/core";
-import {HideSectionDefinition, HideSectionService} from "core-app/modules/common/hide-section/hide-section.service";
-import {AngularTrackingHelpers} from "core-components/angular/tracking-functions";
-import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
+import { Component, ElementRef, OnInit, ViewChild } from "@angular/core";
+import { HideSectionDefinition, HideSectionService } from "core-app/modules/common/hide-section/hide-section.service";
+import { AngularTrackingHelpers } from "core-components/angular/tracking-functions";
+import { UntilDestroyedMixin } from "core-app/helpers/angular/until-destroyed.mixin";
 
 export const addSectionDropdownSelector = 'add-section-dropdown';
 
@@ -64,12 +64,12 @@ export class AddSectionDropdownComponent extends UntilDestroyedMixin implements 
       .pipe(
         this.untilDestroyed()
       ).subscribe(displayed => {
-      this.selectable = this.hideSectionService.all
-        .filter(el => displayed.indexOf(el.key) === -1)
-        .sort((a, b) => a.label.localeCompare(b.label));
+        this.selectable = this.hideSectionService.all
+          .filter(el => displayed.indexOf(el.key) === -1)
+          .sort((a, b) => a.label.localeCompare(b.label));
 
-      (this.option.nativeElement as HTMLOptionElement).selected = true;
-    });
+        (this.option.nativeElement as HTMLOptionElement).selected = true;
+      });
   }
 
   show(value:string) {

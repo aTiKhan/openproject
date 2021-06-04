@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,26 +24,28 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {NgModule} from '@angular/core';
-import {WikiIncludePageMacroModal} from 'core-components/modals/editor/macro-wiki-include-page-modal/wiki-include-page-macro.modal';
-import {CodeBlockMacroModal} from 'core-components/modals/editor/macro-code-block-modal/code-block-macro.modal';
-import {ChildPagesMacroModal} from 'core-components/modals/editor/macro-child-pages-modal/child-pages-macro.modal';
-import {CkeditorAugmentedTextareaComponent} from 'core-app/ckeditor/ckeditor-augmented-textarea.component';
-import {OpenprojectAttachmentsModule} from 'core-app/modules/attachments/openproject-attachments.module';
-import {OpCkeditorComponent} from 'core-app/modules/common/ckeditor/op-ckeditor.component';
-import {FormsModule} from '@angular/forms';
-import {EditorMacrosService} from 'core-components/modals/editor/editor-macros.service';
-import {CKEditorSetupService} from 'core-app/modules/common/ckeditor/ckeditor-setup.service';
-import {CKEditorPreviewService} from 'core-app/modules/common/ckeditor/ckeditor-preview.service';
-import {CommonModule} from "@angular/common";
+import { NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from "@angular/common";
+import { OpenprojectAttachmentsModule } from 'core-app/modules/attachments/openproject-attachments.module';
+import { OpenprojectModalModule } from "core-app/modules/modal/modal.module";
+import { WikiIncludePageMacroModal } from 'core-components/modals/editor/macro-wiki-include-page-modal/wiki-include-page-macro.modal';
+import { CodeBlockMacroModal } from 'core-components/modals/editor/macro-code-block-modal/code-block-macro.modal';
+import { ChildPagesMacroModal } from 'core-components/modals/editor/macro-child-pages-modal/child-pages-macro.modal';
+import { CkeditorAugmentedTextareaComponent } from 'core-app/ckeditor/ckeditor-augmented-textarea.component';
+import { OpCkeditorComponent } from 'core-app/modules/common/ckeditor/op-ckeditor.component';
+import { EditorMacrosService } from 'core-components/modals/editor/editor-macros.service';
+import { CKEditorSetupService } from 'core-app/modules/common/ckeditor/ckeditor-setup.service';
+import { CKEditorPreviewService } from 'core-app/modules/common/ckeditor/ckeditor-preview.service';
 
 @NgModule({
   imports: [
     FormsModule,
     CommonModule,
-    OpenprojectAttachmentsModule
+    OpenprojectAttachmentsModule,
+    OpenprojectModalModule,
   ],
   providers: [
     // CKEditor

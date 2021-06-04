@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -32,10 +32,9 @@ class Project < ApplicationRecord
   extend Pagination::Model
   extend FriendlyId
 
-  include Projects::Copy
   include Projects::Storage
   include Projects::Activity
-  include Scopes::Scoped
+  include ::Scopes::Scoped
 
   # Maximum length for project identifiers
   IDENTIFIER_MAX_LENGTH = 100
@@ -44,69 +43,16 @@ class Project < ApplicationRecord
   RESERVED_IDENTIFIERS = %w(new).freeze
 
   has_many :members, -> {
+    # TODO: check whether this should
+    # remaint to be limited to User only
     includes(:principal, :roles)
-      .where(
-        "#{Principal.table_name}.type='User' AND (
-          #{User.table_name}.status=#{Principal::STATUSES[:active]} OR
-          #{User.table_name}.status=#{Principal::STATUSES[:invited]}
-        )"
-      )
+      .merge(Principal.not_locked.user)
       .references(:principal, :roles)
   }
 
-  has_many :possible_assignee_members, -> {
-    includes(:principal, :roles)
-      .where(Project.possible_principles_condition)
-      .references(:principals, :roles)
-  }, class_name: 'Member'
-  # Read only
-  has_many :possible_assignees,
-           ->(object) {
-             # Have to reference members and roles again although
-             # possible_assignee_members does already specify it to be able to use the
-             # Project.possible_principles_condition there
-             #
-             # The .where(members_users: { project_id: object.id })
-             # part is an optimization preventing to have all the members joined
-             includes(members: :roles)
-               .where(members_users: { project_id: object.id })
-               .references(:roles)
-               .merge(Principal.order_by_name)
-           },
-           through: :possible_assignee_members,
-           source: :principal
-  has_many :possible_responsible_members, -> {
-    includes(:principal, :roles)
-      .where(Project.possible_principles_condition)
-      .references(:principals, :roles)
-  }, class_name: 'Member'
-  # Read only
-  has_many :possible_responsibles,
-           ->(object) {
-             # Have to reference members and roles again although
-             # possible_responsible_members does already specify it to be able to use
-             # the Project.possible_principles_condition there
-             #
-             # The .where(members_users: { project_id: object.id })
-             # part is an optimization preventing to have all the members joined
-             includes(members: :roles)
-               .where(members_users: { project_id: object.id })
-               .references(:roles)
-               .merge(Principal.order_by_name)
-           },
-           through: :possible_responsible_members,
-           source: :principal
   has_many :memberships, class_name: 'Member'
   has_many :member_principals,
-           -> {
-             includes(:principal)
-               .references(:principals)
-               .where("#{Principal.table_name}.type='Group' OR " +
-               "(#{Principal.table_name}.type='User' AND " +
-               "(#{Principal.table_name}.status=#{Principal::STATUSES[:active]} OR " +
-               "#{Principal.table_name}.status=#{Principal::STATUSES[:registered]} OR " +
-               "#{Principal.table_name}.status=#{Principal::STATUSES[:invited]}))")
-           },
+           -> { not_locked },
            class_name: 'Member'
   has_many :users, through: :members, source: :principal
   has_many :principals, through: :member_principals, source: :principal
@@ -139,6 +85,7 @@ class Project < ApplicationRecord
      join_table: "#{table_name_prefix}custom_fields_projects#{table_name_suffix}",
      association_foreign_key: 'custom_field_id'
   has_one :status, class_name: 'Projects::Status', dependent: :destroy
+  has_many :budgets, dependent: :destroy
 
   acts_as_nested_set order_column: :name, dependent: :destroy
 
@@ -147,6 +94,8 @@ class Project < ApplicationRecord
                      date_column: "#{table_name}.created_at",
                      project_key: 'id',
                      permission: nil
+
+  # Necessary for acts_as_searchable which depends on the event_datetime method for sorting
   acts_as_event title: Proc.new { |o| "#{Project.model_name.human}: #{o.name}" },
                 url: Proc.new { |o| { controller: 'overviews/overviews', action: 'show', project_id: o } },
                 author: nil,
@@ -155,21 +104,34 @@ class Project < ApplicationRecord
   validates :name,
             presence: true,
             length: { maximum: 255 }
+
+  before_validation :remove_white_spaces_from_project_name
+
   # TODO: we temporarily disable this validation because it leads to failed tests
   # it implicitly assumes a db:seed-created standard type to be present and currently
   # neither development nor deployment setups are prepared for this
   # validates_presence_of :types
+
+  acts_as_url :name,
+              url_attribute: :identifier,
+              sync_url: false, # Don't update identifier when name changes
+              only_when_blank: true, # Only generate when identifier not set
+              limit: IDENTIFIER_MAX_LENGTH,
+              blacklist: RESERVED_IDENTIFIERS,
+              adapter: OpenProject::ActsAsUrl::Adapter::OpActiveRecord # use a custom adapter able to handle edge cases
+
   validates :identifier,
             presence: true,
             uniqueness: { case_sensitive: true },
             length: { maximum: IDENTIFIER_MAX_LENGTH },
-            exclusion: RESERVED_IDENTIFIERS
+            exclusion: RESERVED_IDENTIFIERS,
+            if: ->(p) { p.persisted? || p.identifier.present? }
 
   validates_associated :repository, :wiki
   # starts with lower-case letter, a-z, 0-9, dashes and underscores afterwards
   validates :identifier,
             format: { with: /\A[a-z][a-z0-9\-_]*\z/ },
-            if: ->(p) { p.identifier_changed? }
+            if: ->(p) { p.identifier_changed? && p.identifier.present? }
   # reserved words
 
   friendly_id :identifier, use: :finders
@@ -182,8 +144,8 @@ class Project < ApplicationRecord
   scope :newest, -> { order(created_at: :desc) }
   scope :active, -> { where(active: true) }
 
-  scope_classes Projects::Scopes::ActivatedTimeActivity,
-                Projects::Scopes::VisibleWithActivatedTimeActivity
+  scopes :activated_time_activity,
+         :visible_with_activated_time_activity
 
   def visible?(user = User.current)
     active? and (public? or user.admin? or user.member_of?(self))
@@ -206,26 +168,10 @@ class Project < ApplicationRecord
     visible.like(query)
   end
 
-  def possible_members(criteria, limit)
-    Principal.active_or_registered.like(criteria).not_in_project(self).limit(limit)
-  end
-
-  def add_member(user, roles)
-    members.build.tap do |m|
-      m.principal = user
-      m.roles = Array(roles)
-    end
-  end
-
-  def add_member!(user, roles)
-    add_member(user, roles)
-    save
-  end
-
   # Returns all projects the user is allowed to see.
   #
   # Employs the :view_project permission to perform the
-  # authorization check as the permissino is public, meaning it is granted
+  # authorization check as the permission is public, meaning it is granted
   # to everybody having at least one role in a project regardless of the
   # role's permissions.
   def self.visible_by(user = User.current)
@@ -250,9 +196,11 @@ class Project < ApplicationRecord
   #   project.project_condition(true)  => "(projects.id = 1 OR (projects.lft > 1 AND projects.rgt < 10))"
   #   project.project_condition(false) => "projects.id = 1"
   def project_condition(with_subprojects)
-    cond = "#{Project.table_name}.id = #{id}"
-    cond = "(#{cond} OR (#{Project.table_name}.lft > #{lft} AND #{Project.table_name}.rgt < #{rgt}))" if with_subprojects
-    cond
+    projects_table = Project.arel_table
+
+    stmt = projects_table[:id].eq(id)
+    stmt = stmt.or(projects_table[:lft].gt(lft).and(projects_table[:rgt].lt(rgt))) if with_subprojects
+    stmt
   end
 
   def types_used_by_work_packages
@@ -340,7 +288,7 @@ class Project < ApplicationRecord
   end
 
   # Returns an array of all custom fields enabled for project issues
-  # (explictly associated custom fields and custom fields enabled for all projects)
+  # (explicitly associated custom fields and custom fields enabled for all projects)
   #
   # Supports the :include option.
   def all_work_package_custom_fields(options = {})
@@ -361,8 +309,8 @@ class Project < ApplicationRecord
     self
   end
 
-  def <=>(project)
-    name.downcase <=> project.name.downcase
+  def <=>(other)
+    name.downcase <=> other.name.downcase
   end
 
   def to_s
@@ -389,7 +337,11 @@ class Project < ApplicationRecord
   def enabled_module_names=(module_names)
     if module_names&.is_a?(Array)
       module_names = module_names.map(&:to_s).reject(&:blank?)
-      self.enabled_modules = module_names.map { |name| enabled_modules.detect { |mod| mod.name == name } || EnabledModule.new(name: name) }
+      self.enabled_modules = module_names.map do |name|
+        enabled_modules.detect do |mod|
+          mod.name == name
+        end || EnabledModule.new(name: name)
+      end
     else
       enabled_modules.clear
     end
@@ -410,12 +362,6 @@ class Project < ApplicationRecord
   end
 
   class << self
-    # Returns an auto-generated project identifier based on the last identifier used
-    def next_identifier
-      p = Project.newest.first
-      p.nil? ? nil : p.identifier.to_s.succ
-    end
-
     # builds up a project hierarchy helper structure for use with #project_tree_from_hierarchy
     #
     # it expects a simple list of projects with a #lft column (awesome_nested_set)
@@ -513,21 +459,6 @@ class Project < ApplicationRecord
                          .flatten
   end
 
-  def self.possible_principles_condition
-    condition = if Setting.work_package_group_assignment?
-                  ["(#{Principal.table_name}.type=? OR #{Principal.table_name}.type=?)", 'User', 'Group']
-                else
-                  ["(#{Principal.table_name}.type=?)", 'User']
-                end
-
-    condition[0] += " AND (#{User.table_name}.status=? OR #{User.table_name}.status=?) AND roles.assignable = ?"
-    condition << Principal::STATUSES[:active]
-    condition << Principal::STATUSES[:invited]
-    condition << true
-
-    sanitize_sql_array condition
-  end
-
   protected
 
   def shared_versions_on_persisted
@@ -570,5 +501,9 @@ class Project < ApplicationRecord
     Version
       .includes(:project)
       .references(:projects)
+  end
+
+  def remove_white_spaces_from_project_name
+    self.name = name.squish unless name.nil?
   end
 end

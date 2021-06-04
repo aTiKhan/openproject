@@ -4,15 +4,17 @@ sidebar_navigation:
   priority: 820
 description: Create and manage a forum in OpenProject
 robots: index, follow
-keywords: forum
+keywords: forum, forums
 ---
 
 # Forums
 
 In the forum in OpenProject you can discuss topics in a project with the team: post questions, comment on it and document answers.
 
-<div class="glossary"> **Forum** is defined as a module used to display forums and forum entries. The module has to be activated in the project settings and a forum has to be created in the forums tab in the project settings to be displayed in the side navigation.</div> 
-| Feature                                                  | Documentation for                                            |
+<div class="glossary"> **Forum** is defined as a module used to display forums and forum entries. The module has to be activated in the project settings and a forum has to be created in the forums tab in the project settings to be displayed in the side navigation.
+</div>
+
+| Topic                                                    | Content                                                      |
 | -------------------------------------------------------- | ------------------------------------------------------------ |
 | [Open a forum](#open-a-forum)                            | How to open an existing forum?                               |
 | [Create a new message](#create-a-new-message-in-a-forum) | How to create a new message in a forum?                      |
@@ -21,7 +23,7 @@ In the forum in OpenProject you can discuss topics in a project with the team: p
 | [Edit a forum message](#edit-a-forum-message)            | How to edit a message in a forum?                            |
 | [Delete a forum message](#delete-a-forum-message)        | How to delete a message within a forum?                      |
 | [Create a new forum](#create-a-new-forum)                | How to create a new forum?                                   |
-| Manage forums                                            | How to sort, edit or delete a forum?                         |
+| [Manage forums](#manage-forums)                          | How to sort, edit or delete a forum?                         |
 
 ## Open a forum
 
@@ -107,7 +109,7 @@ To unwatch a forum in order to not be informed via e-mail about new messages and
 
 ### Unwatch a message
 
-The same applys to **unwatch a message**. Just select the message first which you do not want to watch any longerand click the **Unwatch** button.
+The same applies to **unwatch a message**. Just select the message first which you do not want to watch any longer and click the **Unwatch** button.
 
 ## Edit a forum message
 
@@ -137,7 +139,7 @@ Enter a name and description for the new forum. Press the blue **Create** button
 
 ## Manage forums
 
-If you wan to change the order of the forums in your project, want to edit a forum, or delete a form, go to the -> *Forums* overview list in your project.
+If you want to change the order of the forums in your project, want to edit a forum, or delete a form, go to the -> *Forums* overview list in your project.
 
 1. Click the **arrows (up or down) to change the order** of the forums and sort them differently in the forum list in your project.
 2. Click the **edit icon to change the name or description** of your form.

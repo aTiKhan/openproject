@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -61,7 +61,7 @@ module Pages
       within(table_container) do
         attr_value_hash.each do |column, value|
           expect(page).to have_selector(
-            ".wp-row-#{work_package.id} td.#{column.to_s}", text: value.to_s, wait: 20
+            ".wp-row-#{work_package.id} td.#{column}", text: value.to_s, wait: 20
           )
         end
       end
@@ -97,7 +97,7 @@ module Pages
 
     def expect_work_package_order(*ids)
       retry_block do
-        rows = page.all '.wp-table--row'
+        rows = page.all '.work-package-table .wp--row'
         expected = ids.map { |el| el.is_a?(WorkPackage) ? el.id.to_s : el.to_s }
         found = rows.map { |el| el['data-work-package-id'] }
 
@@ -236,7 +236,7 @@ module Pages
           row(work_package)
         end
 
-      ::EditField.new(context, attribute)
+      work_package_field(work_package, context, attribute)
     end
 
     def click_setting_item(label)
@@ -273,6 +273,15 @@ module Pages
       page
     end
 
+    def work_package_field(work_package, context, key)
+      case key.to_sym
+      when :date, :startDate, :dueDate
+        DateEditField.new context, key, is_milestone: work_package.milestone?, is_table: true
+      else
+        EditField.new context, key
+      end
+    end
+
     private
 
     def path
@@ -285,6 +294,7 @@ module Pages
         filter_container = label_field.find(:xpath, '..')
 
         raise 'Missing ID on Filter (Angular not ready?)' if filter_container['id'].nil?
+
         filter_container['id'].gsub('filter_', '')
       end
     end

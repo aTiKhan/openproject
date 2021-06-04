@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -50,13 +50,9 @@ class MeetingContent < ApplicationRecord
   )
 
   acts_as_journalized
-  acts_as_event type: Proc.new { |o| "#{o.class.to_s.underscore.dasherize}" },
+  acts_as_event type: Proc.new { |o| o.class.to_s.underscore.dasherize.to_s },
                 title: Proc.new { |o| "#{o.class.model_name.human}: #{o.meeting.title}" },
                 url: Proc.new { |o| { controller: '/meetings', action: 'show', id: o.meeting } }
-
-  User.before_destroy do |user|
-    MeetingContent.where(['author_id = ?', user.id]).update_all ['author_id = ?', DeletedUser.first]
-  end
 
   def editable?
     true
@@ -78,11 +74,6 @@ class MeetingContent < ApplicationRecord
       .joins("JOIN meeting_contents ON meeting_contents.id = journals.journable_id AND meeting_contents.type='#{self.class}'")
       .where(version: version)
       .first.data
-  end
-
-  # Compatibility for mailer.rb
-  def updated_on
-    updated_at
   end
 
   # Show the project on activity and search views

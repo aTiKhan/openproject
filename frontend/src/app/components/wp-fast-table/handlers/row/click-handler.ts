@@ -1,17 +1,16 @@
-import {Injector} from '@angular/core';
-import {StateService} from '@uirouter/core';
-import {WorkPackageViewFocusService} from 'core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-focus.service';
-import {debugLog} from '../../../../helpers/debug_output';
-import {States} from '../../../states.service';
-import {KeepTabService} from '../../../wp-single-view-tabs/keep-tab/keep-tab.service';
-import {tdClassName} from '../../builders/cell-builder';
-import {tableRowClassName} from '../../builders/rows/single-row-builder';
-import {WorkPackageTable} from '../../wp-fast-table';
-import {TableEventHandler} from '../table-handler-registry';
-import {WorkPackageViewSelectionService} from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-selection.service";
-import {displayClassName} from "core-components/wp-edit-form/display-field-renderer";
-import {activeFieldClassName} from "core-app/modules/fields/edit/edit-form/edit-form";
-import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
+import { Injector } from '@angular/core';
+import { StateService } from '@uirouter/core';
+import { WorkPackageViewFocusService } from 'core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-focus.service';
+import { debugLog } from '../../../../helpers/debug_output';
+import { States } from '../../../states.service';
+import { KeepTabService } from '../../../wp-single-view-tabs/keep-tab/keep-tab.service';
+import { tableRowClassName } from '../../builders/rows/single-row-builder';
+import { WorkPackageTable } from '../../wp-fast-table';
+import { TableEventComponent, TableEventHandler } from '../table-handler-registry';
+import { WorkPackageViewSelectionService } from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-selection.service";
+import { displayClassName } from "core-app/modules/fields/display/display-field-renderer";
+import { activeFieldClassName } from "core-app/modules/fields/edit/edit-form/edit-form";
+import { InjectField } from "core-app/helpers/angular/inject-field.decorator";
 
 export class RowClickHandler implements TableEventHandler {
 
@@ -22,8 +21,7 @@ export class RowClickHandler implements TableEventHandler {
   @InjectField() public wpTableSelection:WorkPackageViewSelectionService;
   @InjectField() public wpTableFocus:WorkPackageViewFocusService;
 
-  constructor(public readonly injector:Injector,
-              table:WorkPackageTable) {
+  constructor(public readonly injector:Injector) {
   }
 
   public get EVENT() {
@@ -34,12 +32,12 @@ export class RowClickHandler implements TableEventHandler {
     return `.${tableRowClassName}`;
   }
 
-  public eventScope(table:WorkPackageTable) {
-    return jQuery(table.tbody);
+  public eventScope(view:TableEventComponent) {
+    return jQuery(view.workPackageTable.tbody);
   }
 
-  public handleEvent(table:WorkPackageTable, evt:JQuery.TriggeredEvent) {
-    let target = jQuery(evt.target);
+  public handleEvent(view:TableEventComponent, evt:JQuery.TriggeredEvent) {
+    const target = jQuery(evt.target);
 
     // Ignore links
     if (target.is('a') || target.parent().is('a')) {
@@ -54,30 +52,33 @@ export class RowClickHandler implements TableEventHandler {
     }
 
     // Locate the row from event
-    let element = target.closest(this.SELECTOR);
-    let wpId = element.data('workPackageId');
-    let classIdentifier = element.data('classIdentifier');
+    const element = target.closest(this.SELECTOR);
+    const wpId = element.data('workPackageId');
+    const classIdentifier = element.data('classIdentifier');
 
     if (!wpId) {
       return true;
     }
 
-    let [index, row] = table.findRenderedRow(classIdentifier);
+    const [index, row] = view.workPackageTable.findRenderedRow(classIdentifier);
 
     // Update single selection if no modifier present
     if (!(evt.ctrlKey || evt.metaKey || evt.shiftKey)) {
       this.wpTableSelection.setSelection(wpId, index);
+      view.itemClicked.emit({ workPackageId: wpId, double: false });
     }
 
     // Multiple selection if shift present
     if (evt.shiftKey) {
-      this.wpTableSelection.setMultiSelectionFrom(table.renderedRows, wpId, index);
+      this.wpTableSelection.setMultiSelectionFrom(view.workPackageTable.renderedRows, wpId, index);
     }
 
     // Single selection expansion if ctrl / cmd(mac)
     if (evt.ctrlKey || evt.metaKey) {
       this.wpTableSelection.toggleRow(wpId);
     }
+
+    view.selectionChanged.emit(this.wpTableSelection.getSelectedWorkPackageIds());
 
     // The current row is the last selected work package
     // not matter what other rows are (de-)selected below.

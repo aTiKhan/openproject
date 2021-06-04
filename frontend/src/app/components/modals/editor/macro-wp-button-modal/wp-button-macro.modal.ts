@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,24 +24,24 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {OpModalComponent} from "core-components/op-modals/op-modal.component";
-import {OpModalLocalsToken} from "core-components/op-modals/op-modal.service";
 import {
   AfterViewInit,
-  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ElementRef,
   Inject,
   ViewChild
 } from "@angular/core";
-import {OpModalLocalsMap} from "core-components/op-modals/op-modal.types";
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
-import {TypeResource} from "core-app/modules/hal/resources/type-resource";
-import {CurrentProjectService} from "core-components/projects/current-project.service";
-import {WorkPackageDmService} from "core-app/modules/hal/dm-services/work-package-dm.service";
+import { OpModalLocalsMap } from "core-app/modules/modal/modal.types";
+import { OpModalComponent } from "core-app/modules/modal/modal.component";
+import { OpModalLocalsToken } from "core-app/modules/modal/modal.service";
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
+import { TypeResource } from "core-app/modules/hal/resources/type-resource";
+import { CurrentProjectService } from "core-components/projects/current-project.service";
+import { APIV3Service } from "core-app/modules/apiv3/api-v3.service";
+import { FormResource } from "core-app/modules/hal/resources/form-resource";
 
 @Component({
   templateUrl: './wp-button-macro.modal.html'
@@ -57,8 +57,8 @@ export class WpButtonMacroModal extends OpModalComponent implements AfterViewIni
   public buttonStyle:boolean;
 
   public availableTypes:TypeResource[];
-  public type:string = '';
-  public classes:string = '';
+  public type = '';
+  public classes = '';
 
   @ViewChild('typeSelect', { static: true }) typeSelect:ElementRef;
 
@@ -76,7 +76,7 @@ export class WpButtonMacroModal extends OpModalComponent implements AfterViewIni
   constructor(readonly elementRef:ElementRef,
               @Inject(OpModalLocalsToken) public locals:OpModalLocalsMap,
               protected currentProject:CurrentProjectService,
-              readonly workPackageDmService:WorkPackageDmService,
+              protected apiV3Service:APIV3Service,
               readonly cdRef:ChangeDetectorRef,
               readonly I18n:I18nService) {
 
@@ -85,9 +85,13 @@ export class WpButtonMacroModal extends OpModalComponent implements AfterViewIni
     this.classes = this.locals.classes;
     this.buttonStyle = this.classes === 'button';
 
-    this.workPackageDmService
-      .emptyCreateForm({}, this.currentProject.identifier)
-      .then((form:any) => {
+    this
+      .apiV3Service
+      .withOptionalProject(this.currentProject.identifier)
+      .work_packages
+      .form
+      .post({})
+      .subscribe((form:FormResource) => {
         this.availableTypes = form.schema.type.allowedValues;
       });
   }

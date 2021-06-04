@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,13 +26,13 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {OPContextMenuService} from "core-components/op-context-menu/op-context-menu.service";
-import {Directive, ElementRef, Inject} from "@angular/core";
-import {OpContextMenuTrigger} from "core-components/op-context-menu/handlers/op-context-menu-trigger.directive";
+import { OPContextMenuService } from "core-components/op-context-menu/op-context-menu.service";
+import { Directive, ElementRef } from "@angular/core";
+import { OpContextMenuTrigger } from "core-components/op-context-menu/handlers/op-context-menu-trigger.directive";
 
-import {HalResourceEditingService} from "core-app/modules/fields/edit/services/hal-resource-editing.service";
-import {States} from "core-components/states.service";
-import {FormResource} from 'core-app/modules/hal/resources/form-resource';
+import { HalResourceEditingService } from "core-app/modules/fields/edit/services/hal-resource-editing.service";
+import { States } from "core-components/states.service";
+import { FormResource } from 'core-app/modules/hal/resources/form-resource';
 
 @Directive({
   selector: '[wpCreateSettingsMenu]'
@@ -67,12 +67,12 @@ export class WorkPackageCreateSettingsMenuDirective extends OpContextMenuTrigger
    * @param {Event} openerEvent
    */
   public positionArgs(evt:JQuery.TriggeredEvent) {
-    let additionalPositionArgs = {
+    const additionalPositionArgs = {
       my: 'right top',
       at: 'right bottom'
     };
 
-    let position = super.positionArgs(evt);
+    const position = super.positionArgs(evt);
     _.assign(position, additionalPositionArgs);
 
     return position;

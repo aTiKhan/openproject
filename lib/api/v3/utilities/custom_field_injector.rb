@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -34,6 +34,7 @@ module API
       class CustomFieldInjector
         TYPE_MAP = {
           'string' => 'String',
+          'empty' => 'String',
           'text' => 'Formattable',
           'int' => 'Integer',
           'float' => 'Float',
@@ -46,20 +47,14 @@ module API
 
         LINK_FORMATS = %w(list user version).freeze
 
-        PATH_METHOD_MAP = {
-          'user' => :user,
-          'version' => :version,
-          'list' => :custom_option
-        }.freeze
-
         NAMESPACE_MAP = {
-          'user' => 'users',
+          'user' => ['users', 'groups', 'placeholder_users'],
           'version' => 'versions',
           'list' => 'custom_options'
         }.freeze
 
         REPRESENTER_MAP = {
-          'user' => '::API::V3::Users::UserRepresenter',
+          'user' => '::API::V3::Principals::PrincipalRepresenterFactory',
           'version' => '::API::V3::Versions::VersionRepresenter',
           'list' => '::API::V3::CustomOptions::CustomOptionRepresenter'
         }.freeze
@@ -192,15 +187,11 @@ module API
                         options: cf_options(custom_field)
         end
 
-        def path_method_for(custom_field)
-          PATH_METHOD_MAP[custom_field.field_format]
-        end
-
         def inject_link_value(custom_field)
           name = property_name(custom_field.id)
           expected_namespace = NAMESPACE_MAP[custom_field.field_format]
 
-          link = link_value_getter_for(custom_field, path_method_for(custom_field))
+          link = LinkValueGetter.link_for custom_field
           setter = link_value_setter_for(custom_field, name, expected_namespace)
           getter = embedded_link_value_getter(custom_field)
 
@@ -215,10 +206,6 @@ module API
                       link: link,
                       setter: setter,
                       getter: getter)
-        end
-
-        def link_value_getter_for(custom_field, path_method)
-          LinkValueGetter.new custom_field, path_method
         end
 
         def link_value_setter_for(custom_field, property, expected_namespace)
@@ -243,7 +230,7 @@ module API
         end
 
         def embedded_link_value_getter(custom_field)
-          klass = representer_class(custom_field)
+          representer_class = derive_representer_class(custom_field)
 
           proc do
             # Do not embed list or multi values as their links contain all the
@@ -256,8 +243,8 @@ module API
 
             next unless value
 
-            klass
-              .new(value, current_user: current_user)
+            representer_class
+              .create(value, current_user: current_user)
           end
         end
 
@@ -285,7 +272,7 @@ module API
 
         def property_value_setter_for(custom_field)
           ->(fragment:, **) {
-            value = if custom_field.field_format == 'text'
+            value = if fragment && custom_field.field_format == 'text'
                       fragment['raw']
                     else
                       fragment
@@ -296,18 +283,13 @@ module API
 
         def allowed_users_href_callback
           static_filters = allowed_users_static_filters
+          instance_filters = method(:allowed_users_instance_filter)
 
           ->(*) {
-            project_id_value = if represented.respond_to?(:model) && represented.model.is_a?(Project)
-                                 represented.id
-                               else
-                                 represented.project_id.to_s
-                               end
-
             # Careful to not alter the static_filters object here.
             # It is made available in the closure (which is class level) and would thus
             # keep the appended filters between requests.
-            filters = static_filters + [{ member: { operator: '=', values: [project_id_value.to_s] } }]
+            filters = static_filters + instance_filters.call(represented)
 
             api_v3_paths.path_for(:principals, filters: filters, page_size: 0)
           }
@@ -344,7 +326,7 @@ module API
           end
         end
 
-        def representer_class(custom_field)
+        def derive_representer_class(custom_field)
           REPRESENTER_MAP[custom_field.field_format]
             .constantize
         end
@@ -360,9 +342,27 @@ module API
         end
 
         def allowed_users_static_filters
-          [{ status: { operator: '!',
-                       values: [Principal::STATUSES[:locked].to_s] } },
-           { type: { operator: '=', values: ['User'] } }]
+          [
+            { status: { operator: '!',
+                        values: [Principal.statuses[:locked].to_s] } },
+            { type: { operator: '=',
+                      values: %w[User Group PlaceholderUser] } }
+          ]
+        end
+
+        def allowed_users_instance_filter(represented)
+          project_id_value =
+            if represented.respond_to?(:model) && represented.model.is_a?(Project)
+              represented.id
+            else
+              represented.project_id.to_s
+            end
+
+          if project_id_value.present?
+            [{ member: { operator: '=', values: [project_id_value.to_s] } }]
+          else
+            [{ member: { operator: '*', values: [] } }]
+          end
         end
 
         module RepresenterClass
@@ -385,9 +385,9 @@ module API
             custom_field_class(custom_fields)
           end
 
-          def create(*args)
-            create_class(args.first, args.last[:current_user])
-              .new(*args)
+          def create(represented, **args)
+            create_class(represented, args[:current_user])
+              .new(represented, **args)
           end
 
           def custom_field_class(custom_fields)

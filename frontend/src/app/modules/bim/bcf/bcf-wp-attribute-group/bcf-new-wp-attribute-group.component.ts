@@ -1,76 +1,94 @@
-import {ChangeDetectionStrategy, Component} from "@angular/core";
-import {BcfWpAttributeGroupComponent} from "core-app/modules/bim/bcf/bcf-wp-attribute-group/bcf-wp-attribute-group.component";
-import {take} from "rxjs/operators";
-import {WorkPackageResource} from "core-app/modules/hal/resources/work-package-resource";
+import { ChangeDetectionStrategy, Component } from "@angular/core";
+import { BcfWpAttributeGroupComponent } from "core-app/modules/bim/bcf/bcf-wp-attribute-group/bcf-wp-attribute-group.component";
+import { take, switchMap } from "rxjs/operators";
+import { WorkPackageResource } from "core-app/modules/hal/resources/work-package-resource";
+import { forkJoin } from "rxjs";
+import { BcfViewpointInterface } from "core-app/modules/bim/bcf/api/viewpoints/bcf-viewpoint.interface";
+import { BcfViewpointItem } from "core-app/modules/bim/bcf/api/viewpoints/bcf-viewpoint-item.interface";
+
 
 @Component({
   templateUrl: './bcf-wp-attribute-group.component.html',
   styleUrls: ['./bcf-wp-attribute-group.component.sass'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BcfNewWpAttributeGroupComponent extends BcfWpAttributeGroupComponent {
+  galleryViewpoints:BcfViewpointItem[] = [];
 
   ngAfterViewInit():void {
-    super.ngAfterViewInit();
+    if (this.viewerVisible) {
+      super.ngAfterViewInit();
 
-    // Save any leftover viewpoints when saving the work package
-    if (this.workPackage.isNew) {
-      this.observeCreation();
+      // Save any leftover viewpoints when saving the work package
+      if (this.workPackage.isNew) {
+        this.observeCreation();
+      }
     }
   }
 
-  // Disable show viewpoint functionality
-  showViewpoint(index:number) {
-    return;
-  }
-
-  deleteViewpoint(index:number) {
-    this.setViewpoints(
-      this.viewpoints.filter((_, i) => i !== index)
-    );
-    return;
-  }
-
-  async saveCurrentAsViewpoint() {
-    const viewpoint = await this.viewerBridge!.getViewpoint();
-
-    this.setViewpoints([
-      ...this.viewpoints,
-      {
-        snapshotURL: viewpoint.snapshot.snapshot_data,
-        viewpoint: viewpoint
-      }
-    ]);
-
-    // Select the last created viewpoint and show it
-    this.showIndex = this.viewpoints.length - 1;
-    this.selectViewpointInGallery();
-  }
-
-  shouldShowGroup() {
-    return this.createAllowed && this.viewerVisible;
-  }
-
+  // Because this is a new WorkPackage, in order to save the
+  // viewpoints on it we need to:
+  // - Wait until the WorkPackage is created
+  // - Create the BCFTopic on it to save the viewpoints
   private observeCreation() {
     this.wpCreate
       .onNewWorkPackage()
       .pipe(
         this.untilDestroyed(),
-        take(1)
-      )
-      .subscribe(async (wp:WorkPackageResource) => {
-        this.workPackage = wp;
-        for (let el of this.viewpoints) {
-          if (!el.href && el.viewpoint) {
-            await this.persistViewpoint(el.viewpoint!);
-          }
-        }
+        take(1),
+        switchMap((wp:WorkPackageResource) => this.viewpointsService.setBcfTopic$(wp), (wp) => wp),
+        switchMap((wp:WorkPackageResource) => {
+          this.workPackage = wp;
+          const observables = this.galleryViewpoints
+            .filter(viewPointItem => !viewPointItem.href && viewPointItem.viewpoint)
+            .map(viewPointItem => this.viewpointsService.saveViewpoint$(this.workPackage, viewPointItem.viewpoint));
 
-        this.showIndex = this.viewpoints.length - 1;
-        this.wpCache.require(this.workPackage.id!, true);
+          return forkJoin(observables);
+        })
+      )
+      .subscribe((viewpoints:BcfViewpointInterface[]) => {
+        this.showIndex = this.galleryViewpoints.length - 1;
       });
   }
 
+  // Disable show viewpoint functionality
+  showViewpoint(workPackage:WorkPackageResource, index:number) {
+    return;
+  }
+
+  deleteViewpoint(workPackage:WorkPackageResource, index:number) {
+    this.galleryViewpoints = this.galleryViewpoints.filter((_, i) => i !== index);
+
+    this.setViewpointsOnGallery(this.galleryViewpoints);
+
+    return;
+  }
+
+  saveViewpoint() {
+    this.viewerBridge
+      .getViewpoint$()
+      .subscribe(viewpoint => {
+        const newViewpoint = {
+          snapshotURL: viewpoint.snapshot.snapshot_data,
+          viewpoint: viewpoint
+        };
+
+        this.galleryViewpoints = [
+          ...this.galleryViewpoints,
+          newViewpoint
+        ];
+
+        this.setViewpointsOnGallery(this.galleryViewpoints);
+
+        // Select the last created viewpoint and show it
+        this.showIndex = this.galleryViewpoints.length - 1;
+        this.selectViewpointInGallery();
+      });
+  }
+
+  shouldShowGroup() {
+    return this.createAllowed && this.viewerVisible;
+  }
   protected actions() {
     // Show only delete button
     return super

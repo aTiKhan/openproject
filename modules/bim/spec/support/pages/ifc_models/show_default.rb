@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -44,13 +44,18 @@ module Pages
         defaults_bcf_project_ifc_models_path(project)
       end
 
+      def visit_and_wait_until_finished_loading!
+        visit!
+        finished_loading
+      end
+
       def finished_loading
-        expect(page).to have_no_selector('.xeokit-busy-modal', visible: true)
+        expect(page).to have_selector('.xeokit-busy-modal', visible: false, wait: 30)
       end
 
       def model_viewer_visible(visible)
         selector = '.ifc-model-viewer--model-canvas'
-        expect(page).to (visible ? have_selector(selector) : have_no_selector(selector))
+        expect(page).to (visible ? have_selector(selector, wait: 10) : have_no_selector(selector, wait: 10))
       end
 
       def model_viewer_shows_a_toolbar(visible)
@@ -58,7 +63,7 @@ module Pages
 
         if visible
           within ('.ifc-model-viewer--toolbar-container') do
-            expect(page).to have_selector(selector, count: 8)
+            expect(page).to have_selector(selector, count: 9)
           end
         else
           expect(page).to have_no_selector(selector)
@@ -72,23 +77,31 @@ module Pages
         end
       end
 
+      def page_has_a_toolbar
+        expect(page).to have_selector('.toolbar-container')
+      end
+
       def page_shows_a_filter_button(visible)
         expect(page).to have_conditional_selector(visible, '.toolbar-item', text: 'Filter')
       end
 
       def switch_view(value)
         page.find('#bim-view-toggle-button').click
-        page.find('.menu-item', text: value).click
+        page.find('.menu-item', text: value, exact_text: true).click
       end
 
       def expect_view_toggle_at(value)
         expect(page).to have_selector('#bim-view-toggle-button', text: value)
       end
 
+      def has_no_menu_item_with_text?(value)
+        expect(page).to have_no_selector('.menu-item', text: value)
+      end
+
       private
 
       def toolbar_items
-        ['Manage models']
+        ['IFC models']
       end
 
       def create_page_class_instance(type)

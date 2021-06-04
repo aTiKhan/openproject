@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@ describe Projects::SetAttributesService, type: :model do
 
     allow(contract)
       .to receive(:new)
-      .with(project, user, options: { changed_by_system: [] })
+      .with(project, user, options: {})
       .and_return(contract_instance)
 
     contract
@@ -102,60 +102,32 @@ describe Projects::SetAttributesService, type: :model do
       end
 
       context 'identifier default value' do
-        context 'with a default identifier configured', with_settings: {sequential_project_identifiers: true} do
-          context 'with an identifier provided' do
-            let(:call_attributes) do
-              {
-                identifier: 'lorem'
-              }
-            end
-
-            it 'does not alter the identifier' do
-              expect(subject.result.identifier)
-                .to eql 'lorem'
-            end
+        context 'with an identifier provided' do
+          let(:call_attributes) do
+            {
+              identifier: 'lorem'
+            }
           end
 
-          context 'with no identifier provided' do
-            it 'sets a default identifier' do
-              allow(Project)
-                .to receive(:next_identifier)
-                      .and_return('ipsum')
-
-              expect(subject.result.identifier)
-                .to eql 'ipsum'
-            end
+          it 'does not alter the identifier' do
+            expect(subject.result.identifier)
+              .to eql 'lorem'
           end
         end
 
-        context 'without a default identifier configured', with_settings: {sequential_project_identifiers: false} do
-          context 'with an identifier provided' do
-            let(:call_attributes) do
-              {
-                identifier: 'lorem'
-              }
-            end
+        context 'with no identifier provided' do
+          it 'stays nil' do
+            allow(Project)
+              .to receive(:next_identifier)
+              .and_return('ipsum')
 
-            it 'does not alter the identifier' do
-              expect(subject.result.identifier)
-                .to eql 'lorem'
-            end
-          end
-
-          context 'with no identifier provided' do
-            it 'stays nil' do
-              allow(Project)
-                .to receive(:next_identifier)
-                      .and_return('ipsum')
-
-              expect(subject.result.identifier)
-                .to be_nil
-            end
+            expect(subject.result.identifier)
+              .to be_nil
           end
         end
       end
 
-      context 'public default value', with_settings: {default_projects_public: true} do
+      context 'public default value', with_settings: { default_projects_public: true } do
         context 'with a value for is_public provided' do
           let(:call_attributes) do
             {
@@ -177,7 +149,7 @@ describe Projects::SetAttributesService, type: :model do
         end
       end
 
-      context 'enabled_module_names default value', with_settings: {default_projects_modules: ['lorem', 'ipsum']} do
+      context 'enabled_module_names default value', with_settings: { default_projects_modules: ['lorem', 'ipsum'] } do
         context 'with a value for enabled_module_names provided' do
           let(:call_attributes) do
             {

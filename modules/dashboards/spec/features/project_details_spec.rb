@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -43,9 +43,7 @@ describe 'Project details widget on dashboard', type: :feature, js: true do
   let(:system_version) { FactoryBot.create(:version, sharing: 'system') }
 
   let!(:project) do
-    FactoryBot.create(:project).tap do |p|
-      p.add_member(other_user, [role])
-
+    FactoryBot.create(:project, members: { other_user => role }).tap do |p|
       p.send(:"custom_field_#{int_cf.id}=", 5)
       p.send(:"custom_field_#{bool_cf.id}=", true)
       p.send(:"custom_field_#{version_cf.id}=", system_version)

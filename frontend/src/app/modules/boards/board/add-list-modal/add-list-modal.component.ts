@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,28 +24,48 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {OpModalComponent} from "core-components/op-modals/op-modal.component";
-import {OpModalLocalsToken} from "core-components/op-modals/op-modal.service";
-import {ChangeDetectorRef, Component, ElementRef, Inject, OnInit} from "@angular/core";
-import {OpModalLocalsMap} from "core-components/op-modals/op-modal.types";
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
-import {Board} from "core-app/modules/boards/board/board";
-import {StateService} from "@uirouter/core";
-import {BoardService} from "core-app/modules/boards/board/board.service";
-import {BoardCacheService} from "core-app/modules/boards/board/board-cache.service";
-import {QueryResource} from "core-app/modules/hal/resources/query-resource";
-import {BoardActionsRegistryService} from "core-app/modules/boards/board/board-actions/board-actions-registry.service";
-import {BoardActionService} from "core-app/modules/boards/board/board-actions/board-action.service";
-import {HalResource} from "core-app/modules/hal/resources/hal-resource";
-import {AngularTrackingHelpers} from "core-components/angular/tracking-functions";
-import {CreateAutocompleterComponent} from "core-app/modules/common/autocomplete/create-autocompleter.component";
+import { ChangeDetectorRef, Component, ElementRef, Inject, OnInit, ViewChild} from "@angular/core";
+import { OpModalLocalsMap } from "core-app/modules/modal/modal.types";
+import { OpModalComponent } from "core-app/modules/modal/modal.component";
+import { OpModalLocalsToken } from "core-app/modules/modal/modal.service";
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
+import { Board } from "core-app/modules/boards/board/board";
+import { StateService } from "@uirouter/core";
+import { BoardService } from "core-app/modules/boards/board/board.service";
+import { BoardActionsRegistryService } from "core-app/modules/boards/board/board-actions/board-actions-registry.service";
+import { BoardActionService } from "core-app/modules/boards/board/board-actions/board-action.service";
+import { HalResource } from "core-app/modules/hal/resources/hal-resource";
+import { AngularTrackingHelpers } from "core-components/angular/tracking-functions";
+import { Observable, of } from "rxjs";
+import { DebouncedRequestSwitchmap, errorNotificationHandler } from "core-app/helpers/rxjs/debounced-input-switchmap";
+import { ValueOption } from "core-app/modules/fields/edit/field-types/select-edit-field/select-edit-field.component";
+import { HalResourceNotificationService } from "core-app/modules/hal/services/hal-resource-notification.service";
+import {OpAutocompleterComponent} from "core-app/modules/autocompleter/op-autocompleter/op-autocompleter.component";
+import { APIV3Service } from "core-app/modules/apiv3/api-v3.service";
+import { CurrentProjectService } from "core-components/projects/current-project.service";
+import { tap } from "rxjs/operators";
 
 @Component({
   templateUrl: './add-list-modal.html'
 })
 export class AddListModalComponent extends OpModalComponent implements OnInit {
+
+  @ViewChild(OpAutocompleterComponent, { static: true }) public ngSelectComponent:OpAutocompleterComponent;
+  
+  getAutocompleterData = (searchTerm:string):Observable<HalResource[]> => {
+
+    // Remove prefix # from search
+    searchTerm = searchTerm.replace(/^#/, '');
+    return this.actionService.loadAvailable(this.board, this.active, searchTerm).pipe(tap((values) => this.warnIfNoOptions(values)));
+  };
+  
+  public autocompleterOptions = {
+    resource:"",
+    getOptionsFn: this.getAutocompleterData
+    };
+
   public showClose:boolean;
 
   public confirmed = false;
@@ -53,14 +73,11 @@ export class AddListModalComponent extends OpModalComponent implements OnInit {
   /** Active board */
   public board:Board;
 
-  /** Current set of queries */
-  public queries:QueryResource[];
+  /** Current active set of values */
+  public active:Set<string>;
 
   /** Action service used by the board */
   public actionService:BoardActionService;
-
-  /** Remaining available values */
-  public availableValues:HalResource[] = [];
 
   /** The selected attribute */
   public selectedAttribute:HalResource|undefined;
@@ -73,9 +90,12 @@ export class AddListModalComponent extends OpModalComponent implements OnInit {
   /* Do not close on outside click (because the select option are appended to the body */
   public closeOnOutsideClick = false;
 
+  public warningText:string|undefined;
+
   public text:any = {
     title: this.I18n.t('js.boards.add_list'),
     button_add: this.I18n.t('js.button_add'),
+    button_create: this.I18n.t('js.button_create'),
     button_cancel: this.I18n.t('js.button_cancel'),
     close_popup: this.I18n.t('js.close_popup_title'),
 
@@ -88,36 +108,29 @@ export class AddListModalComponent extends OpModalComponent implements OnInit {
     placeholder: this.I18n.t('js.placeholders.selection'),
   };
 
-  public referenceOutputs = {
-    onCreate: (value:HalResource) => this.onNewActionCreated(value),
-    onChange: (value:HalResource) => this.onModelChange(value),
-    onAfterViewInit: (component:CreateAutocompleterComponent) => component.focusInputField()
-  };
+  /** Whether the no results warning is displayed */
+  showWarning = false;
 
   constructor(readonly elementRef:ElementRef,
               @Inject(OpModalLocalsToken) public locals:OpModalLocalsMap,
               readonly cdRef:ChangeDetectorRef,
               readonly boardActions:BoardActionsRegistryService,
+              readonly halNotification:HalResourceNotificationService,
               readonly state:StateService,
               readonly boardService:BoardService,
-              readonly boardCache:BoardCacheService,
-              readonly I18n:I18nService) {
+              readonly I18n:I18nService,
+              readonly apiV3Service:APIV3Service,
+              readonly currentProject:CurrentProjectService) {
 
     super(locals, cdRef, elementRef);
   }
 
   ngOnInit() {
     super.ngOnInit();
-
     this.board = this.locals.board;
-    this.queries = this.locals.queries;
+    this.active = new Set(this.locals.active as string[]);
     this.actionService = this.boardActions.get(this.board.actionAttribute!);
-
-    this.actionService
-      .getAvailableValues(this.board, this.queries)
-      .then(available => {
-        this.availableValues = available;
-      });
+    this.autocompleterOptions.resource=this.actionService.localizedName.toLowerCase();
   }
 
   onModelChange(element:HalResource) {
@@ -127,24 +140,59 @@ export class AddListModalComponent extends OpModalComponent implements OnInit {
   create() {
     this.inFlight = true;
     this.actionService
-      .addActionQuery(this.board, this.selectedAttribute!)
-      .then(board => this.boardService.save(board))
+      .addColumnWithActionAttribute(this.board, this.selectedAttribute!)
+      .then(board => this.boardService.save(board).toPromise())
       .then((board) => {
         this.inFlight = false;
         this.closeMe();
-        this.boardCache.update(board);
-        this.state.go('boards.show', { board_id: board.id, isNew: true });
+        this.state.go('boards.partitioned.show', { board_id: board.id, isNew: true });
       })
       .catch(() => this.inFlight = false);
   }
 
-  onNewActionCreated(newValue:HalResource) {
-    this.selectedAttribute = newValue;
-    this.create();
+  onNewActionCreated() {
+    this
+    .apiV3Service
+    .versions
+    .post(this.getVersionPayload(this.ngSelectComponent.ngSelectInstance.searchTerm))
+    .subscribe(
+      version => { this.selectedAttribute = version;
+        this.create();},
+      error => {
+        this.ngSelectComponent.closeSelect();
+        this.halNotification.handleRawError(error);
+      });
+   
+  }
+  private getVersionPayload(name:string) {
+    const payload:any = {};
+    payload['name'] = name;
+    payload['_links'] = {
+      definingProject: {
+        href: this.apiV3Service.projects.id(this.currentProject.id!).path
+      }
+    };
+
+    return payload;
   }
 
-  autocompleterComponent() {
-    return this.actionService.autocompleterComponent();
+  private warnIfNoOptions(values:unknown[]) {
+    let hasMember = false;
+    if (values.length === 0) {
+      if (this.ngSelectComponent.ngSelectInstance.searchTerm !== undefined && this.ngSelectComponent.ngSelectInstance.searchTerm !== '') {
+        hasMember = true;
+      } else {
+        hasMember = false;
+      }
+    } else {
+      hasMember = false;
+    }
+    this.actionService
+      .warningTextWhenNoOptionsAvailable(hasMember)
+      .then((text) => {
+        this.warningText = text;
+      });
+    this.showWarning = this.ngSelectComponent.ngSelectInstance.searchTerm !== undefined && (values.length === 0);
+    this.cdRef.detectChanges();
   }
 }
-

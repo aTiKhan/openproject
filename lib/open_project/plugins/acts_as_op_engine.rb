@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -28,6 +28,7 @@
 
 require_dependency 'open_project/ui/extensible_tabs'
 require_dependency 'config/constants/api_patch_registry'
+require_dependency 'config/constants/open_project/activity'
 
 module OpenProject::Plugins
   module ActsAsOpEngine
@@ -120,10 +121,10 @@ module OpenProject::Plugins
         self.class.config.to_prepare do
           klass_name = args.last
           patch = begin
-                    "#{plugin_module}::Patches::#{args[0..-2].join('::')}::#{klass_name}Patch".constantize
-                  rescue NameError
-                    "#{plugin_module}::Patches::#{klass_name}Patch".constantize
-                  end
+            "#{plugin_module}::Patches::#{args[0..-2].join('::')}::#{klass_name}Patch".constantize
+          rescue NameError
+            "#{plugin_module}::Patches::#{klass_name}Patch".constantize
+          end
           qualified_class_name = args.map(&:to_s).join('::')
           klass = qualified_class_name.to_s.constantize
           klass.send(:include, patch) unless klass.included_modules.include?(patch)
@@ -225,13 +226,11 @@ module OpenProject::Plugins
       end
 
       def add_api_endpoint(base_endpoint, path = nil, &block)
-        config.to_prepare do
-          # we are expecting the base_endpoint as string for two reasons:
-          # 1. it does not seem possible to pass it as constant (auto loader not ready yet)
-          # 2. we can't constantize it here, because that would evaluate
-          #    the API before it can be patched
-          ::Constants::APIPatchRegistry.add_patch base_endpoint, path, &block
-        end
+        # we are expecting the base_endpoint as string for two reasons:
+        # 1. it does not seem possible to pass it as constant (auto loader not ready yet)
+        # 2. we can't constantize it here, because that would evaluate
+        #    the API before it can be patched
+        ::Constants::APIPatchRegistry.add_patch base_endpoint, path, &block
       end
 
       def extend_api_response(*args, &block)
@@ -243,8 +242,7 @@ module OpenProject::Plugins
       end
 
       def add_api_attribute(on:,
-                            writable_for: [:create, :update],
-                            ar_name:,
+                            ar_name:, writable_for: %i[create update],
                             writeable: true,
                             &block)
         config.to_prepare do
@@ -288,6 +286,21 @@ module OpenProject::Plugins
           representer_class     = "::API::#{representer_namespace}Representer".constantize
           representer_class.prepend mod
         end
+      end
+
+      # Registers an activity provider.
+      #
+      # @param event_type [Symbol]
+      #
+      # Options:
+      # * <tt>:class_name</tt> - one or more model(s) that provide these events, those need to inherit from Activities::BaseActivityProvider
+      # * <tt>:default</tt> - setting this option to false will make the events not displayed by default
+      #
+      # Example
+      #   activity_provider :meetings, class_name: 'Activities::MeetingActivityProvider', default: false
+      #
+      def activity_provider(event_type, options = {})
+        OpenProject::Activity.register(event_type, options)
       end
 
       ##

@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -37,9 +37,9 @@ import {
   SimpleChanges,
   ViewChild
 } from "@angular/core";
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
-import {ContainHelpers} from "core-app/modules/common/focus/contain-helpers";
-import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
+import { ContainHelpers } from "core-app/modules/focus/contain-helpers";
+import { InjectField } from "core-app/helpers/angular/inject-field.decorator";
 
 export const triggerEditingEvent = 'op:selectableTitle:trigger';
 export const selectableTitleIdentifier = 'editable-toolbar-title';
@@ -48,15 +48,15 @@ export const selectableTitleIdentifier = 'editable-toolbar-title';
   selector: 'editable-toolbar-title',
   templateUrl: './editable-toolbar-title.html',
   styleUrls: ['./editable-toolbar-title.sass'],
-  host: {'class': 'title-container'}
+  host: { 'class': 'title-container' }
 })
 export class EditableToolbarTitleComponent implements OnInit, OnChanges {
   @Input('title') public inputTitle:string;
-  @Input() public editable:boolean = true;
-  @Input() public inFlight:boolean = false;
-  @Input() public showSaveCondition:boolean = false;
-  @Input() public initialFocus:boolean = false;
-  @Input() public smallHeader:boolean = false;
+  @Input() public editable = true;
+  @Input() public inFlight = false;
+  @Input() public showSaveCondition = false;
+  @Input() public initialFocus = false;
+  @Input() public smallHeader = false;
 
   @Output() public onSave = new EventEmitter<string>();
   @Output() public onEmptySubmit = new EventEmitter<void>();
@@ -67,7 +67,7 @@ export class EditableToolbarTitleComponent implements OnInit, OnChanges {
   public selectableTitleIdentifier = selectableTitleIdentifier;
 
   @InjectField() protected readonly elementRef:ElementRef;
-  @InjectField() protected readonly I18n:I18nService;
+  @InjectField() I18n!:I18nService;
 
   public text = {
     click_to_edit: this.I18n.t('js.work_packages.query.click_to_edit_query_name'),
@@ -86,7 +86,7 @@ export class EditableToolbarTitleComponent implements OnInit, OnChanges {
   ngOnInit() {
     this.text['input_title'] = `${this.text.click_to_edit} ${this.text.press_enter_to_save}`;
 
-    jQuery(this.elementRef.nativeElement).on(triggerEditingEvent, (evt:Event, val:string = '') => {
+    jQuery(this.elementRef.nativeElement).on(triggerEditingEvent, (evt:Event, val = '') => {
       // In case we're not editable, ignore request
       if (!this.inputField) {
         return;

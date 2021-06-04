@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -31,12 +31,12 @@ require 'spec_helper'
 describe WorkPackage, type: :model do
   describe ActionMailer::Base do
     let(:user_1) do
-      FactoryBot.build(:user,
+      FactoryBot.create(:user,
                        mail: 'dlopper@somenet.foo',
                        member_in_project: project)
     end
     let(:user_2) do
-      FactoryBot.build(:user,
+      FactoryBot.create(:user,
                        mail: 'jsmith@somenet.foo',
                        member_in_project: project)
     end
@@ -47,15 +47,16 @@ describe WorkPackage, type: :model do
       allow(work_package).to receive(:recipients).and_return([user_1])
       allow(work_package).to receive(:watcher_recipients).and_return([user_2])
 
-      JournalManager.with_send_notifications true do
-        work_package.save
+      Journal::NotificationConfiguration.with true do
+        perform_enqueued_jobs do
+          work_package.save
+        end
       end
     end
 
     subject { ActionMailer::Base.deliveries.size }
 
     it do
-      perform_enqueued_jobs
       expect(subject).to eq 2
     end
 
@@ -69,7 +70,11 @@ describe WorkPackage, type: :model do
         ActionMailer::Base.deliveries.clear
 
         work_package.subject = 'A different subject update'
-        work_package.save! rescue nil
+        begin
+          work_package.save!
+        rescue StandardError
+          nil
+        end
       end
 
       it { is_expected.to eq(0) }
@@ -79,7 +84,7 @@ describe WorkPackage, type: :model do
       before do
         ActionMailer::Base.deliveries.clear # clear mails sent due to prior WP creation
 
-        JournalManager.with_send_notifications false do
+        Journal::NotificationConfiguration.with false do
           work_package.save!
         end
       end
@@ -88,10 +93,9 @@ describe WorkPackage, type: :model do
     end
 
     context 'group_assigned_work_package' do
-      let(:group) { FactoryBot.create(:group) }
+      let(:group) { FactoryBot.create(:group, members: user_1) }
 
       before do
-        group.users << user_1
         work_package.assigned_to = group
       end
 

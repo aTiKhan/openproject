@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -27,9 +28,9 @@
 # See docs/COPYRIGHT.rdoc for more details.
 #++
 
-require 'zlib'
-
 class WikiContent < ApplicationRecord
+  extend DeprecatedAlias
+
   belongs_to :page, class_name: 'WikiPage', foreign_key: 'page_id'
   belongs_to :author, class_name: 'User', foreign_key: 'author_id'
   validates_length_of :comments, maximum: 255, allow_nil: true
@@ -37,14 +38,22 @@ class WikiContent < ApplicationRecord
   attr_accessor :comments
 
   before_save :comments_to_journal_notes
-  after_create :send_content_added_mail
-  after_update :send_content_updated_mail, if: :saved_change_to_text?
 
   acts_as_journalized
 
   acts_as_event type: 'wiki-page',
-                title: Proc.new { |o| "#{l(:label_wiki_edit)}: #{o.journal.journable.page.title} (##{o.journal.journable.version})" },
-                url: Proc.new { |o| { controller: '/wiki', action: 'show', id: o.journal.journable.page, project_id: o.journal.journable.page.wiki.project, version: o.journal.journable.version } }
+                title: Proc.new { |o|
+                  "#{I18n.t(:label_wiki_edit)}: #{o.journal.journable.page.title} (##{o.journal.journable.version})"
+                },
+                url: Proc.new { |o|
+                  {
+                    controller: '/wiki',
+                    action: 'show',
+                    id: o.journal.journable.page,
+                    project_id: o.journal.journable.page.wiki.project,
+                    version: o.journal.journable.version
+                  }
+                }
 
   def activity_type
     'wiki_edits'
@@ -66,16 +75,7 @@ class WikiContent < ApplicationRecord
     super value.presence || ''
   end
 
-  # Returns the mail adresses of users that should be notified
-  def recipients
-    notified = project.notified_users
-    notified.select { |user| visible?(user) }
-  end
-
-  # FIXME: Deprecate
-  def versions
-    journals
-  end
+  deprecated_alias :versions, :journals
 
   # REVIEW
   def version
@@ -86,32 +86,5 @@ class WikiContent < ApplicationRecord
 
   def comments_to_journal_notes
     add_journal author, comments
-  end
-
-  def send_content_added_mail
-    return unless Setting.notified_events.include?('wiki_content_added')
-
-    create_recipients.uniq.each do |user|
-      UserMailer.wiki_content_added(user, self, User.current).deliver_later
-    end
-  end
-
-  def send_content_updated_mail
-    return unless Setting.notified_events.include?('wiki_content_updated')
-
-    update_recipients.uniq.each do |user|
-      UserMailer.wiki_content_updated(user, self, User.current).deliver_later
-    end
-  end
-
-  def create_recipients
-    recipients +
-      page.wiki.watcher_recipients
-  end
-
-  def update_recipients
-    recipients +
-      page.wiki.watcher_recipients +
-      page.watcher_recipients
   end
 end

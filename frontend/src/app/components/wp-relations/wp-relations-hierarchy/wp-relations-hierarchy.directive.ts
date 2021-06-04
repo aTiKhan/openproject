@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,14 +26,14 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {Component, Input, OnInit} from '@angular/core';
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
-import {WorkPackageResource} from 'core-app/modules/hal/resources/work-package-resource';
-import {PathHelperService} from 'core-app/modules/common/path-helper/path-helper.service';
-import {WorkPackageRelationsHierarchyService} from 'core-components/wp-relations/wp-relations-hierarchy/wp-relations-hierarchy.service';
-import {take} from 'rxjs/operators';
-import {WorkPackageCacheService} from '../../work-packages/work-package-cache.service';
-import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
+import { Component, Input, OnInit } from '@angular/core';
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
+import { WorkPackageResource } from 'core-app/modules/hal/resources/work-package-resource';
+import { PathHelperService } from 'core-app/modules/common/path-helper/path-helper.service';
+import { WorkPackageRelationsHierarchyService } from 'core-components/wp-relations/wp-relations-hierarchy/wp-relations-hierarchy.service';
+import { take } from 'rxjs/operators';
+import { UntilDestroyedMixin } from "core-app/helpers/angular/until-destroyed.mixin";
+import { APIV3Service } from "core-app/modules/apiv3/api-v3.service";
 
 @Component({
   selector: 'wp-relations-hierarchy',
@@ -43,7 +43,7 @@ export class WorkPackageRelationsHierarchyComponent extends UntilDestroyedMixin 
   @Input() public workPackage:WorkPackageResource;
   @Input() public relationType:string;
 
-  public showEditForm:boolean = false;
+  public showEditForm = false;
   public workPackagePath:string;
   public canHaveChildren:boolean;
   public canModifyHierarchy:boolean;
@@ -52,7 +52,7 @@ export class WorkPackageRelationsHierarchyComponent extends UntilDestroyedMixin 
   public childrenQueryProps:any;
 
   constructor(protected wpRelationsHierarchyService:WorkPackageRelationsHierarchyService,
-              protected wpCacheService:WorkPackageCacheService,
+              protected apiV3Service:APIV3Service,
               protected PathHelper:PathHelperService,
               readonly I18n:I18nService) {
     super();
@@ -74,19 +74,25 @@ export class WorkPackageRelationsHierarchyComponent extends UntilDestroyedMixin 
       showHierarchies: false
     };
 
-    this.wpCacheService.loadWorkPackage(this.workPackage.id!).values$()
+    this
+      .apiV3Service
+      .work_packages
+      .id(this.workPackage)
+      .requireAndStream()
       .pipe(
         this.untilDestroyed()
       )
       .subscribe((wp:WorkPackageResource) => {
         this.workPackage = wp;
 
-        let toLoad:string[] = [];
+        const parentId = this.workPackage.parent?.id?.toString();
 
-        if (this.workPackage.parent) {
-          toLoad.push(this.workPackage.parent.id.toString());
-
-          this.wpCacheService.loadWorkPackage(this.workPackage.parent.id).values$()
+        if (parentId) {
+          this
+            .apiV3Service
+            .work_packages
+            .id(parentId)
+            .get()
             .pipe(
               take(1)
             )
@@ -94,8 +100,6 @@ export class WorkPackageRelationsHierarchyComponent extends UntilDestroyedMixin 
               this.workPackage.parent = parent;
             });
         }
-
-        this.wpCacheService.requireAll(toLoad);
       });
   }
 }

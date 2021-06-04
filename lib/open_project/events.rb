@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -38,6 +38,22 @@ module OpenProject
   # @see OpenProject::Notifications
   module Events
     AGGREGATED_WORK_PACKAGE_JOURNAL_READY = "aggregated_work_package_journal_ready".freeze
-    NEW_TIME_ENTRY_CREATED = "new_time_entry_created".freeze
+    AGGREGATED_WIKI_JOURNAL_READY = "aggregated_wiki_journal_ready".freeze
+
+    JOURNAL_CREATED = 'journal_created'.freeze
+
+    MEMBER_CREATED = 'member_created'.freeze
+    MEMBER_UPDATED = 'member_updated'.freeze
+    # Called like this for historic reasons, should be called 'member_destroyed'
+    MEMBER_DESTROYED = 'member_removed'.freeze
+
+    TIME_ENTRY_CREATED = "time_entry_created".freeze
+
+    PROJECT_CREATED = "project_created".freeze
+    PROJECT_UPDATED = "project_updated".freeze
+    PROJECT_RENAMED = "project_renamed".freeze
+
+    WATCHER_ADDED = 'watcher_added'.freeze
+    WATCHER_REMOVED = 'watcher_removed'.freeze
   end
 end

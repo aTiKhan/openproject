@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,13 +24,13 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {Injectable, Injector} from '@angular/core';
-import {HalResource} from "core-app/modules/hal/resources/hal-resource";
-import {AbstractFieldService, IFieldType} from "core-app/modules/fields/field.service";
-import {DisplayField} from "core-app/modules/fields/display/display-field.module";
-import {IFieldSchema} from "core-app/modules/fields/field.base";
+import { Injectable, Injector } from '@angular/core';
+import { HalResource } from "core-app/modules/hal/resources/hal-resource";
+import { AbstractFieldService, IFieldType } from "core-app/modules/fields/field.service";
+import { DisplayField } from "core-app/modules/fields/display/display-field.module";
+import { IFieldSchema } from "core-app/modules/fields/field.base";
 
 export interface IDisplayFieldType extends IFieldType<DisplayField> {
   new(resource:HalResource, attributeType:string, schema:IFieldSchema, context:DisplayFieldContext):DisplayField;
@@ -41,7 +41,7 @@ export interface DisplayFieldContext {
   injector:Injector;
 
   /** Where will the field be rendered? This may result in different styles (Multi select field, e.g.,) */
-  container: 'table'|'single-view'|'timeline';
+  container:'table'|'single-view'|'timeline';
 
   /** Options passed to the display field */
   options:{ [key:string]:any };
@@ -66,7 +66,7 @@ export class DisplayFieldService extends AbstractFieldService<DisplayField, IDis
    */
   public getField(resource:HalResource, fieldName:string, schema:IFieldSchema, context:DisplayFieldContext):DisplayField {
     const fieldClass = this.getSpecificClassFor(resource._type, fieldName, schema.type);
-    let instance = new fieldClass(fieldName, context);
+    const instance = new fieldClass(fieldName, context);
     instance.apply(resource, schema);
     return instance;
   }

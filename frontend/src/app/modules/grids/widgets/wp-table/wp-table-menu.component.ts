@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,9 +26,9 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {Component} from '@angular/core';
-import {WpTableConfigurationModalComponent} from "core-components/wp-table/configuration-modal/wp-table-configuration.modal";
-import {WidgetWpSetMenuComponent} from "core-app/modules/grids/widgets/menu/wp-set-menu.component";
+import { Component } from '@angular/core';
+import { WpTableConfigurationModalComponent } from "core-components/wp-table/configuration-modal/wp-table-configuration.modal";
+import { WidgetWpSetMenuComponent } from "core-app/modules/grids/widgets/menu/wp-set-menu.component";
 
 @Component({
   selector: 'widget-wp-table-menu',

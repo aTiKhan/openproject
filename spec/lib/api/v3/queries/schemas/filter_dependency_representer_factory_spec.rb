@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -122,7 +122,7 @@ describe ::API::V3::Queries::Schemas::FilterDependencyRepresenterFactory do
       context 'type list' do
         let(:custom_field) { FactoryBot.build_stubbed(:list_wp_custom_field) }
 
-        it 'is the string object dependency' do
+        it 'is the custom option dependency' do
           is_expected.to be_a(::API::V3::Queries::Schemas::CustomOptionFilterDependencyRepresenter)
         end
 
@@ -162,7 +162,7 @@ describe ::API::V3::Queries::Schemas::FilterDependencyRepresenterFactory do
       context 'type bool' do
         let(:custom_field) { FactoryBot.build_stubbed(:bool_wp_custom_field) }
 
-        it 'is the string object dependency' do
+        it 'is the boolean filter dependency' do
           is_expected.to be_a(::API::V3::Queries::Schemas::BooleanFilterDependencyRepresenter)
         end
 

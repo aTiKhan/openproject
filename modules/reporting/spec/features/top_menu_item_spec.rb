@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -33,7 +33,7 @@ feature 'Top menu items', js: true do
   let(:open_menu) { true }
 
   def has_menu_items?(*labels)
-    within '#top-menu' do
+    within '.op-app-header' do
       labels.each do |l|
         expect(page).to have_link(l)
       end
@@ -41,7 +41,7 @@ feature 'Top menu items', js: true do
   end
 
   def expect_no_menu_item(*labels)
-    within '#top-menu' do
+    within '.op-app-header' do
       labels.each do |l|
         expect(page).not_to have_link(l)
       end
@@ -52,7 +52,7 @@ feature 'Top menu items', js: true do
     # if the menu is not completely expanded (e.g. if the frontend thread is too fast),
     # the click might be ignored
 
-    within '.drop-down.open ul[aria-expanded=true]' do
+    within '.op-app-menu--item_has-dropdown .op-app-menu--dropdown[aria-expanded=true]' do
       expect(page).not_to have_selector('[style~=overflow]')
 
       page.find_link(title).find('span').click

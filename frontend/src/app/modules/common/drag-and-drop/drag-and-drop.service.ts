@@ -1,8 +1,7 @@
-import {Inject, Injectable, Injector, OnDestroy} from "@angular/core";
-import {DOCUMENT} from "@angular/common";
-import {DomAutoscrollService} from "core-app/modules/common/drag-and-drop/dom-autoscroll.service";
-import {DragAndDropHelpers} from "core-app/modules/common/drag-and-drop/drag-and-drop.helpers";
-import DropEvent = JQuery.DropEvent;
+import { Inject, Injectable, Injector, OnDestroy } from "@angular/core";
+import { DOCUMENT } from "@angular/common";
+import { DomAutoscrollService } from "core-app/modules/common/drag-and-drop/dom-autoscroll.service";
+import { DragAndDropHelpers } from "core-app/modules/common/drag-and-drop/drag-and-drop.helpers";
 
 export interface DragMember {
   dragContainer:HTMLElement;
@@ -72,14 +71,15 @@ export class DragAndDropService implements OnDestroy {
 
   public register(member:DragMember) {
     this.members.push(member);
-    const dragContainer = member.dragContainer;
+    const scrollContainers = member.scrollContainers;
 
     if (this.autoscroll) {
-      this.autoscroll.add(dragContainer);
+      this.autoscroll.add(scrollContainers);
     } else {
-      this.setupAutoscroll([dragContainer]);
+      this.setupAutoscroll(scrollContainers);
     }
 
+    const dragContainer = member.dragContainer;
     if (this.drake === null) {
       this.initializeDrake([dragContainer]);
     } else {

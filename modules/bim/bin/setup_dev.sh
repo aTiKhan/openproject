@@ -12,51 +12,34 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-# Install BIM specifics
-echo "-- Installing dependencies --"
-apt-get update -qq && \
-  DEBIAN_FRONTEND=noninteractive apt-get install -y \
-  curl wget unzip git cmake gcc g++ libboost-all-dev libicu-dev \
-  libpcre3-dev libxml2-dev \
-  liboce-foundation-dev liboce-modeling-dev liboce-ocaf-dev liboce-visualization-dev liboce-ocaf-lite-dev
+# Specifics for BIM edition
+wget -qO- https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
+wget -q https://packages.microsoft.com/config/debian/9/prod.list -O /etc/apt/sources.list.d/microsoft-prod.list
+apt-get update -qq
+apt-get install -y dotnet-runtime-3.1
 
-echo "-- (Re-)creating /usr/local/src/bim base folder --"
-rm -rf /usr/local/src/bim || true
-mkdir -p /usr/local/src/bim
-cd /usr/local/src/bim
-
-# OpenCOLLADA
-echo "-- Downloading and building OpenCOLLADA --"
-git clone https://github.com/KhronosGroup/OpenCOLLADA.git --depth 1
-mkdir OpenCOLLADA/build
-pushd OpenCOLLADA/build
-cmake ..
-make -j
-make install
-popd
+tmpdir=$(mktemp -d)
+cd $tmpdir
 
 # Install COLLADA2GLTF
-echo "-- Downloading COLLADA2GLTF --"
 wget --quiet https://github.com/KhronosGroup/COLLADA2GLTF/releases/download/v2.1.5/COLLADA2GLTF-v2.1.5-linux.zip
-unzip -fq COLLADA2GLTF-v2.1.5-linux.zip -d /usr/lib/COLLADA2GLTF
-ln -fs /usr/lib/COLLADA2GLTF/COLLADA2GLTF-bin /usr/local/bin/COLLADA2GLTF
-rm -rf COLLADA2GLTF-v2.1.5-linux.zip
+unzip -q COLLADA2GLTF-v2.1.5-linux.zip
+mv COLLADA2GLTF-bin "/usr/local/bin/COLLADA2GLTF"
 
 # IFCconvert
-echo "-- Downloading IfcConvert --"
 wget --quiet https://s3.amazonaws.com/ifcopenshell-builds/IfcConvert-v0.6.0-9bcd932-linux64.zip
-unzip -q IfcConvert-v0.6.0-9bcd932-linux64.zip -d /usr/local/src/bim/IfcConvert-v0.6.0-9bcd932-linux64
-ln -fs /usr/local/src/bim/IfcConvert-v0.6.0-9bcd932-linux64/IfcConvert /usr/local/bin/IfcConvert
-rm -rf IfcConvert-v0.6.0-9bcd932-linux64.zip
+unzip -q IfcConvert-v0.6.0-9bcd932-linux64.zip
+mv IfcConvert "/usr/local/bin/IfcConvert"
 
-echo "-- Downloading and building xeokit-metadata --"
-
-wget --quiet https://github.com/bimspot/xeokit-metadata/releases/download/0.0.5/xeokit-metadata-linux-x64.tar.gz
+wget --quiet https://github.com/bimspot/xeokit-metadata/releases/download/1.0.0/xeokit-metadata-linux-x64.tar.gz
 tar -zxvf xeokit-metadata-linux-x64.tar.gz
 chmod +x xeokit-metadata-linux-x64/xeokit-metadata
-cp -r xeokit-metadata-linux-x64/ /usr/lib/xeokit-metadata
-ln -fs /usr/lib/xeokit-metadata/xeokit-metadata /usr/local/bin/xeokit-metadata
-rm -rf xeokit-metadata-linux-x64.tar.gz
+cp -r xeokit-metadata-linux-x64/ "/usr/lib/xeokit-metadata"
+rm -f /usr/local/bin/xeokit-metadatarm -f /usr/local/bin/xeokit-metadata
+ln -s /usr/lib/xeokit-metadata/xeokit-metadata /usr/local/bin/xeokit-metadata
+
+cd /
+rm -rf $tmpdir
 
 which IfcConvert
 echo "✔ IfcConvert is in your path."
@@ -67,13 +50,6 @@ echo "✔ COLLADA2GLTF is in your path."
 which xeokit-metadata
 echo "✔ xeokit-metadata is in your path. (without .NET yet, see below)"
 
-echo "DONE - BUT! You still need to:
-
-1. Install the NPM dependency under your user account
-
-    npm install xeokit/xeokit-gltf-to-xkt -g
-
-2. install your distribution's version of .NET core:
-
-   Select distribution and follow steps at
-   https://dotnet.microsoft.com/download/linux-package-manager/ubuntu18-04/runtime-2.2.0"
+echo "DONE - Now execute the following as your development user:
+      $ # Install XKT converter
+      $ npm install @xeokit/xeokit-gltf-to-xkt@1.3.1 -g"

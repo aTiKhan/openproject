@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -38,6 +38,7 @@ module Components
       include ::Components::NgSelectAutocompleteHelpers
 
       def open
+        SeleniumHubWaiter.wait
         retry_block do
           # Run in retry block because filters do nothing if not yet loaded
           filter_button.click
@@ -65,9 +66,8 @@ module Components
         input = page.find('#filter-by-text-input')
         input.hover
         input.click
+        SeleniumHubWaiter.wait
         input.set text
-
-        sleep 1
       end
 
       def expect_available_filter(name, present: true)
@@ -75,13 +75,18 @@ module Components
       end
 
       def expect_loaded
-        expect(filter_button).to have_selector('.badge', wait: 20)
+        SeleniumHubWaiter.wait
+        expect(filter_button).to have_selector('.badge', wait: 2)
       end
 
-      def add_filter_by(name, operator, value, selector = nil)
+      def add_filter(name)
         select_autocomplete page.find('.advanced-filters--add-filter-value'),
                             query: name,
                             results_selector: '.ng-dropdown-panel-items'
+      end
+
+      def add_filter_by(name, operator, value, selector = nil)
+        add_filter(name)
 
         set_filter(name, operator, value, selector)
       end
@@ -98,6 +103,8 @@ module Components
         set_operator(name, operator, selector)
 
         set_value(id, value) unless value.nil?
+
+        close_autocompleter(id)
       end
 
       def expect_filter_by(name, operator, value, selector = nil)
@@ -121,6 +128,12 @@ module Components
           page.raise_if_found_select("operators-#{id}")
           page.raise_if_found_select("values-#{id}")
         end
+      end
+
+      def expect_filter_order(name, values, selector = nil)
+        id = selector || name.downcase
+
+        expect(page.all("#values-#{id} .ng-value-label").map(&:text)).to eq(values)
       end
 
       def remove_filter(field)
@@ -185,6 +198,15 @@ module Components
       def within_values(id)
         page.within("#filter_#{id} .advanced-filters--filter-value", wait: 10) do
           yield page.has_selector?('.ng-select-container')
+        end
+      end
+
+      def close_autocompleter(id)
+        input = page.all("#filter_#{id} .advanced-filters--filter-value .ng-input input").first
+
+        if input
+          input.click
+          input.send_keys :escape
         end
       end
     end

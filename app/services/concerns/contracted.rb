@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -36,37 +36,17 @@ module Contracted
     attr_accessor :contract_options
 
     def contract_class=(cls)
-      unless cls <= ::ModelContract
-        raise ArgumentError "#{cls.name} is not an instance of ModelContract."
+      unless cls <= ::BaseContract
+        raise ArgumentError, "#{cls.name} is not an instance of BaseContract."
       end
 
       @contract_class = cls
     end
 
-    def changed_by_system(attributes = nil)
-      @changed_by_system ||= []
-
-      if attributes
-        @changed_by_system += Array(attributes)
-      end
-
-      @changed_by_system
-    end
-
-    def change_by_system
-      prior_changes = non_no_op_changes
-
-      ret = yield
-
-      changed_by_system(changed_compared_to(prior_changes))
-
-      ret
-    end
-
     private
 
     def instantiate_contract(object, user, options: {})
-      contract_class.new(object, user, options: { changed_by_system: changed_by_system }.merge(options))
+      contract_class.new(object, user, options: options)
     end
 
     def validate_and_save(object, user, options: {})
@@ -83,10 +63,9 @@ module Contracted
 
       if !contract.validate
         [false, contract.errors]
-      elsif !yield
-        [false, object.errors]
       else
-        [true, object.errors]
+        success = !!yield
+        [success, object&.errors]
       end
     end
 
@@ -96,14 +75,6 @@ module Contracted
         # as object.valid? is already called in the contract
         true
       end
-    end
-
-    def non_no_op_changes
-      model.changes.reject { |_, (old, new)| old == 0 && new.nil? }
-    end
-
-    def changed_compared_to(prior_changes)
-      model.changed.select { |c| !prior_changes[c] || prior_changes[c].last != model.changes[c].last }
     end
   end
 end

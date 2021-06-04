@@ -4,7 +4,7 @@ sidebar_navigation: false
 
 # Manual installation guide
 
-**IMPORTANT: We strongly recommend to use one of the officially supported [installation methods](../../installation). This guide is simply provided as a reference, and is most likely NOT up to date wit relation to the latest OpenProject releases.**
+**IMPORTANT: We strongly recommend to use one of the officially supported [installation methods](../../installation). This guide is simply provided as a reference, and is most likely NOT up to date with relation to the latest OpenProject releases.**
 
 Please be aware that:
 
@@ -49,7 +49,8 @@ sudo passwd openproject #(enter desired password)
                     libncurses5-dev automake                        \
                     libtool bison libffi-dev git curl               \
                     poppler-utils unrtf tesseract-ocr catdoc        \
-                    libxml2 libxml2-dev libxslt1-dev # nokogiri
+                    libxml2 libxml2-dev libxslt1-dev # nokogiri     \
+                    imagemagick
 ```
 
 ## Install the caching server (memcached)
@@ -105,16 +106,16 @@ time to finish.
 [openproject@host] source ~/.profile
 [openproject@host] git clone https://github.com/sstephenson/ruby-build.git ~/.rbenv/plugins/ruby-build
 
-[openproject@host] rbenv install 2.6.1
+[openproject@host] rbenv install 2.7.3
 [openproject@host] rbenv rehash
-[openproject@host] rbenv global 2.6.1
+[openproject@host] rbenv global 2.7.3
 ```
 
 To check our Ruby installation we run `ruby --version`. It should output
 something very similar to:
 
 ```
-ruby 2.6.1pXYZ (....) [x86_64-linux]
+ruby 2.7.3p183 (2021-04-05 revision 6847ee089d) [x86_64-linux]
 ```
 
 ## Installation of Node
@@ -133,15 +134,15 @@ time to finish.
 [openproject@host] source ~/.profile
 [openproject@host] git clone git://github.com/OiNutter/node-build.git ~/.nodenv/plugins/node-build
 
-[openproject@host] nodenv install 8.12.0
+[openproject@host] nodenv install 14.16.0
 [openproject@host] nodenv rehash
-[openproject@host] nodenv global 8.12.0
+[openproject@host] nodenv global 14.16.0
 ```
 
 To check our Node installation we run `node --version`. It should output something very similar to:
 
 ```
-v8.12.0
+v14.16.0
 ```
 
 ## Installation of OpenProject
@@ -272,7 +273,7 @@ Now, the Passenger gem is installed and integrated into apache.
 [openproject@ubuntu] passenger-install-apache2-module
 ```
 
-If you are running on a Virtual Private Server, you need to make sure you have atleast 1024mb of RAM before running the `passenger-install-apache2-module`.
+If you are running on a Virtual Private Server, you need to make sure you have at least 1024mb of RAM before running the `passenger-install-apache2-module`.
 
 Follow the instructions passenger provides.
 The passenger installer will ask you the question in "Which languages are you
@@ -458,4 +459,3 @@ If you need to restart the server (for example after a configuration change), do
 
 If you have any further questions, comments, feedback, or an idea to enhance this guide, please tell us at the appropriate community [forum](https://community.openproject.org/projects/openproject/boards/9).
 [Follow OpenProject on twitter](https://twitter.com/openproject), and follow the news on [openproject.org](http://openproject.org) to stay up to date.
-

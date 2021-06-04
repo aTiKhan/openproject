@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,16 +24,16 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {StateService, TransitionService} from '@uirouter/core';
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
-import {CurrentProjectService} from "core-components/projects/current-project.service";
-import {AuthorisationService} from "core-app/modules/common/model-auth/model-auth.service";
-import {Observable} from "rxjs";
-import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
-import {componentDestroyed} from "@w11k/ngx-componentdestroyed";
+import { StateService, TransitionService } from '@uirouter/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
+import { CurrentProjectService } from "core-components/projects/current-project.service";
+import { AuthorisationService } from "core-app/modules/common/model-auth/model-auth.service";
+import { Observable } from "rxjs";
+import { UntilDestroyedMixin } from "core-app/helpers/angular/until-destroyed.mixin";
+import { componentDestroyed } from "@w11k/ngx-componentdestroyed";
 
 @Component({
   selector: 'wp-create-button',
@@ -45,7 +45,7 @@ export class WorkPackageCreateButtonComponent extends UntilDestroyedMixin implem
   @Input('stateName$') stateName$:Observable<string>;
 
   allowed:boolean;
-  disabled:boolean
+  disabled:boolean;
   projectIdentifier:string|null;
   types:any;
   transitionUnregisterFn:Function;
@@ -75,7 +75,7 @@ export class WorkPackageCreateButtonComponent extends UntilDestroyedMixin implem
         this.allowed = !!this
           .allowedWhen
           .find(combined => {
-            let [module, permission] = combined.split('.');
+            const [module, permission] = combined.split('.');
             return this.authorisationService.can(module, permission);
           });
 

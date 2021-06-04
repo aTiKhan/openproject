@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -31,9 +32,9 @@ class CustomStylesController < ApplicationController
   layout 'admin'
   menu_item :custom_style
 
-  before_action :require_admin, except: [:logo_download, :favicon_download, :touch_icon_download]
-  before_action :require_ee_token, except: [:upsale, :logo_download, :favicon_download, :touch_icon_download]
-  skip_before_action :check_if_login_required, only: [:logo_download, :favicon_download, :touch_icon_download]
+  before_action :require_admin, except: %i[logo_download favicon_download touch_icon_download]
+  before_action :require_ee_token, except: %i[upsale logo_download favicon_download touch_icon_download]
+  skip_before_action :check_if_login_required, only: %i[logo_download favicon_download touch_icon_download]
 
   def show
     @custom_style = CustomStyle.current || CustomStyle.new
@@ -89,20 +90,28 @@ class CustomStylesController < ApplicationController
 
   def update_colors
     variable_params = params[:design_colors].first
-    set_colors(variable_params)
-    set_theme(params)
+
+    ::Design::UpdateDesignService
+      .new(colors: variable_params, theme: params[:theme])
+      .call
 
     redirect_to action: :show
   end
 
   def update_themes
-    theme = OpenProject::CustomStyles::ColorThemes::THEMES.find { |t| t[:name] == params[:theme] }
-    color_params = theme[:colors]
-    logo = theme[:logo]
+    theme = OpenProject::CustomStyles::ColorThemes.themes.find { |t| t[:theme] == params[:theme] }
 
-    set_logo(logo)
-    set_colors(color_params)
-    set_theme(params)
+    call = ::Design::UpdateDesignService
+      .new(theme)
+      .call
+
+    call.on_success do
+      flash[:notice] = I18n.t(:notice_successful_update)
+    end
+
+    call.on_failure do
+      flash[:error] = call.message
+    end
 
     redirect_to action: :show
   end
@@ -114,38 +123,13 @@ class CustomStylesController < ApplicationController
   private
 
   def options_for_theme_select
-    options = OpenProject::CustomStyles::ColorThemes::THEMES.map { |val| val[:name] }
-    options << [t('admin.custom_styles.color_theme_custom'), '', disabled: true] if @current_theme.empty?
+    options = OpenProject::CustomStyles::ColorThemes.themes.map { |val| val[:theme] }
+    unless @current_theme.present?
+      options << [t('admin.custom_styles.color_theme_custom'), '',
+                  { selected: true, disabled: true }]
+    end
 
     options
-  end
-
-  def set_logo(logo)
-    get_or_create_custom_style.update(theme_logo: logo)
-  end
-
-  def set_colors(variable_params)
-    variable_params.each do |param_variable, param_hexcode|
-      if design_color = DesignColor.find_by(variable: param_variable)
-        if param_hexcode.blank?
-          design_color.destroy
-        elsif design_color.hexcode != param_hexcode
-          design_color.hexcode = param_hexcode
-          design_color.save
-        end
-      else
-        # create that design_color
-        design_color = DesignColor.new variable: param_variable, hexcode: param_hexcode
-        design_color.save
-      end
-    end
-  end
-
-  def set_theme(params)
-    theme = ActionController::Parameters.new(theme: params[:theme] || '').permit(:theme)
-
-    @custom_style = get_or_create_custom_style
-    @custom_style.update(theme)
   end
 
   def get_or_create_custom_style

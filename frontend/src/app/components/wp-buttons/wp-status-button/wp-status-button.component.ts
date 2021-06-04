@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,17 +24,18 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {WorkPackageResource} from 'core-app/modules/hal/resources/work-package-resource';
+import { WorkPackageResource } from 'core-app/modules/hal/resources/work-package-resource';
 
-import {HalResourceEditingService} from "core-app/modules/fields/edit/services/hal-resource-editing.service";
-import {ChangeDetectorRef, Component, Input, OnInit} from '@angular/core';
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
-import {Highlighting} from "core-components/wp-fast-table/builders/highlighting/highlighting.functions";
-import {HalResource} from "core-app/modules/hal/resources/hal-resource";
-import {WorkPackageCacheService} from "core-components/work-packages/work-package-cache.service";
-import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
+import { HalResourceEditingService } from "core-app/modules/fields/edit/services/hal-resource-editing.service";
+import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
+import { Highlighting } from "core-components/wp-fast-table/builders/highlighting/highlighting.functions";
+import { HalResource } from "core-app/modules/hal/resources/hal-resource";
+import { UntilDestroyedMixin } from "core-app/helpers/angular/until-destroyed.mixin";
+import { SchemaCacheService } from "core-components/schemas/schema-cache.service";
+import { ISchemaProxy } from "core-app/modules/hal/schemas/schema-proxy";
 
 @Component({
   selector: 'wp-status-button',
@@ -53,7 +54,7 @@ export class WorkPackageStatusButtonComponent extends UntilDestroyedMixin implem
 
   constructor(readonly I18n:I18nService,
               readonly cdRef:ChangeDetectorRef,
-              readonly wpCacheService:WorkPackageCacheService,
+              readonly schemaCache:SchemaCacheService,
               readonly halEditing:HalResourceEditingService) {
     super();
   }
@@ -67,18 +68,19 @@ export class WorkPackageStatusButtonComponent extends UntilDestroyedMixin implem
       )
       .subscribe((wp) => {
         this.workPackage = wp;
-        this.cdRef.detectChanges();
 
         if (this.workPackage.status) {
           this.workPackage.status.$load();
         }
+
+        this.cdRef.detectChanges();
       });
   }
 
   public get buttonTitle() {
-    if (this.workPackage.isReadonly) {
+    if (this.schema.isReadonly) {
       return this.text.workPackageReadOnly;
-    } else if (this.workPackage.isEditable && this.isDisabled) {
+    } else if (this.schema.isEditable && !this.allowed) {
       return this.text.workPackageStatusBlocked;
     } else {
       return '';
@@ -86,32 +88,30 @@ export class WorkPackageStatusButtonComponent extends UntilDestroyedMixin implem
   }
 
   public get statusHighlightClass() {
-    let status = this.status;
+    const status = this.status;
     if (!status) {
       return;
     }
     return Highlighting.backgroundClass('status', status.id!);
   }
 
-  public get status():HalResource|undefined {
-    if (!this.halEditing) {
-      return;
-    }
+  public get status():HalResource {
+    return this.workPackage.status;
+  }
 
-    return this.changeset.projectedResource.status;
+  public get isReadonly() {
+    return this.schema.isReadonly;
   }
 
   public get allowed() {
-    return this.workPackage.isAttributeEditable('status');
+    return this.schema.isAttributeEditable('status');
   }
 
-  public get isDisabled() {
-    let writable = this.changeset.isWritable('status');
-
-    return !this.allowed || !writable || this.changeset.inFlight;
-  }
-
-  private get changeset() {
-    return this.halEditing.changeFor(this.workPackage);
+  private get schema() {
+    if (this.halEditing.typedState(this.workPackage).hasValue()) {
+      return this.halEditing.typedState(this.workPackage).value!.schema;
+    } else {
+      return this.schemaCache.of(this.workPackage) as ISchemaProxy;
+    }
   }
 }

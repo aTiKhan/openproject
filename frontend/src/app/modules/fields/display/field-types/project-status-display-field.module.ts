@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,20 +24,32 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {DisplayField} from "core-app/modules/fields/display/display-field.module";
-import {projectStatusCodeCssClass, projectStatusI18n} from "core-app/modules/fields/helpers/project-status-helper";
+import { DisplayField } from "core-app/modules/fields/display/display-field.module";
+import { projectStatusCodeCssClass, projectStatusI18n } from "core-app/modules/fields/helpers/project-status-helper";
 
 
 export class ProjectStatusDisplayField extends DisplayField {
   public render(element:HTMLElement, displayText:string):void {
-    const code = this.value;
+    const code = this.value && this.value.id;
 
-    element.innerHTML = `
-      <span class="project-status--bulb ${projectStatusCodeCssClass(code)}"></span>
-      <span class="project-status--name ${projectStatusCodeCssClass(code)}">${projectStatusI18n(code, this.I18n)}</span>
-      <span class="project-status--pulldown-icon icon icon-pulldown"></span>
-    `;
+    const bulb = document.createElement('span');
+    bulb.classList.add('project-status--bulb', projectStatusCodeCssClass(code));
+
+    const name = document.createElement('span');
+    name.classList.add('project-status--name',  projectStatusCodeCssClass(code));
+    name.textContent = projectStatusI18n(code, this.I18n);
+
+    element.innerHTML = '';
+    element.appendChild(bulb);
+    element.appendChild(name);
+
+    if (this.writable) {
+      const pulldown = document.createElement('span');
+      pulldown.classList.add('project-status--pulldown-icon', 'icon', 'icon-pulldown');
+
+      element.appendChild(pulldown);
+    }
   }
 }

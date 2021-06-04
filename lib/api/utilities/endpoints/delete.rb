@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -39,19 +39,20 @@ module API
         def initialize(model:,
                        instance_generator: default_instance_generator(model),
                        process_service: nil,
+                       success_status: 204,
                        api_name: model.name.demodulize)
           self.model = model
           self.instance_generator = instance_generator
           self.process_service = process_service || deduce_process_service
           self.api_name = api_name
+          self.success_status = success_status
         end
 
         def mount
           delete = self
 
           -> do
-            call = delete.process(current_user,
-                                  instance_exec(params, &delete.instance_generator))
+            call = delete.process(self)
 
             delete.render(call) do
               status delete.success_status
@@ -59,10 +60,10 @@ module API
           end
         end
 
-        def process(current_user, instance)
+        def process(request)
           process_service
-            .new(user: current_user,
-                 model: instance)
+            .new(user: request.current_user,
+                 model: request.instance_exec(request.params, &instance_generator))
             .call
         end
 
@@ -75,14 +76,11 @@ module API
           end
         end
 
-        def success_status
-          204
-        end
-
         attr_accessor :model,
                       :instance_generator,
                       :process_service,
-                      :api_name
+                      :api_name,
+                      :success_status
 
         private
 

@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,13 +24,13 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {Injectable, Injector} from '@angular/core';
-import {WorkPackagesListChecksumService} from "core-components/wp-list/wp-list-checksum.service";
-import {WorkPackagesListService} from "core-components/wp-list/wp-list.service";
-import {TransitionService} from "@uirouter/core";
-import {Subject} from "rxjs";
+import { Injectable, Injector } from '@angular/core';
+import { WorkPackagesListChecksumService } from "core-components/wp-list/wp-list-checksum.service";
+import { WorkPackagesListService } from "core-components/wp-list/wp-list.service";
+import { TransitionService } from "@uirouter/core";
+import { Subject } from "rxjs";
 
 @Injectable()
 export class QueryParamListenerService {
@@ -48,11 +48,11 @@ export class QueryParamListenerService {
   public listenForQueryParamsChanged():any {
     // Listen for param changes
     return this.queryChangeListener = this.$transitions.onSuccess({}, (transition):any => {
-      let options = transition.options();
+      const options = transition.options();
       const params = transition.params('to');
 
-      let newChecksum = this.wpListService.getCurrentQueryProps(params);
-      let newId:string = params.query_id ? params.query_id.toString() : null;
+      const newChecksum = this.wpListService.getCurrentQueryProps(params);
+      const newId:string = params.query_id ? params.query_id.toString() : null;
 
       // Avoid performing any changes when we're going to reload
       if (options.reload || (options.custom && options.custom.notify === false)) {

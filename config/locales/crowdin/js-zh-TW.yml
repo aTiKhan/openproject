@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -33,10 +33,24 @@ zh-TW:
         single: "選擇 \"%{name}\""
       remove: "刪除 %{name}"
       active: "啟用 %{label} %{name}"
+    backup:
+      attachments_disabled: Attachments may not be included since they exceed the maximum overall size allowed. You can change this via the configuration (requires a server restart).
+      info: >
+        You can trigger a backup here. The process can take some time depending on the amount of data (especially attachments) you have. You will receive an email once it's ready.
+      note: >
+        A new backup will override any previous one. Only a limited number of backups per day can be requested.
+      last_backup: Last backup
+      last_backup_from: Last backup from
+      title: Backup OpenProject
+      options: 選項
+      include_attachments: Include attachments
+      download_backup: Download backup
+      request_backup: Request backup
     close_popup_title: "關閉彈出式視窗"
     close_filter_title: "關閉篩選器"
     close_form_title: "關閉表單"
     button_add_watcher: "新增監看者"
+    button_add: "增加"
     button_back: "返回"
     button_back_to_list_view: "返回清單"
     button_cancel: "取消"
@@ -54,6 +68,8 @@ zh-TW:
     button_duplicate: "複本"
     button_edit: "編輯"
     button_filter: "篩選器"
+    button_collapse_all: "全部摺疊"
+    button_expand_all: "全部展開"
     button_advanced_filter: "進階篩選"
     button_list_view: "清單檢視"
     button_show_view: "全螢幕瀏覽"
@@ -63,7 +79,7 @@ zh-TW:
     button_close_details: "關閉詳細檢視"
     button_open_fullscreen: "開啟全螢幕檢視"
     button_show_cards: "顯示卡片檢視"
-    button_show_list: "Show list view"
+    button_show_list: "列表檢視"
     button_quote: "引言"
     button_save: "儲存"
     button_settings: "設定"
@@ -71,9 +87,10 @@ zh-TW:
     button_update: "更新"
     button_export-pdf: "下載 PDF"
     button_export-atom: "下載 Atom"
+    button_create: "建立"
     calendar:
       title: '行事曆'
-      too_many: 'There are %{count} work packages in total, but only %{max} can be shown.'
+      too_many: '總共有 %{count} 個工作項目，但只有 %{max} 個可以顯示。'
     card:
       add_new: '新增卡片'
       highlighting:
@@ -83,26 +100,26 @@ zh-TW:
     caption_rate_history: "Rate history"
     clipboard:
       browser_error: "您的瀏覽器不支援複製到剪貼簿。請手動複製選取的文字。"
-      copied_successful: "成功複製到剪貼簿上!"
+      copied_successful: "Successfully copied to clipboard!"
     chart:
-      type: 'Chart type'
+      type: '圖表類型'
       axis_criteria: 'Axis criteria'
       modal_title: 'Work package graph configuration'
       types:
-        line: 'Line'
+        line: '折線'
         horizontal_bar: 'Horizontal bar'
-        bar: 'Bar'
-        pie: 'Pie'
-        doughnut: 'Doughnut'
-        radar: 'Radar'
+        bar: '長條'
+        pie: '圓餅'
+        doughnut: '甜甜圈'
+        radar: '雷達'
         polar_area: 'Polar area'
       tabs:
         graph_settings: '一般'
-        dataset: 'Dataset %{number}'
+        dataset: '資料集 %{number}'
       errors:
         could_not_load: 'The data to display the graph could not be loaded. The necessary permissions may be lacking.'
     description_available_columns: "可用欄"
-    description_current_position: "You are here: "
+    description_current_position: "你在這裡："
     description_select_work_package: "選取工作項目 #%{id}"
     description_selected_columns: "所選的欄"
     description_subwork_package: "子工作項目 #%{id}"
@@ -115,6 +132,11 @@ zh-TW:
         manual: '切換到標記源模式'
         wysiwyg: '切換到所見即所得編輯器'
       macro:
+        error: 'Cannot expand macro: %{message}'
+        attribute_reference:
+          macro_help_tooltip: 'This text segment is being dynamically rendered by a macro.'
+          not_found: 'Requested resource could not be found'
+          invalid_attribute: "The selected attribute '%{name}' does not exist."
         child_pages:
           button: '指向子頁面的連結'
           include_parent: '包括父項'
@@ -165,7 +187,8 @@ zh-TW:
       enterprise:
         trial:
           confirmation: "Confirmation of email address"
-          confirmation_info: "We sent you an email. Please check your emails and click the confirmation link provided to start your 14 days trial."
+          confirmation_info: >
+            We sent you an email on %{date} to %{email}. Please check your inbox and click the confirmation link provided to start your 14 days trial.
           form:
             general_consent: >
               I agree with the <a target="_blank" href="%{link_terms}">terms of service</a> and the <a target="_blank" href="%{link_privacy}">privacy policy</a>.
@@ -180,9 +203,10 @@ zh-TW:
             label_starts_at: "Starts at"
             label_expires_at: "過期於"
             receive_newsletter: I want to receive the OpenProject <a target="_blank" href="%{link}">newsletter</a>.
+            taken_domain: There can only be one active trial per domain.
+            taken_email: Each user can only create one trial.
           email_not_received: "You did not receive an email? You can resend the email with the link on the right."
           try_another_email: "Or try it with another email address."
-          try_another_email_hint: "Please be aware that your previous email address gets invalid if you try again with a new one."
           next_steps: "Next steps"
           resend_link: "重新發送"
           resend_success: "Email has been resent. Please check your emails and click the confirmation link provided."
@@ -196,7 +220,7 @@ zh-TW:
         upsale:
           become_hero: "成為英雄!"
           benefits:
-            description: "有什麼好處？"
+            description: "What are the benefits of the Enterprise on-premises Edition?"
             high_security: "Security features"
             high_security_text: "Single sign on (SAML, OpenID Connect, CAS), two-factor authentication and automatic sync of LDAP groups."
             installation: "Installation support"
@@ -247,7 +271,6 @@ zh-TW:
     general_text_yes: "是"
     general_text_No: "否"
     general_text_Yes: "是"
-    global_roles: 全域角色
     hal:
       error:
         update_conflict_refresh: "Click here to refresh the resource and update to the newest version."
@@ -259,15 +282,15 @@ zh-TW:
       blocks:
         new_features:
           text_new_features: "Read about new features and product updates."
-          learn_about: "Learn more about the new features"
+          learn_about: "瞭解更多新功能的資訊"
           standard:
-            learn_about_link: https://www.openproject.org/openproject-10-4
+            learn_about_link: https://www.openproject.org/openproject-11-3-release
             current_new_feature_html: >
-              The release contains various new features and improvements: <br><br> <ul> <li>Default <b>design templates</b> to select a light or dark theme (premium feature).</li> <li>New <b>time tracking widget</b> for <i>My page</i> to show spent time in a bar chart.</li> <li><b>XLS-exports for cost reports</b> and formatted text in PDF export of work packages.</li> <li><b>Improved design and usability</b>, i.e. tabs and more in project settings and administration.</li> </ul>
+              The release contains various new features and improvements: <br> <ul class="%{list_styling_class}"> <li>New button in header navigation to create projects, users and work packages.</li> <li>A new invite modal for users, groups and placeholder users allows to easily add or invite new users and assign them to work packages.</li> <li>GitHub integration into OpenProject.</li> <li>API v3 extensions for groups and more, i.e. create, read, update and delete groups and group members through the API.</li> <li>Multi-selection for project custom fields of type list.</li> <li>Creation of backup from the web interface.</li> </ul>
           bim:
-            learn_about_link: https://www.openproject.org/openproject-bim-10-4
+            learn_about_link: https://www.openproject.org/openproject-11-3-release
             current_new_feature_html: >
-              OpenProject contains a <b>new IFC module to integrate 3D models</b> into your project management application and to work collaboratively with these files with your team without installation of separate costly software or licenses. <br><br> <ul> <li><b>Import IFC files</b> of building models into your OpenProject application.</li> <li><b>Open 3D models and visualize building models</b> in your browser.</li> <li> Easily <b>work on multiple IFC files</b> with your team directly in OpenProject without installation of separate costly software. </li> </ul>
+              The release contains various new features and improvements: <br> <ul class="%{list_styling_class}"> <li>BIM: Improved performance of the IFC model viewer.</li> <li>BIM: The IFC viewer now supports double precision models, which is great for large construction sites such as bridges, roads etc.</li> <li>BIM: Toggle button for switching between perspective and orthogonal mode.</li> <li>BIM: A menu for editing, deleting or flipping section planes.</li> <li>New button in header navigation to create projects, users and work packages.</li> <li>A new invite modal for users, groups and placeholder users allows to easily add or invite new users and assign them to work packages.</li> <li>API v3 extensions for groups and more, i.e. create, read, update and delete groups and group members through the API.</li> <li>Multi-selection for project custom fields of type list.</li> <li>Creation of backup from the web interface.</li> </ul>
     label_activate: "啟用"
     label_add_column_after: "在後面增加一欄"
     label_add_column_before: "在前面增加一欄"
@@ -278,14 +301,14 @@ zh-TW:
     label_add_row_before: "在前面增加一列"
     label_add_selected_columns: "新增所選欄"
     label_added_by: "新增者"
-    label_added_time_by: "由 %{author} 於%{age} 新增"
+    label_added_time_by: "Added by <a href=%{authorLink}>%{author}</a> at %{age}"
     label_ago: "天前"
     label_all: "所有"
     label_all_work_packages: "所有工作項目"
     label_and: "和"
     label_ascending: "昇冪"
     label_author: "作者: %{user}"
-    label_avatar: "Avatar"
+    label_avatar: "頭像分身"
     label_between: "介於"
     label_board: "面板"
     label_board_locked: "鎖定"
@@ -319,9 +342,11 @@ zh-TW:
     label_expand_all: "全部展開"
     label_expand_project_menu: "展開專案選單"
     label_export: "匯出"
+    label_export_preparing: "The export is being prepared and will be downloaded shortly."
     label_filename: "檔案"
     label_filesize: "檔案大小"
     label_general: "一般"
+    label_global_roles: "全域角色"
     label_greater_or_equal: ">="
     label_group: '群組'
     label_group_by: "分組依據"
@@ -334,7 +359,7 @@ zh-TW:
     label_in_more_than: "多於"
     label_incoming_emails: "接收到的電子郵件"
     label_information_plural: "資訊"
-    label_import: "Import"
+    label_import: "匯入"
     label_latest_activity: "最新活動"
     label_last_updated_on: "最後更新於"
     label_learn_more_link: "了解更多"
@@ -351,7 +376,7 @@ zh-TW:
     label_next: "下一個"
     label_no_color: "無顏色"
     label_no_data: "沒有資料可顯示"
-    label_no_due_date: "無結束日期"
+    label_no_due_date: "no finish date"
     label_no_start_date: "無開始日期"
     label_no_value: "無值"
     label_none: "無"
@@ -368,8 +393,9 @@ zh-TW:
     label_project_plural: "專案"
     label_visibility_settings: "可見度設定"
     label_quote_comment: "引述這個評論"
-    label_recent: "Recent"
+    label_recent: "最近"
     label_reset: "重置"
+    label_remove: "刪除"
     label_remove_column: "移除欄"
     label_remove_columns: "移除所選欄"
     label_remove_row: "移除列"
@@ -391,9 +417,10 @@ zh-TW:
     label_public_query: "公開"
     label_sum: "總和"
     label_sum_for: "總和"
+    label_total_sum: "Total sum"
     label_subject: "主題"
     label_this_week: "本週"
-    label_today: "今天"
+    label_today: "今日"
     label_time_entry_plural: "耗時"
     label_up: "向上"
     label_user_plural: "使用者"
@@ -403,9 +430,11 @@ zh-TW:
     label_total_amount: "總計: %{amount}"
     label_updated_on: "更新於"
     label_value_derived_from_children: "(value derived from children)"
+    label_children_derived_duration: "Work package's children derived duration"
     label_warning: "警告"
     label_work_package: "工作項目"
-    label_work_package_plural: "Work packages"
+    label_work_package_parent: "Parent work package"
+    label_work_package_plural: "工作項目"
     label_watch: "監看"
     label_watch_work_package: "關注工作項目"
     label_watcher_added_successfully: "已成功新增關注者！"
@@ -431,7 +460,7 @@ zh-TW:
     label_add_description: "添加 %{file} 的說明"
     label_upload_notification: "上傳檔案中..."
     label_work_package_upload_notification: "上傳檔案到工作包 #%{id}: %{subject}"
-    label_wp_id_added_by: "#%{id} added by %{author}"
+    label_wp_id_added_by: "#%{id} 被 %{author} 新增"
     label_files_to_upload: "將上傳這些檔案:"
     label_rejected_files: "不能上傳這些檔案:"
     label_rejected_files_reason: "這些檔案不能上傳，因為它們的大小大於 %{maximumFilesize}"
@@ -451,6 +480,7 @@ zh-TW:
         help_menu: '您可以在<b>幫助</b>選單裡找到使用者手冊和更多的幫助資源．'
         members: '邀請新的 <b>會員</b> 加入您的專案。'
         project_selection: 'Please click on one of the projects with useful demo data to get started. <br> The <b>Demo project</b> suits best for classical project management, while the <b>Scrum project</b> is better for Agile project management.'
+        quick_add_button: 'Create a new project or invite coworkers.'
         sidebar_arrow: "使用箭頭, 您可以導航回專案的 <b>主功能表</b>。"
         welcome: '觀看三分鐘的介紹導覽, 以瞭解最多 <b>重要功能</b>。 <br> 我們建議完成所有步驟直到結束。您可以隨時重新開始導覽。'
         wiki: '在 <b>wiki</b> 中, 您可以與您的團隊一起記錄和分享知識。'
@@ -466,7 +496,7 @@ zh-TW:
           drag: 'Drag & Drop your cards within a list to re-order, or to another list. A double click will open the details view.'
         wp:
           toggler: "現在, 讓我們來看看 <b>工作包</b> 部分, 它為您提供了更詳細的工作視圖。"
-          list: '這是 <b>工作包</b> 清單, 其中包含專案中的重要工作, 如任務、功能、里程碑、bug 等。 <br> 您可以直接在此清單中創建或編輯工作包。要查看其詳細資訊, 您可以按兩下一行。'
+          list: 'This is the <b>Work package</b> list with the important work within your project, such as tasks, milestones, phases, and more. <br> You can create or edit a work package directly within this list. To see its details you can double click on a row.'
           full_view: '在 <b>工作包詳細資訊</b> 中, 您可以找到所有相關資訊, 如描述、狀態和優先順序、活動、依賴項或注釋。'
           back_button: '使用箭頭, 您可以導航回工作包清單。'
           create_button: '<b>創建</b>按鍵將新增一個工作包至您的專案'
@@ -491,6 +521,11 @@ zh-TW:
       context: '專案內容'
       work_package_belongs_to: '此工作項目屬於專案 %{projectname}。'
       click_to_switch_context: '在該專案中打開此工作項目。'
+      confirm_template_load: 'Switching the template will reload the page and you will lose all input to this form. Continue?'
+      use_template: "使用範本"
+      no_template_selected: "(None)"
+      copy:
+        copy_options: "Copy options"
       autocompleter:
         label: '專案自動完成'
     text_are_you_sure: "是否確定？"
@@ -501,7 +536,7 @@ zh-TW:
         reset_title: "重設表單配置"
         confirm_reset: >
           警告: 確實要重置表單配置嗎？這將重置屬性到其預設組, 並禁用所有自訂欄位。
-        upgrade_to_ee: "升級到企業版"
+        upgrade_to_ee: "Upgrade to Enterprise on-premises Edition"
         upgrade_to_ee_text: "哇！如果您需要使用此功能，說明您非常專業！您是否願意成為企業版客戶來支持 OpenSource 開發人員？"
         more_information: "更多資訊"
         nevermind: "無視"
@@ -518,7 +553,7 @@ zh-TW:
       duration: '時間長度'
       spent_on: '日期'
       hours: '小時'
-      label: 'Time entry'
+      title: '日誌的時間'
     two_factor_authentication:
       label_two_factor_authentication: '雙重身分驗證'
     watchers:
@@ -574,11 +609,18 @@ zh-TW:
     relations_autocomplete:
       placeholder: "Type to search"
       parent_placeholder: "Choose new parent or press escape to cancel."
+    autocompleter:
+      placeholder: "Type to search"
+      notFoundText: "No items found"
+      typeToSearchText: "Type to search"
     repositories:
       select_tag: '選擇標籤'
       select_branch: '選擇分支'
     field_value_enter_prompt: "輸入'%{field}'的值"
     project_menu_details: "詳細資料"
+    scheduling:
+      manual: '手動排程'
+      automatic: '自動排程'
     sort:
       sorted_asc: '已套用升冪排序， '
       sorted_dsc: '已套用降冪排序， '
@@ -744,6 +786,7 @@ zh-TW:
         startDate: "起始日期"
         status: "狀態"
         subject: "主題"
+        subproject: "子專案"
         title: "標題"
         type: "類型"
         updatedAt: "更新於"
@@ -789,6 +832,9 @@ zh-TW:
           not_found: "無此查詢"
           duplicate_query_title: "此視圖的名稱已存在。確定改變？"
         text_no_results: "找不到匹配的視圖。"
+      scheduling:
+        is_parent: "The dates of this work package are automatically deduced from its children. Activate 'Manual scheduling' to set the dates."
+        is_switched_from_manual_to_automatic: "The dates of this work package may need to be recalculated after switching from manual to automatic scheduling due to relationships with other work packages."
       table:
         configure_button: '配置工作包表'
         summary: "由工作項目和工作項目屬性列組成的表格。"
@@ -819,10 +865,10 @@ zh-TW:
           type: '類型'
         sorting_mode:
           description: 'Chose the mode to sort your Work packages:'
-          automatic: 'Automatic'
-          manually: 'Manually'
+          automatic: '自動'
+          manually: '手動'
           warning: 'You will lose your previous sorting when activating the automatic sorting mode.'
-        columns_help_text: "Use the input above to add columns to your table view. You can drag and drop the columns to reorder them."
+        columns_help_text: "Use the input field above to add columns to your table view. You can drag and drop the columns to reorder them."
         upsale:
           attribute_highlighting: '需要某些工作包才能從大眾中脫穎而出？'
           relation_columns: '需要檢視工作項目清單的關係嗎'
@@ -877,10 +923,14 @@ zh-TW:
         has_children: "此工作項目包含 %{childUnits}:"
         confirm_deletion_children: "我確認列出的工作項目的所有細項全部都將被刪除。"
         deletes_children: "所有子工作項目及其子項目也全部將被刪除。"
-    notice_no_results_to_display: "No visible results to display."
+      destroy_time_entry:
+        title: "Confirm deletion of time entry"
+        text: "Are you sure you want to delete the following time entry?"
+    notice_no_results_to_display: "沒有可顯示的相關結果。"
     notice_successful_create: "建立成功"
     notice_successful_delete: "刪除成功"
     notice_successful_update: "更新成功"
+    notice_job_started: "job started."
     notice_bad_request: "錯誤的請求"
     relations:
       empty: 無關聯存在
@@ -904,7 +954,7 @@ zh-TW:
         messages_on_field: '此欄位無效: %{messages}'
     error_could_not_resolve_version_name: "無法解析版本名稱"
     error_could_not_resolve_user_name: "無法解析使用者名稱"
-    error_attachment_upload: "File failed to upload: %{error}"
+    error_attachment_upload: "無法上傳檔案：%{error}"
     error_attachment_upload_permission: "您沒有在此資源上載檔案的許可權。"
     units:
       workPackage:
@@ -912,8 +962,9 @@ zh-TW:
       child_work_packages:
         other: "%{count} 個子工作項目"
       hour:
-        zero: "0 h"
+        one: "1 h"
         other: "%{count} h"
+        zero: "0 h"
     zen_mode:
       button_activate: '啟動 zen 模式'
       button_deactivate: '停用 zen 模式'
@@ -928,6 +979,81 @@ zh-TW:
         project_and_subprojects: "和所有的子專案"
         search_for: "搜尋"
     views:
-      card: 'Cards'
-      list: 'Table'
+      card: '卡片'
+      list: '表格'
       timeline: '甘特圖'
+    invite_user_modal:
+      back: '返回'
+      invite: 'Invite'
+      title:
+        invite: '邀請使用者'
+        invite_to_project: 'Invite %{type} to %{project}'
+        User: 'user'
+        Group: 'group'
+        PlaceholderUser: 'placeholder user'
+        invite_principal_to_project: 'Invite %{principal} to %{project}'
+      project:
+        label: '專案'
+        required: 'Please select a project'
+        lacking_permission: 'Please select a different project since you lack permissions to assign users to the currently selected.'
+        lacking_permission_info: 'You lack the permission to assign users to the project you are currently in. You need to select a different one.'
+        next_button: '下一個'
+        no_results: 'No projects were found'
+        no_invite_rights: 'You are not allowed to invite members to this project'
+      type:
+        required: 'Please select the type to be invited'
+        user:
+          title: '使用者'
+          description: 'Permissions based on the assigned role in the selected project'
+        group:
+          title: '群組'
+          description: 'Permissions based on the assigned role in the selected project'
+        placeholder:
+          title: 'Placeholder user'
+          title_no_ee: 'Placeholder user (Enterprise Edition only feature)'
+          description: 'Has no access to the project and no emails are sent out.'
+          description_no_ee: 'Has no access to the project and no emails are sent out. <br>Check out the <a href="%{eeHref}" target="_blank">Enterprise Edition</a>'
+      principal:
+        label:
+          name_or_email: 'Name or email address'
+          name: '名稱'
+        already_member_message: 'Already a member of %{project}'
+        no_results_user: 'No users were found'
+        invite_user: 'Invite:'
+        change_user_selection: 'Change e-mail-address or select an existing user'
+        no_results_placeholder: 'No placeholders were found'
+        change_placeholder_selection: 'Change name or select an existing placeholder'
+        create_new_placeholder: 'Create new placeholder:'
+        no_results_group: 'No groups were found'
+        change_group_selection: 'Change name or select an existing group'
+        next_button: '下一個'
+        required:
+          user: 'Please select a user'
+          placeholder: 'Please select a placeholder'
+          group: 'Please select a group'
+      role:
+        label: 'Role in %{project}'
+        no_roles_found: 'No roles were found'
+        description: 'This is the role that %{principal} will receive when they join your project. The role defines which actions they are allowed to take and which information they are allowed to see. <a href="https://docs.openproject.org/system-admin-guide/users-permissions/roles-permissions/#roles-and-permissions" target="_blank"> Learn more about roles and permissions. </a>'
+        required: 'Please select a role'
+        next_button: '下一個'
+      message:
+        label: 'Invitation message'
+        description: 'We will send an email to %{principal}, to which you can add a personal message here. An explanation for the invitation could be useful, or perhaps a bit of information regarding the project to help them get started.'
+        next_button: 'Review invitation'
+      summary:
+        next_button: '發送邀請'
+      success:
+        title: '%{principal} was invited!'
+        description:
+          user: 'The user can now log in to access %{project}. Meanwhile you can already plan with that user and assign work packages for instance.'
+          placeholder: 'The placeholder can now be used in %{project}. Meanwhile you can already plan with that user and assign work packages for instance.'
+          group: 'The group is now a part of %{project}. Meanwhile you can already plan with that group and assign work packages for instance.'
+        next_button: '繼續'
+    forms:
+      submit_success_message: 'The form was successfully submitted'
+      load_error_message: 'There was an error loading the form'
+      validation_error_message: 'Please fix the errors present in the form'
+      advanced_settings: '進階設定'
+
+

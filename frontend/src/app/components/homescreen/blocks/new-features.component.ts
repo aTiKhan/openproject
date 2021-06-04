@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,12 +24,14 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {Component} from '@angular/core';
-import {DynamicBootstrapper} from "core-app/globals/dynamic-bootstrapper";
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
-import {DomSanitizer} from "@angular/platform-browser";
+import { Component } from '@angular/core';
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
+import { DomSanitizer } from "@angular/platform-browser";
+import { BcfRestApi } from "core-app/modules/bim/bcf/bcf-constants.const";
+import { ImageHelpers } from "core-app/helpers/images/path-helper";
+import imagePath = ImageHelpers.imagePath;
 
 export const homescreenNewFeaturesBlockSelector = 'homescreen-new-features-block';
 
@@ -38,10 +40,9 @@ export const homescreenNewFeaturesBlockSelector = 'homescreen-new-features-block
     <p class="widget-box--additional-info">
       {{ text.descriptionNewFeatures }}
     </p>
-
     <div class="widget-box--description">
       <p [innerHtml]="currentNewFeatureHtml"></p>
-
+      <img [src]="new_features_image"/>
       <a class="widget-box--teaser-image"></a>
     </div>
 
@@ -51,6 +52,7 @@ export const homescreenNewFeaturesBlockSelector = 'homescreen-new-features-block
   styleUrls: ['./new-features.component.sass'],
 })
 
+
 /**
  * Component for the homescreen block to promote new features.
  * When updating this for the next release, be sure to cleanup stuff is not needed any more:
@@ -58,7 +60,7 @@ export const homescreenNewFeaturesBlockSelector = 'homescreen-new-features-block
  */
 export class HomescreenNewFeaturesBlockComponent {
   public isStandardEdition:boolean;
-
+  new_features_image = ImageHelpers.imagePath('11_3_features.png');
   public text = {
     newFeatures: this.i18n.t('js.label_new_features'),
     descriptionNewFeatures: this.i18n.t('js.homescreen.blocks.new_features.text_new_features'),
@@ -73,7 +75,7 @@ export class HomescreenNewFeaturesBlockComponent {
   }
 
   public get teaserWebsiteUrl() {
-    let url = this.translated('learn_about_link');
+    const url = this.translated('learn_about_link');
     return this.domSanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
@@ -82,10 +84,10 @@ export class HomescreenNewFeaturesBlockComponent {
   }
 
   private translated(key:string):string {
-    return this.i18n.t(this.i18nBase + this.i18nPrefix + '.' + key);
+    return this.i18n.t(this.i18nBase + this.i18nPrefix + '.' + key, { list_styling_class: 'widget-box--arrow-links', bcf_api_link: BcfRestApi });
   }
 
-  private i18nBase:string = 'js.homescreen.blocks.new_features.';
+  private i18nBase = 'js.homescreen.blocks.new_features.';
 
   private get i18nPrefix():string {
     return this.isStandardEdition ? "standard" : "bim";

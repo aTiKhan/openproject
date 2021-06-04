@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -38,16 +38,15 @@ module Bim
       before_action :import_canceled?
 
       before_action :check_file_param, only: %i[prepare_import]
-      before_action :get_persisted_file, only: %i[perform_import]
+      before_action :get_persisted_file, only: %i[perform_import configure_import]
       before_action :persist_file, only: %i[prepare_import]
-      before_action :set_import_options, only: %i[perform_import]
 
-      before_action :build_importer, only: %i[prepare_import perform_import]
+      before_action :build_importer, only: %i[prepare_import configure_import perform_import]
+      before_action :check_bcf_version, only: %i[prepare_import]
 
-      menu_item :work_packages
+      menu_item :ifc_models
 
-      def upload;
-      end
+      def upload; end
 
       def index
         redirect_to action: :upload
@@ -60,7 +59,31 @@ module Bim
         redirect_to action: :upload
       end
 
+      def configure_import
+        render_next
+      rescue StandardError => e
+        flash[:error] = I18n.t('bcf.bcf_xml.import_failed', error: e.message)
+        redirect_to action: :upload
+      end
+
       def perform_import
+        import_file
+      rescue StandardError => e
+        flash[:error] = I18n.t('bcf.bcf_xml.import_failed', error: e.message)
+        redirect_to action: :upload
+      ensure
+        @bcf_attachment&.destroy
+      end
+
+      def redirect_to_bcf_issues_listset
+        redirect_to defaults_bcf_project_ifc_models_path(@project)
+      end
+
+      private
+
+      def import_file
+        set_import_options
+
         results = @importer.import!(@import_options).flatten
         @issues = { successful: [], failed: [] }
         results.each do |issue|
@@ -70,25 +93,14 @@ module Bim
             @issues[:successful] << issue
           end
         end
-      rescue StandardError => e
-        flash[:error] = I18n.t('bcf.bcf_xml.import_failed', error: e.message)
-        redirect_to action: :upload
-      ensure
-        @bcf_attachment&.destroy
       end
-
-      def redirect_to_bcf_issues_list
-        redirect_to defaults_bcf_project_ifc_models_path(@project)
-      end
-
-      private
 
       def import_canceled?
         if %i[unknown_types_action
-            unknown_statuses_action
-            invalid_people_action
-            unknown_mails_action
-            non_members_action].map { |key| params.dig(:import_options, key) }.include? 'cancel'
+              unknown_statuses_action
+              invalid_people_action
+              unknown_mails_action
+              non_members_action].map { |key| params.dig(:import_options, key) }.include? 'cancel'
           flash[:notice] = I18n.t('bcf.bcf_xml.import_canceled')
           redirect_to_bcf_issues_list
         end
@@ -101,12 +113,12 @@ module Bim
           unknown_priorities_action: params.dig(:import_options, :unknown_priorities_action).presence || "use_default",
           invalid_people_action: params.dig(:import_options, :invalid_people_action).presence || "anonymize",
           unknown_mails_action: params.dig(:import_options, :unknown_mails_action).presence || 'invite',
-          non_members_action: params.dig(:import_options, :non_members_action).presence || 'add',
+          non_members_action: params.dig(:import_options, :non_members_action).presence || 'chose',
           unknown_types_chose_ids: params.dig(:import_options, :unknown_types_chose_ids) || [],
           unknown_statuses_chose_ids: params.dig(:import_options, :unknown_statuses_chose_ids) || [],
           unknown_priorities_chose_ids: params.dig(:import_options, :unknown_priorities_chose_ids) || [],
           unknown_mails_invite_role_ids: params.dig(:import_options, :unknown_mails_invite_role_ids) || [],
-          non_members_add_role_ids: params.dig(:import_options, :non_members_add_role_ids) || []
+          non_members_chose_role_ids: params.dig(:import_options, :non_members_chose_role_ids) || []
         }
       end
 
@@ -124,7 +136,8 @@ module Bim
         elsif render_config_non_members?
           render_config_non_members
         else
-          perform_import
+          import_file
+          render :perform_import
         end
       end
 
@@ -179,11 +192,11 @@ module Bim
       end
 
       def build_importer
-        @importer = ::OpenProject::Bim::BcfXml::Importer.new @bcf_xml_file, @project, current_user: current_user
+        @importer = ::OpenProject::Bim::BcfXml::Importer.new(@bcf_xml_file, @project, current_user: current_user)
       end
 
       def get_persisted_file
-        @bcf_attachment = Attachment.find_by! id: session[:bcf_file_id], author: current_user
+        @bcf_attachment = Attachment.find_by!(id: session[:bcf_file_id], author: current_user)
         @bcf_xml_file = File.new @bcf_attachment.local_path
       rescue ActiveRecord::RecordNotFound
         flash[:error] = I18n.t('bcf.bcf_xml.import.bcf_file_not_found')
@@ -205,6 +218,15 @@ module Bim
         path = params[:bcf_file]&.path
         unless path && File.readable?(path)
           flash[:error] = I18n.t('bcf.bcf_xml.import_failed', error: 'File missing or not readable')
+          redirect_to action: :upload
+        end
+      end
+
+      def check_bcf_version
+        unless @importer.bcf_version_valid?
+          flash[:error] =
+            I18n.t('bcf.bcf_xml.import_failed_unsupported_bcf_version',
+                   minimal_version: OpenProject::Bim::BcfXml::Importer::MINIMUM_BCF_VERSION)
           redirect_to action: :upload
         end
       end

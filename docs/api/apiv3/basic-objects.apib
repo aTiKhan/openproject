@@ -42,11 +42,20 @@ in its strings (e.g. `{ "href": "/api/v3/examples/{example_id}" }`).
 Note: When writing links (e.g. during a `PATCH` operation) only changes to `href` are accepted.
 Changes to all other properties will be **silently ignored**.
 
+For resources invisible to the client (e.g. because of missing permissions), a link will contain
+the uri `urn:openproject-org:api:v3:undisclosed` instead of a url. This indicates the existence of a value
+without revealing the actual value. An example for this is the parent project. A project resource which itself might be
+visible to the client can have a reference to a parent project invisible to the same client. Revealing the existence of
+a parent over hiding has the benefit of allowing the client to make an informed decision of whether to keep the existing reference
+or updating it. Sending ‘{ "href": "urn:openproject-org:api:v3:undisclosed" }` for a resource will have the effect of keeping the
+original value. This is especially beneficial if the client creates and updates resources based on the payload object provided
+as part of a form as is recommended when interacting with the API.
+
 # Errors
 
-In case of an error, the API will respond with an apropriate HTTP status code.
+In case of an error, the API will respond with an appropriate HTTP status code.
 For responses with an HTTP status of `4xx` and `5xx` the body will always contain a single error object.
-Error objects shall give the client additional details about the cause of an errorneous response.
+Error objects shall give the client additional details about the cause of an erroneous response.
 
 ## General errors
 
@@ -66,7 +75,7 @@ Error objects shall give the client additional details about the cause of an err
     {
         "_type": "Error",
         "errorIdentifier": "urn:openproject-org:api:v3:errors:InternalServerError",
-        "message": "An internal server error occured. This is not your fault."
+        "message": "An internal server error occurred. This is not your fault."
     }
 
 ## Embedded error information
@@ -87,7 +96,7 @@ error affects a specific field, this field could be defined there.
         "_embedded": {
             "details": {
                 "_type": "ExampleErrorDetailInformation",
-                "errorneousField": "subject"
+                "erroneousField": "subject"
             }
         }
     }
@@ -98,7 +107,7 @@ To ease implementation of basic clients it is guaranteed that the response body 
 However it is allowed that an error object *embeds* other error objects under the key `errors`, thereby aggregating them.
 
 The `errorIdentifier` of such an object is always `urn:openproject-org:api:v3:errors:MultipleErrors`. The message can either describe one of the
-embedded errors or simply state that multiple errors occured.
+embedded errors or simply state that multiple errors occurred.
 
 #### Example
 
@@ -139,7 +148,7 @@ embedded errors or simply state that multiple errors occured.
 * `urn:openproject-org:api:v3:errors:ResourceTypeMismatch` (**HTTP 422**) - A link to a resource of a specific type was expected, but the link to another type of resource was provided
 * `urn:openproject-org:api:v3:errors:PropertyFormatError` (**HTTP 422**) - A property value was provided in a format that the server does not understand or accept
 * `urn:openproject-org:api:v3:errors:InternalServerError` (**HTTP 500**) - Default for HTTP 500 when no further information is available
-* `urn:openproject-org:api:v3:errors:MultipleErrors` - Multiple errors occured. See the embedded `errors` array for more details.
+* `urn:openproject-org:api:v3:errors:MultipleErrors` - Multiple errors occurred. See the embedded `errors` array for more details.
 
 # Formattable Text
 

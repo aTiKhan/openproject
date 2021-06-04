@@ -26,25 +26,27 @@ AvatarHelper.class_eval do
     c.include_size_attributes = false
   end
 
+  # Override gems's method in order to avoid deprecated URI.escape
+  GravatarImageTag.define_singleton_method(:url_params) do |gravatar_params|
+    return nil if gravatar_params.keys.size == 0
+
+    array = gravatar_params.map { |k, v| "#{k}=#{CGI.escape(v.to_s)}" }
+    "?#{array.join('&')}"
+  end
+
   module InstanceMethods
     # Returns the avatar image tag for the given +user+ if avatars are enabled
     # +user+ can be a User or a string that will be scanned for an email address (eg. 'joe <joe@foo.bar>')
-    def avatar(user, options = {})
-      if local_avatar? user
-        local_avatar_image_tag user, options
-      elsif avatar_manager.gravatar_enabled?
-        build_gravatar_image_tag user, options
-      else
-        build_default_avatar_image_tag user, options
-      end
+    def avatar(principal, options = {})
+      build_principal_avatar_tag principal, options
     rescue StandardError => e
-      Rails.logger.error "Failed to create avatar for #{user}: #{e}"
-      return ''.html_safe
+      Rails.logger.error "Failed to create avatar for #{principal}: #{e}"
+      ''.html_safe
     end
 
     def avatar_url(user, options = {})
       if local_avatar? user
-        local_avatar_image_url user
+        user_avatar_url(user.id)
       elsif avatar_manager.gravatar_enabled?
         build_gravatar_image_url user, options
       else
@@ -52,15 +54,12 @@ AvatarHelper.class_eval do
       end
     rescue StandardError => e
       Rails.logger.error "Failed to create avatar url for #{user}: #{e}"
-      return ''.html_safe
-    end
-
-    def any_avatar?(user)
-      avatar_manager.gravatar_enabled? || local_avatar?(user)
+      ''.html_safe
     end
 
     def local_avatar?(user)
       return false unless avatar_manager.local_avatars_enabled?
+
       user.respond_to?(:local_avatar_attachment) && user.local_avatar_attachment
     end
 
@@ -68,27 +67,12 @@ AvatarHelper.class_eval do
       ::OpenProject::Avatars::AvatarManager
     end
 
-    def build_gravatar_image_tag(user, options = {})
-      mail = extract_email_address(user)
-      raise ArgumentError.new('Invalid Mail') unless mail.present?
-
-      opts = options.merge(gravatar: default_gravatar_options)
-
-      tag_options = merge_image_options(user, opts)
-      tag_options[:class] << ' avatar--gravatar-image avatar--fallback'
-
-      content_tag 'user-avatar',
-                  '',
-                  'data-class-list': tag_options[:class],
-                  'data-user-id': user.id,
-                  'data-user-name': user.name
-    end
-
     def build_gravatar_image_url(user, options = {})
       mail = extract_email_address(user)
       raise ArgumentError.new('Invalid Mail') unless mail.present?
+
       opts = options.merge(gravatar: default_gravatar_options)
-      # gravatar_image_url expects grvatar options as second arg
+      # gravatar_image_url expects gravatar options as second arg
       if opts[:gravatar]
         opts.merge!(opts.delete(:gravatar))
       end
@@ -96,22 +80,27 @@ AvatarHelper.class_eval do
       gravatar_image_url(mail, opts)
     end
 
-    def local_avatar_image_url(user)
-      user_avatar_url(user.id)
-    end
+    def build_principal_avatar_tag(user, options = {})
+      tag_options = merge_default_avatar_options(user, options)
 
-    def local_avatar_image_tag(user, options = {})
-      tag_options = merge_image_options(user, options)
-
-      content_tag 'user-avatar',
+      content_tag 'op-principal',
                   '',
-                  'data-class-list': tag_options[:class],
-                  'data-user-id': user.id,
-                  'data-user-name': user.name
+                  class: tag_options[:class],
+                  data: {
+                    'principal-id': user.id,
+                    'principal-name': user.name,
+                    'principal-type': API::V3::Principals::PrincipalType.for(user),
+                    'size': tag_options[:size],
+                    'hide-name': tag_options[:hide_name]
+                  }
     end
 
-    def merge_image_options(user, options)
-      default_options = { class: 'avatar' }
+    def merge_default_avatar_options(user, options)
+      default_options = {
+        size: 'default',
+        hide_name: true
+      }
+
       default_options[:title] = h(user.name) if user.respond_to?(:name)
 
       options.reverse_merge(default_options)
@@ -129,21 +118,8 @@ AvatarHelper.class_eval do
     def extract_email_address(object)
       if object.respond_to?(:mail)
         object.mail
-      elsif object.to_s =~ %r{<(.+?)>}
-        $1
       end
     end
-  end
-
-  def build_default_avatar_image_tag(user, options = {})
-    tag_options = merge_image_options(user, options)
-    tag_options[:class] << ' avatar-default'
-
-    content_tag 'user-avatar',
-                '',
-                'data-class-list': tag_options[:class],
-                'data-user-name': user.name,
-                'data-use-fallback': 'true'
   end
 
   prepend InstanceMethods

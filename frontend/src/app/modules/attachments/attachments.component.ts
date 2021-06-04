@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,13 +26,13 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {Component, ElementRef, Input, OnInit} from '@angular/core';
-import {HalResource} from 'core-app/modules/hal/resources/hal-resource';
-import {HalResourceService} from 'core-app/modules/hal/services/hal-resource.service';
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
-import {States} from 'core-components/states.service';
-import {filter} from 'rxjs/operators';
-import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
+import { Component, ElementRef, Input, OnInit } from '@angular/core';
+import { HalResource } from 'core-app/modules/hal/resources/hal-resource';
+import { HalResourceService } from 'core-app/modules/hal/services/hal-resource.service';
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
+import { States } from 'core-components/states.service';
+import { filter } from 'rxjs/operators';
+import { UntilDestroyedMixin } from "core-app/helpers/angular/until-destroyed.mixin";
 
 export const attachmentsSelector = 'attachments';
 

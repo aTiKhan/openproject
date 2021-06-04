@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -83,8 +83,8 @@ describe Query, "manual sorting ", type: :model do
       query.sort_criteria = [[:manual_sorting, 'asc']]
       query2.sort_criteria = [[:manual_sorting, 'asc']]
 
-      expect(query.results.sorted_work_packages.pluck(:id)).to eq [wp_1.id, wp_2.id]
-      expect(query2.results.sorted_work_packages.pluck(:id)).to eq [wp_2.id, wp_1.id]
+      expect(query.results.work_packages.pluck(:id)).to eq [wp_1.id, wp_2.id]
+      expect(query2.results.work_packages.pluck(:id)).to eq [wp_2.id, wp_1.id]
     end
   end
 end

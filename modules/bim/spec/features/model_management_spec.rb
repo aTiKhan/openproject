@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -30,7 +30,10 @@ require 'spec_helper'
 
 require_relative '../support/pages/ifc_models/index'
 
-describe 'model management', type: :feature, js: true do
+describe 'model management',
+         with_config: { edition: 'bim' },
+         type: :feature,
+         js: true do
   let(:project) { FactoryBot.create :project, enabled_module_names: %i[bim work_package_tracking] }
   let(:index_page) { Pages::IfcModels::Index.new(project) }
   let(:role) { FactoryBot.create(:role, permissions: %i[view_ifc_models manage_bcf manage_ifc_models view_work_packages]) }
@@ -44,7 +47,8 @@ describe 'model management', type: :feature, js: true do
   let(:model) do
     FactoryBot.create(:ifc_model_minimal_converted,
                       project: project,
-                      uploader: user)
+                      uploader: user,
+                      is_default: true)
   end
 
   let(:model2) do
@@ -52,7 +56,6 @@ describe 'model management', type: :feature, js: true do
                       project: project,
                       uploader: user)
   end
-
 
   context 'with all permissions' do
     before do
@@ -79,7 +82,7 @@ describe 'model management', type: :feature, js: true do
 
       index_page.visit!
       index_page.model_listed true, model.title
-      index_page.show_defaults
+      index_page.show_defaults([model, model2])
       index_page.bcf_buttons true
     end
   end
@@ -113,7 +116,7 @@ describe 'model management', type: :feature, js: true do
       index_page.visit!
       index_page.bcf_buttons false
       index_page.model_listed true, model.title
-      index_page.show_defaults
+      index_page.show_defaults([model, model2])
     end
   end
 

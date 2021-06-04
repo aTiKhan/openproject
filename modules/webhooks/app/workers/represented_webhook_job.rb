@@ -3,13 +3,13 @@ require 'rest-client'
 #-- encoding: UTF-8
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -51,6 +51,9 @@ class RepresentedWebhookJob < WebhookJob
 
     begin
       response = RestClient.post webhook.url, request_body, headers
+    rescue RestClient::RequestTimeout => e
+      response = e.response
+      exception = e
     rescue RestClient::Exception => e
       response = e.response
       exception = e
@@ -69,6 +72,12 @@ class RepresentedWebhookJob < WebhookJob
       response_headers: response.try(:headers),
       response_body: response.try(:to_s) || exception.try(:message)
     )
+
+    # We want to re-raise timeout exceptions
+    # but log the request beforehand
+    if exception&.is_a?(RestClient::RequestTimeout)
+      raise exception
+    end
   end
 
   def accepted_in_project?

@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -70,6 +70,19 @@ describe 'Authentication Stages', type: :feature do
       expect(page).to have_no_selector('.account-consent')
       expect_logged_in
     end
+
+    it 'keeps the autologin request (Regression #33696)',
+       with_settings: { autologin: '1' } do
+      expect(Setting.autologin?).to eq true
+
+      login_with user.login, user_password, autologin: true
+      expect(page).to have_no_selector('.account-consent')
+
+      expect_logged_in
+      cookies = Capybara.current_session.driver.request.cookies
+      expect(cookies).to have_key '_open_project_session'
+      expect(cookies).to have_key 'autologin'
+    end
   end
 
   context 'when enabled, but no consent info', with_settings: { consent_info: {} } do
@@ -122,6 +135,7 @@ describe 'Authentication Stages', type: :feature do
       expect(page).to have_selector('.account-consent')
       expect(page).to have_selector('h1', text: 'Consent header')
 
+      SeleniumHubWaiter.wait
       # Confirm consent
       check 'consent_check'
       click_on I18n.t(:button_continue)
@@ -138,7 +152,7 @@ describe 'Authentication Stages', type: :feature do
       expect_logged_in
 
       # Update consent date
-      visit users_settings_path
+      visit admin_settings_users_path
       find("#toggle_consent_time").set(true)
 
       click_on 'Save'
@@ -151,6 +165,7 @@ describe 'Authentication Stages', type: :feature do
       visit signout_path
       login_with user.login, user_password
 
+      SeleniumHubWaiter.wait
       # Confirm consent
       check 'consent_check'
       click_on I18n.t(:button_continue)
@@ -190,6 +205,29 @@ describe 'Authentication Stages', type: :feature do
 
       expect(page).to have_selector('.flash.notice')
       expect_logged_in
+    end
+
+    it 'keeps the autologin request (Regression #33696)',
+       with_settings: { autologin: '1' } do
+      expect(Setting.autologin?).to eq true
+
+      login_with user.login, user_password, autologin: true
+
+      expect(page).to have_selector('.account-consent')
+      expect(page).to have_selector('h2', text: 'Consent')
+
+      # Confirm consent
+      SeleniumHubWaiter.wait
+      check 'consent_check'
+      click_on I18n.t(:button_continue)
+
+      expect_logged_in
+
+      manager = page.driver.browser.manage
+      autologin_cookie = manager.cookie_named('autologin')
+      expect(autologin_cookie[:name]).to eq 'autologin'
+      # Cookie always expires in 1 year, check is made with the token expiry date
+      expect(autologin_cookie[:expires].to_date).to eq (Date.today + 1.year)
     end
 
     context 'with contact mail address', with_settings: { consent_decline_mail: 'foo@example.org' } do

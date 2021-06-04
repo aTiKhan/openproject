@@ -1,6 +1,6 @@
-// -- copyright
-// OpenProject is a project management system.
-// Copyright (C) 2012-2015 the OpenProject Foundation (OPF)
+//-- copyright
+// OpenProject is an open source project management software.
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -23,19 +23,19 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// See doc/COPYRIGHT.rdoc for more details.
-// ++
+// See docs/COPYRIGHT.rdoc for more details.
+//++
 
-import {Component} from "@angular/core";
-import {WorkPackageEditFieldComponent} from "core-app/modules/fields/edit/field-types/work-package-edit-field.component";
-import {TimeEntryDmService} from "core-app/modules/hal/dm-services/time-entry-dm.service";
-import {ApiV3FilterBuilder} from "core-components/api/api-v3/api-v3-filter-builder";
+import { Component } from "@angular/core";
+import { WorkPackageEditFieldComponent } from "core-app/modules/fields/edit/field-types/work-package-edit-field.component";
+import { ApiV3FilterBuilder } from "core-components/api/api-v3/api-v3-filter-builder";
+import { HalResource } from "core-app/modules/hal/resources/hal-resource";
+import { InjectField } from "core-app/helpers/angular/inject-field.decorator";
+import { APIV3Service } from "core-app/modules/apiv3/api-v3.service";
 import {
   TimeEntryWorkPackageAutocompleterComponent,
   TimeEntryWorkPackageAutocompleterMode
-} from "core-app/modules/common/autocomplete/te-work-package-autocompleter.component";
-import {HalResource} from "core-app/modules/hal/resources/hal-resource";
-import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
+} from "core-app/modules/autocompleter/te-work-package-autocompleter/te-work-package-autocompleter.component";
 
 const RECENT_TIME_ENTRIES_MAGIC_NUMBER = 30;
 
@@ -43,7 +43,7 @@ const RECENT_TIME_ENTRIES_MAGIC_NUMBER = 30;
   templateUrl: './work-package-edit-field.component.html'
 })
 export class TimeEntryWorkPackageEditFieldComponent extends WorkPackageEditFieldComponent {
-  @InjectField() public timeEntryDm:TimeEntryDmService;
+  @InjectField() apiV3Service:APIV3Service;
 
   private recentWorkPackageIds:string[];
 
@@ -55,7 +55,7 @@ export class TimeEntryWorkPackageEditFieldComponent extends WorkPackageEditField
     if (this.referenceOutputs) {
       this.referenceOutputs['modeSwitch'] = (mode:TimeEntryWorkPackageAutocompleterMode) => {
         this.valuesLoaded = false;
-        let lastValue = this.requests.lastRequestedValue!;
+        const lastValue = this.requests.lastRequestedValue!;
 
         // Hack to provide a new value to "reset" the input.
         // Only the second input is actually processed as the input is debounced.
@@ -82,26 +82,28 @@ export class TimeEntryWorkPackageEditFieldComponent extends WorkPackageEditField
   // associated with the time entries so that we have the most recent work packages the user logged time on.
   // As a worst case, the user logged RECENT_TIME_ENTRIES_MAGIC_NUMBER times on one work package so we can not guarantee to actually have
   // a fixed number returned.
-  protected allowedValuesFetch(query?:string) {
+  protected loadAllowedValues(query?:string) {
     if (!this.recentWorkPackageIds) {
       return this
-        .timeEntryDm
-        .list({ filters: [['user_id', '=', ['me']]], sortBy: [["updated_on", "desc"]], pageSize: RECENT_TIME_ENTRIES_MAGIC_NUMBER })
+        .apiV3Service
+        .time_entries
+        .list({ filters: [['user_id', '=', ['me']]], sortBy: [["updated_at", "desc"]], pageSize: RECENT_TIME_ENTRIES_MAGIC_NUMBER })
+        .toPromise()
         .then(collection => {
           this.recentWorkPackageIds = collection
             .elements
             .map((timeEntry) => timeEntry.workPackage.idFromLink)
             .filter((v, i, a) => a.indexOf(v) === i);
 
-          return super.allowedValuesFetch(query);
+          return this.fetchAllowedValueQuery(query);
         });
     } else {
-      return super.allowedValuesFetch(query);
+      return this.fetchAllowedValueQuery(query);
     }
   }
 
   protected allowedValuesFilter(query?:string):{} {
-    let filters:ApiV3FilterBuilder = new ApiV3FilterBuilder();
+    const filters:ApiV3FilterBuilder = new ApiV3FilterBuilder();
 
     if ((this._autocompleterComponent as TimeEntryWorkPackageAutocompleterComponent).mode === 'recent') {
       filters.add('id', '=', this.recentWorkPackageIds);

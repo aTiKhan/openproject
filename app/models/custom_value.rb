@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -58,6 +58,13 @@ class CustomValue < ApplicationRecord
     super(parsed_value)
   end
 
+  def strategy
+    @strategy ||= begin
+                    format = custom_field&.field_format || 'empty'
+                    OpenProject::CustomFieldFormat.find_by_name(format).formatter.new(self)
+                  end
+  end
+
   protected
 
   def validate_presence_of_required_value
@@ -65,8 +72,8 @@ class CustomValue < ApplicationRecord
   end
 
   def validate_format_of_value
-    if value.present? && custom_field.has_regexp?
-      errors.add(:value, :invalid) unless value =~ Regexp.new(custom_field.regexp)
+    if value.present? && custom_field.has_regexp? && !(value =~ Regexp.new(custom_field.regexp))
+      errors.add(:value, :invalid)
     end
   rescue RegexpError => e
     errors.add(:base, :regex_invalid)
@@ -97,9 +104,5 @@ class CustomValue < ApplicationRecord
 
   def validate_max_length_of_value
     errors.add(:value, :too_long, count: max_length) if max_length > 0 && value.length > max_length
-  end
-
-  def strategy
-    @strategy ||= OpenProject::CustomFieldFormat.find_by_name(custom_field.field_format).formatter.new(self)
   end
 end

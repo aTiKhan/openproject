@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -40,7 +40,11 @@ module Redmine::MenuManager::TopMenu::ProjectsMenu
     label = !!(@project && !@project.name.empty?) ? @project.name : t(:label_select_project)
     render_menu_dropdown_with_items(
       label: label,
-      label_options: { id: 'projects-menu' },
+      label_options: {
+        id: 'projects-menu',
+        accesskey: OpenProject::AccessKeys.key_for(:project_search),
+        span_class: 'ellipsis'
+      },
       items: project_items,
       options: {
         drop_down_class: 'drop-down--projects'
@@ -53,7 +57,7 @@ module Redmine::MenuManager::TopMenu::ProjectsMenu
   end
 
   def project_items
-    [project_index_item, project_new_item]
+    [project_index_item]
   end
 
   def project_index_item
@@ -61,25 +65,7 @@ module Redmine::MenuManager::TopMenu::ProjectsMenu
       :list_projects,
       main_app.projects_path,
       caption: t(:label_project_view_all),
-      icon: "icon-show-all-projects icon4",
-      html: {
-        accesskey: OpenProject::AccessKeys.key_for(:project_search)
-      }
-    )
-  end
-
-  def project_new_item
-    Redmine::MenuManager::MenuItem.new(
-      :new_project,
-      main_app.new_project_path,
-      caption: Project.model_name.human,
-      icon: "icon-add icon4",
-      html: {
-        accesskey: OpenProject::AccessKeys.key_for(:new_project),
-        aria: {label: t(:label_project_new)},
-        title: t(:label_project_new)
-      },
-      if: Proc.new { User.current.allowed_to?(:add_project, nil, global: true) }
+      icon: "icon-show-all-projects icon4"
     )
   end
 

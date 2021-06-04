@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -27,10 +27,12 @@
 //++
 
 export type FilterOperator = '='|'!*'|'!'|'~'|'o'|'>t-'|'<>d'|'**'|'ow' ;
+export const FalseValue = ['f'];
+export const TrueValue = ['t'];
 
 export interface ApiV3FilterValue {
   operator:FilterOperator;
-  values:any;
+  values:unknown[];
 }
 
 export interface ApiV3Filter {
@@ -43,7 +45,15 @@ export class ApiV3FilterBuilder {
 
   private filterMap:ApiV3FilterObject = {};
 
-  public add(name:string, operator:FilterOperator, values:any):this {
+  public add(name:string, operator:FilterOperator, values:unknown[]|boolean):this {
+    if (values === true) {
+      values = TrueValue;
+    }
+
+    if (values === false) {
+      values = FalseValue;
+    }
+
     this.filterMap[name] = {
       operator: operator,
       values: values
@@ -67,7 +77,7 @@ export class ApiV3FilterBuilder {
    * @return A map { foo: { operator: '=', val: ['bar'] } , ... }
    */
   public toFilterObject(filters:ApiV3Filter[]):ApiV3FilterObject {
-    let map:ApiV3FilterObject = {};
+    const map:ApiV3FilterObject = {};
 
     filters.forEach((item:ApiV3Filter) => {
       _.each(item, (val:ApiV3FilterValue, filter:string) => {
@@ -98,7 +108,7 @@ export class ApiV3FilterBuilder {
   }
 
   public get filters():ApiV3Filter[] {
-    let filters:ApiV3Filter[] = [];
+    const filters:ApiV3Filter[] = [];
     _.each(this.filterMap, (val:ApiV3FilterValue, filter:string) => {
       filters.push({ [filter]: val });
     });
@@ -117,12 +127,12 @@ export class ApiV3FilterBuilder {
       return this.serializeFilter(filter);
     });
 
-    let params = { filters: `[${transformedFilters.join(",")}]`, ...mergeParams };
+    const params = { filters: `[${transformedFilters.join(",")}]`, ...mergeParams };
     return new URLSearchParams(params).toString();
   }
 
   public clone() {
-    let newFilters = new ApiV3FilterBuilder();
+    const newFilters = new ApiV3FilterBuilder();
 
     this.filters.forEach(filter => {
       Object.keys(filter).forEach(name => {
@@ -139,8 +149,8 @@ export class ApiV3FilterBuilder {
 
     keys = Object.keys(filter);
 
-    let typeName = keys[0];
-    let operatorAndValues:any = filter[typeName];
+    const typeName = keys[0];
+    const operatorAndValues:any = filter[typeName];
 
     transformedFilter = `{"${typeName}":{"operator":"${operatorAndValues['operator']}","values":[${operatorAndValues['values']
       .map((val:any) => this.serializeFilterValue(val))

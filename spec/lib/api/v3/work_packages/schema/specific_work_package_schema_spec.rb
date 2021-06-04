@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -40,7 +40,7 @@ describe ::API::V3::WorkPackages::Schema::SpecificWorkPackageSchema do
     double('current user').tap do |u|
       allow(u)
         .to receive(:allowed_to?)
-              .and_return(true)
+        .and_return(true)
     end
   end
 
@@ -92,9 +92,11 @@ describe ::API::V3::WorkPackages::Schema::SpecificWorkPackageSchema do
         .to receive(:readonly_status?)
         .and_return(false)
 
-      is_expected.to_not be_readonly
-      expect(subject.writable?(:status)).to be_truthy
-      expect(subject.writable?(:subject)).to be_truthy
+      # As the writability is memoized we need to have a new schema
+      new_schema = described_class.new(work_package: work_package)
+      expect(new_schema).to_not be_readonly
+      expect(new_schema.writable?(:status)).to be_truthy
+      expect(new_schema.writable?(:subject)).to be_truthy
     end
   end
 
@@ -158,6 +160,18 @@ describe ::API::V3::WorkPackages::Schema::SpecificWorkPackageSchema do
     end
   end
 
+  describe '#assignable_budgets' do
+    subject { described_class.new(work_package: work_package) }
+
+    before do
+      allow(project).to receive(:budgets).and_return(double('Budgets'))
+    end
+
+    it 'returns project.budgets' do
+      expect(subject.assignable_values(:budget, nil)).to eql(project.budgets)
+    end
+  end
+
   describe '#writable?' do
     context 'percentage done' do
       it 'is not writable when inferred by status' do
@@ -206,30 +220,74 @@ describe ::API::V3::WorkPackages::Schema::SpecificWorkPackageSchema do
     end
 
     context 'start date' do
-      it 'is not writable when the work package is a parent' do
-        allow(work_package).to receive(:leaf?).and_return(false)
-        expect(subject.writable?(:start_date)).to be false
+      context 'work package is parent' do
+        before do
+          allow(work_package)
+            .to receive(:leaf?)
+            .and_return(false)
+        end
+
+        context 'scheduled automatically' do
+          it 'is not writable' do
+            expect(subject.writable?(:start_date)).to be false
+          end
+        end
+
+        context 'scheduled manually' do
+          before do
+            work_package.schedule_manually = true
+          end
+
+          it 'is writable' do
+            expect(subject.writable?(:start_date)).to be true
+          end
+        end
       end
 
-      it 'is writable when the work package is a leaf' do
-        allow(work_package).to receive(:leaf?).and_return(true)
-        expect(subject.writable?(:start_date)).to be true
+      context 'work package is a leaf' do
+        it 'is writable' do
+          allow(work_package).to receive(:leaf?).and_return(true)
+          expect(subject.writable?(:start_date)).to be true
+        end
       end
     end
 
-    context 'finish date' do
-      it 'is not writable when the work package is a parent' do
-        allow(work_package).to receive(:leaf?).and_return(false)
-        expect(subject.writable?(:due_date)).to be false
+    context 'due date' do
+      context 'work package is parent' do
+        before do
+          allow(work_package)
+            .to receive(:leaf?)
+            .and_return(false)
+        end
+
+        context 'scheduled automatically' do
+          it 'is not writable' do
+            expect(subject.writable?(:due_date)).to be false
+          end
+        end
+
+        context 'scheduled manually' do
+          before do
+            work_package.schedule_manually = true
+          end
+
+          it 'is writable' do
+            expect(subject.writable?(:due_date)).to be true
+          end
+        end
       end
 
-      it 'is writable when the work package is a leaf' do
-        allow(work_package).to receive(:leaf?).and_return(true)
-        expect(subject.writable?(:due_date)).to be true
+      context 'work package is a leaf' do
+        it 'is writable' do
+          allow(work_package).to receive(:leaf?).and_return(true)
+          expect(subject.writable?(:due_date)).to be true
+        end
       end
     end
 
     context 'date' do
+      # As a date only exists on milestones, which can have no children
+      # we do not need to check for differences caused by scheduling modes.
       before do
         allow(work_package.type).to receive(:is_milestone?).and_return(true)
       end

@@ -1,12 +1,12 @@
 <%#-- copyright
 OpenProject is an open source project management software.
-Copyright (C) 2012-2020 the OpenProject GmbH
+Copyright (C) 2012-2021 the OpenProject GmbH
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License version 3.
 
 OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-Copyright (C) 2006-2017 Jean-Philippe Lang
+Copyright (C) 2006-2013 Jean-Philippe Lang
 Copyright (C) 2010-2013 the ChiliProject Team
 
 This program is free software; you can redistribute it and/or
@@ -46,7 +46,7 @@ See docs/COPYRIGHT.rdoc for more details.
       </div>
 
       <%= styled_button_tag t(:button_save),
-                            data:({ confirm: t('admin.custom_styles.theme_warning') } if @current_theme.empty?) %>
+                            data:({ confirm: t('admin.custom_styles.theme_warning') } unless @current_theme.present?) %>
     </fieldset>
   </section>
 <% end %>
@@ -60,7 +60,7 @@ See docs/COPYRIGHT.rdoc for more details.
         <div>
           <%# Don't use image_tag here due to asset host %>
           <%= tag('img', src: custom_style_logo_path(digest: @custom_style.digest, filename: @custom_style.logo_identifier), class: 'custom-logo-preview') %>
-          <%= link_to l(:button_delete),
+          <%= link_to t(:button_delete),
           custom_style_logo_delete_path,
           method: :delete,
           class: 'icon icon-delete confirm-form-submit' %>
@@ -80,7 +80,7 @@ See docs/COPYRIGHT.rdoc for more details.
         </div>
       </div>
 
-      <%= styled_button_tag l(@custom_style.logo.present? ? :button_replace : :button_upload),
+      <%= styled_button_tag I18n.t(@custom_style.logo.present? ? :button_replace : :button_upload),
                             class: "button #{@custom_style.logo.blank? ? '-with-icon icon-add' : ''}" %>
 
     </fieldset>
@@ -157,7 +157,7 @@ See docs/COPYRIGHT.rdoc for more details.
 
 <%= form_tag update_design_colors_path, method: :post, class: "form" do %>
   <section class="form--section">
-    <fieldset class="form--fieldset -collapsible <%= 'collapsed' unless @current_theme.empty?  %> ">
+    <fieldset class="form--fieldset -collapsible <%= 'collapsed' if @current_theme.present?  %> ">
       <legend class="form--fieldset-legend"><%= I18n.t(:label_advanced_settings) %></legend>
 
       <% DesignColor.setables.each do |design_color|  %>
@@ -166,13 +166,15 @@ See docs/COPYRIGHT.rdoc for more details.
           <span class="form--field-container">
             <div class="form--field-affix">
               <%= icon_for_color(OpenStruct.new(variable: design_color.variable,
-                                                hexcode: design_color.get_hexcode),
+                                                hexcode: design_color.hexcode),
                                  data: { target: "#design_colors_" + design_color.variable }) %>
             </div>
             <span class="form--text-field-container">
               <%= styled_text_field_tag "design_colors[]" + design_color.variable,
                                         design_color.hexcode,
-                                        placeholder: DesignColor.defaults[design_color.variable] %>
+                                        class: 'design-color--variable-input',
+                                        data: {  'variable-name': design_color.variable }
+              %>
             </span>
           </span>
           <div class="form--field-instructions">
@@ -188,4 +190,17 @@ See docs/COPYRIGHT.rdoc for more details.
 
     </fieldset>
   </section>
+
+  <%# Fill in the computed css variables in the inputs as their defaults %>
+  <%= nonced_javascript_tag do %>
+    var computedStyle = getComputedStyle(document.documentElement);
+
+    document
+      .querySelectorAlt('.design-color--variable-input')
+      .forEach(function(el) {
+      if (!el.value || el.value === '') {
+        el.placeholder = computedStyle.getPropertyValue('--' + el.dataset.variableName).trim();
+      }
+    });
+  <% end %>
 <% end %>

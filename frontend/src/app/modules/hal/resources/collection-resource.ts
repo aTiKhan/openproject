@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,7 +26,7 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {HalResource} from 'core-app/modules/hal/resources/hal-resource';
+import { HalResource } from 'core-app/modules/hal/resources/hal-resource';
 
 export class CollectionResource<T = HalResource> extends HalResource {
   public elements:T[];
@@ -40,7 +40,7 @@ export class CollectionResource<T = HalResource> extends HalResource {
    * This is useful, as angular does not recognize update made by $load.
    */
   public updateElements():Promise<unknown> {
-    if (this.$href) {
+    if (this.href) {
       return this.$load().then((collection:this) => this.elements = collection.elements);
     } else {
       return Promise.resolve();

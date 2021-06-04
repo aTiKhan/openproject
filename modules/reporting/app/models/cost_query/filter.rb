@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -32,25 +32,27 @@ class CostQuery::Filter < Report::Filter
   def self.all
     @all ||= super + Set[
       CostQuery::Filter::ActivityId,
-       CostQuery::Filter::AssignedToId,
-       CostQuery::Filter::AuthorId,
-       CostQuery::Filter::CategoryId,
-       CostQuery::Filter::CostTypeId,
-       CostQuery::Filter::CreatedOn,
-       CostQuery::Filter::DueDate,
-       CostQuery::Filter::VersionId,
-       CostQuery::Filter::WorkPackageId,
-       CostQuery::Filter::OverriddenCosts,
-       CostQuery::Filter::PriorityId,
-       CostQuery::Filter::ProjectId,
-       CostQuery::Filter::SpentOn,
-       CostQuery::Filter::StartDate,
-       CostQuery::Filter::StatusId,
-       CostQuery::Filter::Subject,
-       CostQuery::Filter::TypeId,
-       CostQuery::Filter::UpdatedOn,
-       CostQuery::Filter::UserId,
-       CostQuery::Filter::PermissionFilter,
+      CostQuery::Filter::AssignedToId,
+      CostQuery::Filter::AuthorId,
+      CostQuery::Filter::BudgetId,
+      CostQuery::Filter::CategoryId,
+      CostQuery::Filter::CostTypeId,
+      CostQuery::Filter::CreatedOn,
+      CostQuery::Filter::DueDate,
+      CostQuery::Filter::VersionId,
+      CostQuery::Filter::WorkPackageId,
+      CostQuery::Filter::OverriddenCosts,
+      CostQuery::Filter::PriorityId,
+      CostQuery::Filter::ProjectId,
+      CostQuery::Filter::ResponsibleId,
+      CostQuery::Filter::SpentOn,
+      CostQuery::Filter::StartDate,
+      CostQuery::Filter::StatusId,
+      CostQuery::Filter::Subject,
+      CostQuery::Filter::TypeId,
+      CostQuery::Filter::UpdatedOn,
+      CostQuery::Filter::UserId,
+      CostQuery::Filter::PermissionFilter,
       *CostQuery::Filter::CustomFieldEntries.all
     ]
   end

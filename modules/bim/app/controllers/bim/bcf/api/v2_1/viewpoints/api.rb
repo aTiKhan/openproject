@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -75,18 +75,11 @@ module Bim::Bcf::API::V2_1
             raise NotImplementedError, 'Bitmaps are not yet implemented.'
           end
 
-          namespace :snapshot do
-            helpers ::API::Helpers::AttachmentRenderer
+          namespace :snapshot, &::API::Helpers::AttachmentRenderer.content_endpoint(&-> {
+            snapshot = @issue.viewpoints.find_by!(uuid: params[:viewpoint_uuid]).snapshot
 
-            get do
-              viewpoint = @issue.viewpoints.find_by!(uuid: params[:viewpoint_uuid])
-              if snapshot = viewpoint.snapshot
-                respond_with_attachment snapshot, cache_seconds: 1.year.to_i
-              else
-                raise ActiveRecord::RecordNotFound
-              end
-            end
-          end
+            snapshot || raise(ActiveRecord::RecordNotFound)
+          })
         end
       end
     end

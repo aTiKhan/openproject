@@ -1,4 +1,6 @@
 bg:
+  grids:
+    label_widget_in_grid: "Приспособление, съдържащо се в мрежата %{grid_name}"
   activerecord:
     attributes:
       grids/grid:

@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -74,6 +74,8 @@ zh-CN:
   permission_send_meeting_agendas_notification: "发送议程审阅通知"
   permission_create_meeting_minutes: "管理会议记录"
   permission_send_meeting_minutes_notification: "发送会议记录审阅通知"
+  permission_meetings_send_invite: "邀请用户参加会议"
+  permission_send_meeting_agendas_icalendar: "将会议议程作为日历条目发送"
   project_module_meetings: "会议"
   text_duration_in_hours: "持续时间（单位：小时）"
   text_in_hours: "时长"

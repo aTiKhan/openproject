@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -19,13 +19,12 @@
 #Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #See docs/COPYRIGHT.rdoc for more details.
 #++
-#---
 hu:
   activerecord:
     attributes:
       work_package:
         position: "Pozició"
-        remaining_hours: "Hátralévő óra"
+        remaining_hours: "Fennmaradó órák"
         remaining_time: "Fennmaradó órák"
         story_points: "Story pontok"
         backlogs_work_package_type: "Backlog típus"
@@ -37,18 +36,12 @@ hu:
               can_only_contain_work_packages_of_current_sprint: "csak a jelenlegi sprint munkacsomagjainak azonosítóit tartalmazhatja."
               must_block_at_least_one_work_package: "legalább egy munkacsomag azonosítóját tartalmaznia kell."
             parent_id:
+              parent_child_relationship_across_projects: "érvénytelen, mert a munka csomag \"%{work_package_name}\" egy backlog feladat, ezért nem lehet a szülő nem az aktuális projektben."
               type_must_be_one_of_the_following: "A következő típusok egyikének kell lennie: %{type_names}."
-        sprint:
-          cannot_end_before_it_starts: "Sprint nem érhet véget, mielőtt elindul."
-  activemodel:
-    errors:
-      models:
-        work_package:
-          attributes:
             version_id:
               task_version_must_be_the_same_as_story_version: "must be the same as the parent story's version."
-            parent_id:
-              parent_child_relationship_across_projects: "érvénytelen, mert a munka csomag \"%{work_package_name}\" egy backlog feladat, ezért nem lehet a szülő nem az aktuális projektben."
+        sprint:
+          cannot_end_before_it_starts: "Sprint nem érhet véget, mielőtt elindul."
   backlogs:
     add_new_story: "Új story"
     any: "bármely"
@@ -106,6 +99,7 @@ hu:
   backlogs_empty_title: "No versions are defined to be used in backlogs"
   backlogs_empty_action_text: "To get started with backlogs, create a new version and assign it to a backlogs column."
   button_edit_wiki: "Edit wiki page"
+  error_backlogs_task_cannot_be_story: "The settings are invalid. The selected task type can not also be a story type."
   error_intro_plural: "The following errors were encountered:"
   error_intro_singular: "The following error was encountered:"
   error_outro: "Please correct the above errors before submitting again."

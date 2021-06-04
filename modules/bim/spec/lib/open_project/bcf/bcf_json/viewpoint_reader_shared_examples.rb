@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -51,7 +51,8 @@ shared_examples 'has camera' do |camera_type|
   it 'has a camera object' do
     # camera xyz floats
     expect(subject.dig(camera_type)).to be_kind_of(Hash)
-    expect(subject.dig(camera_type, 'field_of_view')).to be_kind_of(Numeric)
+    expect(subject.dig(camera_type, 'field_of_view')).to be_kind_of(Numeric) if camera_type == 'perspective_camera'
+    expect(subject.dig(camera_type, 'view_to_world_scale')).to be_kind_of(Numeric) if camera_type == 'orthogonal_camera'
 
     %w[camera_view_point camera_direction camera_up_vector].each do |key|
       camera_vp = subject.dig(camera_type, key)

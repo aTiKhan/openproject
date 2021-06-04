@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@ class WorkPackage::Exporter::CSV < WorkPackage::Exporter::Base
   include ActionView::Helpers::NumberHelper
 
   def list
-    serialized = CSV.generate(col_sep: l(:general_csv_separator)) do |csv|
+    serialized = CSV.generate(col_sep: I18n.t(:general_csv_separator)) do |csv|
       headers = csv_headers
       csv << self.class.encode_csv_columns(headers)
 
@@ -48,7 +48,7 @@ class WorkPackage::Exporter::CSV < WorkPackage::Exporter::Base
     yield success(serialized)
   end
 
-  def self.encode_csv_columns(columns, encoding = l(:general_csv_encoding))
+  def self.encode_csv_columns(columns, encoding = I18n.t(:general_csv_encoding))
     columns.map do |cell|
       Redmine::CodesetUtil.from_utf8(cell.to_s, encoding)
     end
@@ -65,7 +65,7 @@ class WorkPackage::Exporter::CSV < WorkPackage::Exporter::Base
   end
 
   def title
-    title = query.new_record? ? l(:label_work_package_plural) : query.name
+    title = query.new_record? ? I18n.t(:label_work_package_plural) : query.name
 
     "#{title}.csv"
   end
@@ -95,8 +95,7 @@ class WorkPackage::Exporter::CSV < WorkPackage::Exporter::Base
       csv_format_value(work_package, column)
     end
 
-    if !row.empty?
-
+    if row.any?
       row << if work_package.description
                work_package.description.squish
              else
@@ -108,29 +107,7 @@ class WorkPackage::Exporter::CSV < WorkPackage::Exporter::Base
   end
 
   def csv_format_value(work_package, column)
-    if column.is_a?(Queries::WorkPackages::Columns::CustomFieldColumn)
-      csv_format_custom_value(work_package, column)
-    else
-      value = work_package.send(column.name)
-
-      case value
-      when Date
-        format_date(value)
-      when Time
-        format_time(value)
-      else
-        value
-      end
-    end.to_s
-  end
-
-  def csv_format_custom_value(work_package, column)
-    cv = work_package
-         .custom_values
-         .select { |v| v.custom_field_id == column.custom_field.id }
-
-    cv
-      .map { |v| show_value(v) }
-      .join('; ')
+    formatter = ::WorkPackage::Exporter::Formatters.for_column(column)
+    formatter.format(work_package, column, array_separator: '; ')
   end
 end

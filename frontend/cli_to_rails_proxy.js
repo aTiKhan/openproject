@@ -1,8 +1,11 @@
-var PROXY_CONFIG = [
+const PROXY_HOSTNAME = process.env.PROXY_HOSTNAME || 'localhost';
+
+const PROXY_CONFIG = [
   {
     "context": ['/**'],
-    "target": "http://localhost:3000",
-    "secure": false
+    "target": `http://${PROXY_HOSTNAME}:3000`,
+    "secure": false,
+    "timeout": 360000,
     // "bypass": function (req, res, proxyOptions) {
     // }
   }

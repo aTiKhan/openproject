@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,20 +24,21 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {Component, ElementRef} from "@angular/core";
-import {FormBuilder, Validators} from "@angular/forms";
-import {I18nService} from "app/modules/common/i18n/i18n.service";
-import {EnterpriseTrialData, EnterpriseTrialService} from "core-components/enterprise/enterprise-trial.service";
-import {CurrentUserService} from "core-components/user/current-user.service";
-import {I18nHelpers} from "core-app/helpers/i18n/localized-link";
+import { Component, ElementRef } from "@angular/core";
+import { FormBuilder, Validators } from "@angular/forms";
+import { I18nService } from "app/modules/common/i18n/i18n.service";
+import { EnterpriseTrialData, EnterpriseTrialService } from "core-components/enterprise/enterprise-trial.service";
+import { CurrentUserService } from "core-app/modules/current-user/current-user.service";
+import { I18nHelpers } from "core-app/helpers/i18n/localized-link";
 
 const newsletterURL = 'https://www.openproject.com/newsletter/';
 
 @Component({
   selector: 'enterprise-trial-form',
-  templateUrl: './ee-trial-form.component.html'
+  templateUrl: './ee-trial-form.component.html',
+  styleUrls: ['./ee-trial-form.component.sass']
 })
 export class EETrialFormComponent {
   // Retain used values
@@ -65,7 +66,6 @@ export class EETrialFormComponent {
         de: 'https://www.openproject.org/de/datenschutz/'
       })
     }),
-    invalid_email: this.I18n.t('js.admin.enterprise.trial.form.invalid_email'),
     label_test_ee: this.I18n.t('js.admin.enterprise.trial.form.test_ee'),
     label_company: this.I18n.t('js.admin.enterprise.trial.form.label_company'),
     label_first_name: this.I18n.t('js.admin.enterprise.trial.form.label_first_name'),
@@ -89,9 +89,10 @@ export class EETrialFormComponent {
   // displays message for user
   public checkMailField() {
     if (this.trialForm.value.email !== '' && this.trialForm.controls.email.errors) {
-      this.eeTrialService.errorMsg = this.text.invalid_email;
+      this.eeTrialService.emailInvalid = true;
     } else {
-      this.eeTrialService.errorMsg = undefined;
+      this.eeTrialService.emailInvalid = false;
+      this.eeTrialService.error = undefined;
     }
   }
 }

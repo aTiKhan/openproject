@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -28,10 +28,8 @@
 # See docs/COPYRIGHT.rdoc for more details.
 #++
 
-require 'model_contract'
-
 module CustomActions
-  class ExecuteContract < Reform::Contract
+  class ExecuteContract < BaseContract
     property :lock_version
     property :work_package_id
 
@@ -43,7 +41,7 @@ module CustomActions
     def work_package_visible
       return unless model.work_package_id
 
-      unless WorkPackage.visible.where(id: model.work_package_id).exists?
+      unless WorkPackage.visible(user).where(id: model.work_package_id).exists?
         errors.add(:work_package_id, :does_not_exist)
       end
     end

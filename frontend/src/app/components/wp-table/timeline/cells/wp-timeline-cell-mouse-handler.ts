@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,28 +24,26 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {Injector} from '@angular/core';
+import { Injector } from '@angular/core';
 import * as moment from 'moment';
-import {WorkPackageCacheService} from '../../../work-packages/work-package-cache.service';
-import {HalResourceNotificationService} from "core-app/modules/hal/services/hal-resource-notification.service";
-import {WorkPackageTimelineTableController} from '../container/wp-timeline-container.directive';
-import {RenderInfo} from '../wp-timeline';
-import {TimelineCellRenderer} from './timeline-cell-renderer';
-import {WorkPackageCellLabels} from './wp-timeline-cell';
-import {IsolatedQuerySpace} from "core-app/modules/work_packages/query-space/isolated-query-space";
-import {QueryDmService} from 'core-app/modules/hal/dm-services/query-dm.service';
-import {keyCodes} from 'core-app/modules/common/keyCodes.enum';
-import {LoadingIndicatorService} from "core-app/modules/common/loading-indicator/loading-indicator.service";
+import { WorkPackageTimelineTableController } from '../container/wp-timeline-container.directive';
+import { RenderInfo } from '../wp-timeline';
+import { TimelineCellRenderer } from './timeline-cell-renderer';
+import { WorkPackageCellLabels } from './wp-timeline-cell';
+import { IsolatedQuerySpace } from "core-app/modules/work_packages/query-space/isolated-query-space";
+import { keyCodes } from 'core-app/modules/common/keyCodes.enum';
+import { LoadingIndicatorService } from "core-app/modules/common/loading-indicator/loading-indicator.service";
 
-import {HalResourceEditingService} from "core-app/modules/fields/edit/services/hal-resource-editing.service";
-import {WorkPackageChangeset} from "core-components/wp-edit/work-package-changeset";
-import {HalEventsService} from "core-app/modules/hal/services/hal-events.service";
+import { HalResourceEditingService } from "core-app/modules/fields/edit/services/hal-resource-editing.service";
+import { WorkPackageChangeset } from "core-components/wp-edit/work-package-changeset";
+import { HalEventsService } from "core-app/modules/hal/services/hal-events.service";
 import Moment = moment.Moment;
-import {WorkPackageNotificationService} from "core-app/modules/work_packages/notifications/work-package-notification.service";
-import {WorkPackageResource} from "core-app/modules/hal/resources/work-package-resource";
-import {take} from "rxjs/operators";
+import { WorkPackageNotificationService } from "core-app/modules/work_packages/notifications/work-package-notification.service";
+import { WorkPackageResource } from "core-app/modules/hal/resources/work-package-resource";
+import { take } from "rxjs/operators";
+import { APIV3Service } from "core-app/modules/apiv3/api-v3.service";
 
 export const classNameBar = 'bar';
 export const classNameLeftHandle = 'leftHandle';
@@ -54,23 +52,22 @@ export const classNameBarLabel = 'bar-label';
 
 
 export function registerWorkPackageMouseHandler(this:void,
-                                                injector:Injector,
-                                                getRenderInfo:() => RenderInfo,
-                                                workPackageTimeline:WorkPackageTimelineTableController,
-                                                wpCacheService:WorkPackageCacheService,
-                                                halEditing:HalResourceEditingService,
-                                                halEvents:HalEventsService,
-                                                notificationService:WorkPackageNotificationService,
-                                                loadingIndicator:LoadingIndicatorService,
-                                                cell:HTMLElement,
-                                                bar:HTMLDivElement,
-                                                labels:WorkPackageCellLabels,
-                                                renderer:TimelineCellRenderer,
-                                                renderInfo:RenderInfo) {
+  injector:Injector,
+  getRenderInfo:() => RenderInfo,
+  workPackageTimeline:WorkPackageTimelineTableController,
+  halEditing:HalResourceEditingService,
+  halEvents:HalEventsService,
+  notificationService:WorkPackageNotificationService,
+  loadingIndicator:LoadingIndicatorService,
+  cell:HTMLElement,
+  bar:HTMLDivElement,
+  labels:WorkPackageCellLabels,
+  renderer:TimelineCellRenderer,
+  renderInfo:RenderInfo) {
 
   const querySpace:IsolatedQuerySpace = injector.get(IsolatedQuerySpace);
 
-  let mouseDownStartDay:number | null = null; // also flag to signal active drag'n'drop
+  let mouseDownStartDay:number|null = null; // also flag to signal active drag'n'drop
   renderInfo.change = halEditing.changeFor(renderInfo.workPackage) as WorkPackageChangeset;
 
   let dateStates:any;
@@ -111,9 +108,10 @@ export function registerWorkPackageMouseHandler(this:void,
     workPackageTimeline.disableViewParamsCalculation = true;
     mouseDownStartDay = getCursorOffsetInDaysFromLeft(renderInfo, ev);
 
-    // If this wp is a parent element, changing it is not allowed.
+    // If this wp is a parent element, changing it is not allowed
+    // if it is not on 'Manual scheduling' mode
     // But adding a relation to it is.
-    if (!renderInfo.workPackage.isLeaf && !renderInfo.viewParams.activeSelectionMode) {
+    if (!renderInfo.workPackage.isLeaf && !renderInfo.viewParams.activeSelectionMode && !renderInfo.workPackage.scheduleManually) {
       return;
     }
 
@@ -127,7 +125,6 @@ export function registerWorkPackageMouseHandler(this:void,
 
   function createMouseMoveFn(direction:'left'|'right'|'both'|'create'|'dragright') {
     return (ev:JQuery.MouseMoveEvent) => {
-
       const days = getCursorOffsetInDaysFromLeft(renderInfo, ev.originalEvent!) - mouseDownStartDay!;
       const offsetDayCurrent = Math.floor(ev.offsetX / renderInfo.viewParams.pixelPerDay);
       const dayUnderCursor = renderInfo.viewParams.dateDisplayStart.clone().add(offsetDayCurrent, 'days');
@@ -152,7 +149,9 @@ export function registerWorkPackageMouseHandler(this:void,
       return;
     }
 
-    if (!(wp.isLeaf && renderer.canMoveDates(wp))) {
+    const isEditable = (wp.isLeaf || wp.scheduleManually) && renderer.canMoveDates(wp);
+
+    if (!isEditable) {
       cell.style.cursor = 'not-allowed';
       return;
     }
@@ -224,10 +223,7 @@ export function registerWorkPackageMouseHandler(this:void,
 
     // const renderInfo = getRenderInfo();
     if (cancelled || renderInfo.change.isEmpty()) {
-      renderInfo.change.clear();
-      renderer.update(bar, labels, renderInfo);
-      renderer.onMouseDownEnd(labels, renderInfo.change);
-      workPackageTimeline.refreshView();
+      cancelChange();
     } else {
       const stopAndRefresh = () => {
         renderInfo.change.clear();
@@ -237,13 +233,22 @@ export function registerWorkPackageMouseHandler(this:void,
       // Persist the changes
       saveWorkPackage(renderInfo.change)
         .then(stopAndRefresh)
-        .catch(stopAndRefresh);
+        .catch(error => {
+          notificationService.handleRawError(error, renderInfo.workPackage);
+          cancelChange();
+        });
     }
+  }
 
+  function cancelChange() {
+    renderInfo.change.clear();
+    renderer.update(bar, labels, renderInfo);
+    renderer.onMouseDownEnd(labels, renderInfo.change);
+    workPackageTimeline.refreshView();
   }
 
   function saveWorkPackage(change:WorkPackageChangeset) {
-    const queryDm:QueryDmService = injector.get(QueryDmService);
+    const apiv3Service:APIV3Service = injector.get(APIV3Service);
     const querySpace:IsolatedQuerySpace = injector.get(IsolatedQuerySpace);
 
     // Remember the time before saving the work package to know which work packages to update
@@ -254,15 +259,15 @@ export function registerWorkPackageMouseHandler(this:void,
       .then((result) => {
         notificationService.showSave(result.resource);
         const ids = _.map(querySpace.tableRendered.value!, row => row.workPackageId);
-        return queryDm.loadIdsUpdatedSince(ids, updatedAt).then(workPackageCollection => {
-          wpCacheService.updateWorkPackageList(workPackageCollection.elements);
-
-          halEvents.push(result.resource, { eventType: 'updated' });
-          return querySpace.timelineRendered.pipe(take(1)).toPromise();
-        });
-      })
-      .catch((error) => {
-        notificationService.handleRawError(error, renderInfo.workPackage);
+        return apiv3Service
+          .work_packages
+          .filterUpdatedSince(ids, updatedAt)
+          .get()
+          .toPromise()
+          .then(() => {
+            halEvents.push(result.resource, { eventType: 'updated' });
+            return querySpace.timelineRendered.pipe(take(1)).toPromise();
+          });
       });
   }
 }

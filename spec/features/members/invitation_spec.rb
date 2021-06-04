@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -29,14 +29,17 @@
 require 'spec_helper'
 
 feature 'invite user via email', type: :feature, js: true do
-  using_shared_fixtures :admin
-  let!(:project) { FactoryBot.create :project, name: 'Project 1', identifier: 'project1' }
+  let!(:project) { FactoryBot.create :project, name: 'Project 1', identifier: 'project1', members: project_members }
   let!(:developer) { FactoryBot.create :role, name: 'Developer' }
+  let(:project_members) { {} }
 
   let(:members_page) { Pages::Members.new project.identifier }
 
-  before do
-    allow(User).to receive(:current).and_return admin
+  current_user do
+    FactoryBot.create(:user,
+                      global_permissions: [:manage_user],
+                      member_in_project: project,
+                      member_with_permissions: %i[view_members manage_members])
   end
 
   context 'with a new user' do
@@ -54,9 +57,9 @@ feature 'invite user via email', type: :feature, js: true do
       click_on 'Add member'
 
       members_page.search_and_select_principal! 'finkelstein@openproject.com',
-                                                'Invite finkelstein@openproject.com'
+                                                'Send invite to finkelstein@openproject.com'
       members_page.select_role! 'Developer'
-      expect(members_page).to have_selected_new_principal('Invite finkelstein@openproject.com')
+      expect(members_page).to have_selected_new_principal('finkelstein@openproject.com')
 
       click_on 'Add'
 
@@ -67,16 +70,15 @@ feature 'invite user via email', type: :feature, js: true do
       # Should show the invited user on the default filter as well
       members_page.visit!
       expect(members_page).to have_user 'finkelstein @openproject.com'
-
     end
   end
 
   context 'with a registered user' do
     let!(:user) do
       FactoryBot.create :user, mail: 'hugo@openproject.com',
-                         login: 'hugo@openproject.com',
-                         firstname: 'Hugo',
-                         lastname: 'Hurried'
+                               login: 'hugo@openproject.com',
+                               firstname: 'Hugo',
+                               lastname: 'Hurried'
     end
 
     scenario 'user lookup by email' do
@@ -92,9 +94,7 @@ feature 'invite user via email', type: :feature, js: true do
     end
 
     context 'who is already a member' do
-      before do
-        project.add_member! user, [developer]
-      end
+      let(:project_members) { { user => developer } }
 
       shared_examples 'no user to invite is found' do
         scenario 'no matches found' do

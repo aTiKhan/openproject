@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -30,7 +30,7 @@ require 'spec_helper'
 
 describe Queries::News::NewsQuery, type: :model do
   let(:user) { FactoryBot.build_stubbed(:user) }
-  let(:base_scope) { News.visible(user) }
+  let(:base_scope) { News.visible(user).order(id: :desc) }
   let(:instance) { described_class.new }
 
   before do
@@ -71,6 +71,15 @@ describe Queries::News::NewsQuery, type: :model do
       it 'is invalid if the filter is invalid' do
         instance.where('project_id', '=', [''])
         expect(instance).to be_invalid
+      end
+    end
+  end
+
+  context 'with an order by id asc' do
+    describe '#results' do
+      it 'returns all visible news ordered by id asc' do
+        expect(instance.order(id: :asc).results.to_sql)
+          .to eql base_scope.except(:order).order(id: :asc).to_sql
       end
     end
   end

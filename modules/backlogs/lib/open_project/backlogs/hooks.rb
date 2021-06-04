@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -27,49 +27,8 @@
 #++
 
 module OpenProject::Backlogs::Hooks
-  class Hook < Redmine::Hook::Listener
-    include ActionView::Helpers::TagHelper
-    include ActionView::Context
-    include WorkPackagesHelper
-
-    def work_packages_show_attributes(context = {})
-      work_package = context[:work_package]
-      attributes = context[:attributes]
-
-      return unless work_package.backlogs_enabled?
-      return if context[:from] == 'OpenProject::Backlogs::WorkPackageView::FieldsParagraph'
-
-      attributes << work_package_show_story_points_attribute(work_package)
-      attributes << work_package_show_remaining_hours_attribute(work_package)
-
-      attributes
-    end
-
-    private
-
-    def work_package_show_story_points_attribute(work_package)
-      return nil unless work_package.is_story?
-
-      work_package_show_table_row(:story_points, :"story-points") do
-        work_package.story_points ? work_package.story_points.to_s : empty_element_tag
-      end
-    end
-
-    def work_package_show_remaining_hours_attribute(work_package)
-      work_package_show_table_row(:remaining_hours) do
-        work_package.remaining_hours ? l_hours(work_package.remaining_hours) : empty_element_tag
-      end
-    end
-  end
-
-  class LayoutHook < Redmine::Hook::ViewListener
+  class LayoutHook < OpenProject::Hook::ViewListener
     include RbCommonHelper
-
-    # TODO: there are hook implementations in here that need to be ported
-    #       to render a partial instead of returning a hand crafted snippet
-
-    render_on :view_work_packages_form_details_bottom,
-              partial: 'hooks/backlogs/view_work_packages_form_details_bottom'
 
     def view_versions_show_bottom(context = {})
       version = context[:version]
@@ -81,7 +40,8 @@ module OpenProject::Backlogs::Hooks
 
       if User.current.allowed_to?(:edit_wiki_pages, project)
         snippet += '<span id="edit_wiki_page_action">'
-        snippet += link_to l(:button_edit_wiki), { controller: '/rb_wikis', action: 'edit', project_id: project.id, sprint_id: version.id }, class: 'icon icon-edit'
+        snippet += link_to I18n.t(:button_edit_wiki),
+                           { controller: '/rb_wikis', action: 'edit', project_id: project.id, sprint_id: version.id }, class: 'icon icon-edit'
         snippet += '</span>'
 
         # This wouldn't be necesary if the schedules plugin didn't disable the
@@ -104,7 +64,9 @@ module OpenProject::Backlogs::Hooks
           user: context[:user],
           color: context[:user].backlogs_preference(:task_color),
           versions_default_fold_state:
-            context[:user].backlogs_preference(:versions_default_fold_state) })
+            context[:user].backlogs_preference(:versions_default_fold_state)
+        }
+      )
     end
 
     def controller_work_package_new_after_save(context = {})
@@ -125,7 +87,7 @@ module OpenProject::Backlogs::Hooks
 
         if params[:copy_tasks]
           params[:copy_tasks] += ':' if params[:copy_tasks] !~ /:/
-          action, id = *(params[:copy_tasks].split(/:/))
+          action, id = *params[:copy_tasks].split(/:/)
 
           story = (id.nil? ? nil : Story.find(Integer(id)))
 
@@ -135,17 +97,16 @@ module OpenProject::Backlogs::Hooks
             when 'open'
               tasks = tasks.select { |t| !t.closed? }
             when 'all', 'none'
-            #
             else
               raise "Unexpected value #{params[:copy_tasks]}"
             end
 
-            tasks.each {|t|
+            tasks.each do |t|
               nt = Task.new
               nt.copy_from(t)
               nt.parent_id = work_package.id
               nt.save
-            }
+            end
           end
         end
       end

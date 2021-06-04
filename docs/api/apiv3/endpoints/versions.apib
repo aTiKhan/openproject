@@ -491,6 +491,7 @@ You can use the form and schema to be retrieve the valid attribute values and by
                     "required": false,
                     "hasDefault": false,
                     "writable": true,
+                    "location": "_links",
                     "visibility": "default",
                     "_links": {}
                 },
@@ -671,6 +672,7 @@ For more details and all possible responses see the general specification of [Fo
                             "required": true,
                             "hasDefault": false,
                             "writable": true,
+                            "location": "_links",
                             "_embedded": {
                                 "allowedValues": [
                                     {
@@ -709,6 +711,7 @@ For more details and all possible responses see the general specification of [Fo
                             "required": false,
                             "hasDefault": false,
                             "writable": true,
+                            "location": "_links",
                             "visibility": "default",
                             "_embedded": {
                                 "allowedValues": [
@@ -973,6 +976,7 @@ For more details and all possible responses see the general specification of [Fo
                             "required": false,
                             "hasDefault": false,
                             "writable": true,
+                            "location": "_links",
                             "visibility": "default",
                             "_embedded": {
                                 "allowedValues": [
@@ -1161,7 +1165,7 @@ This endpoint lists the versions that are *available* in a given project.
 Note that due to sharing this might be more than the versions *defined* by that project.
 
 + Parameters
-    + project_id (required, integer, `1`) ... ID of the project whoose versions will be listed
+    + project_id (required, integer, `1`) ... ID of the project whose versions will be listed
 
 + Response 200 (application/hal+json)
 

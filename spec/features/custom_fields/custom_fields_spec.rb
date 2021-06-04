@@ -9,14 +9,11 @@ describe 'custom fields', js: true do
     login_as(user)
   end
 
-  describe "creating a new list custom field" do
-    before do
-      cf_page.visit!
+  shared_examples "creating a new list custom field" do |type|
+    it "creates a new list custom field with its options in the right order" do
+      cf_page.visit_tab type
 
       click_on "Create a new custom field"
-    end
-
-    it "creates a new list custom field with its options in the right order" do
       cf_page.set_name "Operating System"
 
       select "List", from: "custom_field_field_format"
@@ -48,21 +45,26 @@ describe 'custom fields', js: true do
 
       expect(page).to have_text("Successful creation")
 
+      SeleniumHubWaiter.wait
       click_on "Operating System"
 
       expect(page).to have_selector('.custom-option-row', count: 3)
-      values = all(".custom-option-value input")
+      expect(page).to have_field("custom_field_custom_options_attributes_0_value", with: "Solaris")
+      expect(page).to have_field("custom_field_custom_options_attributes_1_value", with: "Windows")
+      expect(page).to have_field("custom_field_custom_options_attributes_2_value", with: "Linux")
 
-      expect(values[0].value).to eql("Solaris")
-      expect(values[1].value).to eql("Windows")
-      expect(values[2].value).to eql("Linux")
-
-      defaults = all(".custom-option-default-value input")
-
-      expect(defaults[0]).not_to be_checked
-      expect(defaults[1]).to be_checked
-      expect(defaults[2]).not_to be_checked
+      expect(page).to have_field("custom_field_custom_options_attributes_0_default_value", checked: false)
+      expect(page).to have_field("custom_field_custom_options_attributes_1_default_value", checked: true)
+      expect(page).to have_field("custom_field_custom_options_attributes_2_default_value", checked: false)
     end
+  end
+
+  describe 'projects' do
+    it_behaves_like "creating a new list custom field", 'Projects'
+  end
+
+  describe 'work packages' do
+    it_behaves_like "creating a new list custom field", 'Work packages'
   end
 
   context "with an existing list custom field" do
@@ -79,13 +81,16 @@ describe 'custom fields', js: true do
 
       cf_page.visit!
       expect_angular_frontend_initialized
+      SeleniumHubWaiter.wait
 
       click_on custom_field.name
       expect_angular_frontend_initialized
+      SeleniumHubWaiter.wait
     end
 
     it "adds new options" do
       click_on "add-custom-option"
+      SeleniumHubWaiter.wait
 
       expect(page).to have_selector('.custom-option-row', count: 5)
       within all(".custom-option-row").last do
@@ -93,6 +98,7 @@ describe 'custom fields', js: true do
       end
 
       click_on "add-custom-option"
+      SeleniumHubWaiter.wait
 
       expect(page).to have_selector('.custom-option-row', count: 6)
       within all(".custom-option-row").last do
@@ -105,55 +111,40 @@ describe 'custom fields', js: true do
       expect(page).to have_text("Platform")
       expect(page).to have_selector('.custom-option-row', count: 6)
 
-      values = all(".custom-option-value input").map(&:value)
-
-      expect(values).to eq ["Playstation", "Xbox", "Nintendo", "PC", "Sega", "Atari"]
+      ["Playstation", "Xbox", "Nintendo", "PC", "Sega", "Atari"].each_with_index do |value, i|
+        expect(page).to have_field("custom_field_custom_options_attributes_#{i}_value", with: value)
+      end
     end
 
     it "updates the values and orders of the custom options" do
       expect(page).to have_text("Platform")
 
       expect(page).to have_selector('.custom-option-row', count: 4)
-      rows = all(".custom-option-value input")
+      ["Playstation", "Xbox", "Nintendo", "PC"].each_with_index do |value, i|
+        expect(page).to have_field("custom_field_custom_options_attributes_#{i}_value", with: value)
+      end
 
-      expect(rows[0].value).to eql("Playstation")
-      expect(rows[1].value).to eql("Xbox")
-      expect(rows[2].value).to eql("Nintendo")
-      expect(rows[3].value).to eql("PC")
-
-      rows[1].set "Sega"
-
-      find("#custom_field_multi_value").set true
-
-      defaults = all(".custom-option-default-value input")
-
-      defaults[0].set true
-      defaults[2].set true
-
+      fill_in("custom_field_custom_options_attributes_1_value", with: "Sega")
+      check("custom_field_multi_value")
+      check("custom_field_custom_options_attributes_0_default_value")
+      check("custom_field_custom_options_attributes_2_default_value")
       within all(".custom-option-row").first do
         click_on "Move to bottom"
       end
-
       click_on "Save"
 
       expect(page).to have_text("Successful update")
       expect(page).to have_text("Platform")
+      expect(page).to have_field("custom_field_multi_value", checked: true)
 
-      expect(find("#custom_field_multi_value")).to be_checked
+      ["Sega", "Nintendo", "PC", "Playstation"].each_with_index do |value, i|
+        expect(page).to have_field("custom_field_custom_options_attributes_#{i}_value", with: value)
+      end
 
-      new_rows = all(".custom-option-value input")
-
-      expect(new_rows[0].value).to eql("Sega")
-      expect(new_rows[1].value).to eql("Nintendo")
-      expect(new_rows[2].value).to eql("PC")
-      expect(new_rows[3].value).to eql("Playstation")
-
-      new_defaults = all(".custom-option-default-value input")
-
-      expect(new_defaults[0]).not_to be_checked
-      expect(new_defaults[1]).to be_checked
-      expect(new_defaults[2]).not_to be_checked
-      expect(new_defaults[3]).to be_checked
+      expect(page).to have_field("custom_field_custom_options_attributes_0_default_value", checked: false)
+      expect(page).to have_field("custom_field_custom_options_attributes_1_default_value", checked: true)
+      expect(page).to have_field("custom_field_custom_options_attributes_2_default_value", checked: false)
+      expect(page).to have_field("custom_field_custom_options_attributes_3_default_value", checked: true)
     end
 
     context "with work packages using the options" do

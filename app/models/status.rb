@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -47,6 +47,8 @@ class Status < ApplicationRecord
 
   validates_inclusion_of :default_done_ratio, in: 0..100, allow_nil: true
 
+  validate :default_status_must_not_be_readonly
+
   after_save :unmark_old_default_value, if: :is_default?
 
   def unmark_old_default_value
@@ -79,8 +81,8 @@ class Status < ApplicationRecord
     order(:position)
   end
 
-  def <=>(status)
-    position <=> status.position
+  def <=>(other)
+    position <=> other.position
   end
 
   def to_s; name end
@@ -106,6 +108,12 @@ class Status < ApplicationRecord
 
   def check_integrity
     raise "Can't delete status" if WorkPackage.where(status_id: id).exists?
+  end
+
+  def default_status_must_not_be_readonly
+    if is_readonly? && is_default?
+      errors.add(:is_readonly, :readonly_default_exlusive)
+    end
   end
 
   # Deletes associated workflows

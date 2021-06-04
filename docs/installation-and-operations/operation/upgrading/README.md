@@ -7,10 +7,15 @@ sidebar_navigation:
 # Upgrading your OpenProject installation
 
 <div class="alert alert-warning" role="alert">
-
 **Note**: In the rest of this guide, we assume that you have taken the necessary steps to [backup](../backing-up) your OpenProject installation before upgrading.
-
 </div>
+
+| Topic                                                        | Content                                                     |
+| ------------------------------------------------------------ | ----------------------------------------------------------- |
+| [Package-based installation](#package-based-installation-(DEB/RPM)) | How to upgrade a package-based installation of OpenProject. |
+| [Docker-based installation](#docker-based-installation)      | How to upgrade a Docker-based installation of OpenProject.  |
+| [Upgrade notes for 8.x to 9.x](#upgrade-notes-for-8x-to-9x)  | How to upgrade from OpenProject 8.x to OpenProject 9.x.     |
+| [Upgrade notes for 7.x to 8.x](#upgrade-notes-for-openproject-7x-to-8x) | How to upgrade from OpenProject 7.x to OpenProject 8.x.     |
 
 ## Package-based installation (DEB/RPM)
 
@@ -19,7 +24,7 @@ running the `openproject configure` command.
 
 <div class="alert alert-info" role="alert">
 
-Please note that the package-based installation uses different release channels for each MAJOR version of OpenProject. This means that if you want to switch from (e.g.) 9.x to 10.x, you will need to perform the steps described in the [installation section](../../installation/packaged) to update your package sources to point to the newer release channel. The rest of this section is only applicable if you want to upgrade a (e.g.) 10.x version to a 10.y vesion.
+Please note that the package-based installation uses different release channels for each MAJOR version of OpenProject. This means that if you want to switch from (e.g.) 9.x to 10.x, you will need to perform the steps described in the [installation section](../../installation/packaged) to update your package sources to point to the newer release channel. The rest of this section is only applicable if you want to upgrade a (e.g.) 10.x version to a 10.y version.
 
 </div>
 
@@ -48,14 +53,13 @@ sudo openproject configure
 
 
 <div class="alert alert-info" role="alert">
-
 Using `openproject configure`, the wizard will display new steps that weren't available yet or had not been configured in previous installations.
 
 If you want to perform changes to your configuration or are unsure what steps are available, you can safely run `openproject reconfigure` to walk through the entire configuration process again.
 
 Note that this still takes previous values into consideration. Values that should not change from your previous configurations can be skipped by pressing `<Return>`. This also applies for steps with passwords, which are shown as empty even though they may have a value. Skipping those steps equals to re-use the existing value.
-
 </div>
+
 
 ## Docker-based installation
 
@@ -68,6 +72,7 @@ docker-compose up -d
 
 Please note that you can override the `TAG` that is used to pull the OpenProject image from the [Docker Hub](https://hub.docker.com/r/openproject/community).
 
+### All-in-one container
 
 When using the all-in-one docker container, you need to perform the following steps:
 
@@ -92,20 +97,42 @@ This time, it will use the new image:
 docker run -d ... openproject/community:VERSION
 ```
 
+#### I have already started OpenProject without mounted volumes. How do I save my data during an update?
+
+You can extract your data from the existing container and mount it in a new one with the correct configuration.
+
+1. Stop the container to avoid changes to the data. Stopping the container does not delete any data as long as you don't remove the container.
+2. Copy the data to a new directory on the host, e.g. `/var/lib/openproject`, or a mounted network drive, say `/volume1`.
+3. Launch the new container mounting the folders in that directory as described above.
+4. Delete the old container once you confirmed the new one is working correctly.
+
+You can copy the data from the container using `docker cp` like this:
+
+```
+# Find out the container name with `docker ps`, we use `openproject-community1` here.
+# The target folder should be what ever persistent volume you have on the system, e.g. `/volume1`.
+docker cp openproject-community1:/var/openproject/assets /volume1/openproject/assets
+docker cp openproject-community1:/var/openproject/pgdata /volume1/openproject/pgdata
+```
+
+Make sure the folders have the correct owner so the new container can read and write them.
+
+```
+sudo chown -R 102 /volume1/openproject/*
+```
+
+After that it's simply a matter of launching the new container mounted with the copied `pgdata` and `assets` folders
+as described in the [installation section](../../installation/docker/#recommended-usage).
+
 ## Upgrade notes for 8.x to 9.x
 
 These following points are some known issues regarding the update to 9.0.
 
 ### MySQL is being deprecated
 
-OpenProject 9.0. is deprecating MySQL support. You can expect full MySQL
-support for the course of 9.0 releases, but we are likely going to be dropping
-MySQL completely in one of the following releases.
+OpenProject 9.0. is deprecating MySQL support. You can expect full MySQL support for the course of 9.0 releases, but we are likely going to be dropping MySQL completely in one of the following releases.
 
-For more information regarding motivation behind this and migration steps,
-please see https://www.openproject.org/deprecating-mysql-support/ In this post,
-you will find documentation for a mostly-automated migration script to
-PostgreSQL to help you get up and running with PostgreSQL.
+For more information regarding motivation behind this and migration steps, please see [https://www.openproject.org/deprecating-mysql-support](https://www.openproject.org/deprecating-mysql-support)/ In this post, you will find documentation for a mostly-automated migration script to PostgreSQL to help you get up and running with PostgreSQL.
 
 ### Package repository moved into opf/openproject
 
@@ -136,11 +163,11 @@ you will need to adjust that package source.
  - Update the reference to `stable/8` in `/etc/zypp/repos.d/openproject.repo` to `stable/9`.
  - Perform the Upgrade steps as mentioned above in *Upgrading your OpenProject installation*
 
-### Upgrade notes for OpenProject 7.x to 8.x
+## Upgrade notes for OpenProject 7.x to 8.x
 
 These following points are some known issues around the update to 8.0. It does not contain the entire list of changes. To see all changes, [please browse the release notes](https://docs.openproject.org/release-notes/8-0-0/).
 
-#### Upgrades in NPM may result in package inconsistencies
+### Upgrades in NPM may result in package inconsistencies
 
 As has been reported from the community, [there appear to be issues with NPM leftover packages](https://community.openproject.com/projects/openproject/work_packages/28571) upgrading to OpenProject 8.0.0. This is due to the packages applying a delta between your installed version and the to-be-installed 8.0. package. In some cases such as SLES12 and Centos 7, the `frontend/node_modules` folder is not fully correctly replaced. This appears to hint at an issue with yum, the package manager behind both.
 
@@ -151,8 +178,8 @@ rm -rf /opt/openproject/frontend/node_modules
 # Continue with the installation steps described below
 ```
 
-#### Migration from Textile to Markdown
+### Migration from Textile to Markdown
 
 OpenProject 8.0. has removed Textile, all previous content is migrated to GFM Markdown using [pandoc](https://pandoc.org). This will happen automatically during the migration run. A recent pandoc version will be downloaded by OpenProject.
 
-For more information, please visit this separate guide: https://github.com/opf/openproject/tree/dev/docs/user/textile-to-markdown-migration
+For more information, please visit [this separate guide](../../misc/textile-migration).

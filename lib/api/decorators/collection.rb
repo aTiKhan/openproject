@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -33,7 +33,7 @@ module API
     class Collection < ::API::Decorators::Single
       include API::Utilities::UrlHelper
 
-      def initialize(models, total, self_link, current_user:)
+      def initialize(models, total, self_link:, current_user:)
         @total = total
         @self_link = self_link
 
@@ -47,7 +47,19 @@ module API
       end
 
       def element_decorator
-        self.class.element_decorator_class
+        self.class.element_decorator_class || deduce_element_decorator
+      end
+
+      def deduce_element_decorator
+        name = self.class.name
+
+        unless name.end_with?('CollectionRepresenter')
+          raise ArgumentError, "Can't deduce representer name from #{name}, please specify it with `element_decorator ClassName`"
+        end
+
+        name
+          .gsub("CollectionRepresenter", "Representer")
+          .constantize
       end
 
       link :self do

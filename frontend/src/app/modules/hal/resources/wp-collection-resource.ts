@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,10 +26,10 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {WorkPackageResource} from 'core-app/modules/hal/resources/work-package-resource';
-import {CollectionResource} from 'core-app/modules/hal/resources/collection-resource';
-import {SchemaResource} from 'core-app/modules/hal/resources/schema-resource';
-import {HalResource} from 'core-app/modules/hal/resources/hal-resource';
+import { WorkPackageResource } from 'core-app/modules/hal/resources/work-package-resource';
+import { CollectionResource } from 'core-app/modules/hal/resources/collection-resource';
+import { SchemaResource } from 'core-app/modules/hal/resources/schema-resource';
+import { HalResource } from 'core-app/modules/hal/resources/hal-resource';
 
 export interface WorkPackageCollectionResourceEmbedded {
   elements:WorkPackageResource[];
@@ -41,13 +41,12 @@ export class WorkPackageCollectionResource extends CollectionResource<WorkPackag
   public createWorkPackage:any;
   public elements:WorkPackageResource[];
   public groups:GroupObject[];
-  public totalSums?:Object;
+  public totalSums?:{[key:string]:number};
   public sumsSchema?:SchemaResource;
   public representations:Array<HalResource>;
 }
 
-export interface WorkPackageCollectionResource extends WorkPackageCollectionResourceEmbedded {
-}
+export interface WorkPackageCollectionResource extends WorkPackageCollectionResourceEmbedded {}
 
 /**
  * A reference to a group object as returned from the API.
@@ -59,6 +58,7 @@ export interface GroupObject {
   collapsed?:boolean;
   index:number;
   identifier:string;
+  sums:{[attribute:string]:number|null};
   href:{ href:string }[];
   _links:{
     valueLink:{ href:string }[];

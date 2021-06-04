@@ -1,25 +1,19 @@
 # Force the latest version of geckodriver using the webdriver gem
 require 'webdrivers/geckodriver'
+require 'socket'
 
-if ENV['CI']
-  ::Webdrivers.logger.level = :DEBUG
-  ::Webdrivers::Geckodriver.update
-end
-
-
-def register_firefox_headless(language, name: :"firefox_headless_#{language}")
+def register_firefox(language, name: :"firefox_#{language}")
   require 'selenium/webdriver'
 
   Capybara.register_driver name do |app|
-    Selenium::WebDriver::Firefox::Binary.path = ENV['FIREFOX_BINARY_PATH'] ||
-      Selenium::WebDriver::Firefox::Binary.path
-
-    client = Selenium::WebDriver::Remote::Http::Default.new
-    client.timeout = 180
+    if ENV['CI']
+      client = Selenium::WebDriver::Remote::Http::Default.new
+      client.timeout = 180
+    end
 
     profile = Selenium::WebDriver::Firefox::Profile.new
     profile['intl.accept_languages'] = language
-    profile['browser.download.dir'] = DownloadedFile::PATH.to_s
+    profile['browser.download.dir'] = DownloadList::SHARED_PATH.to_s
     profile['browser.download.folderList'] = 2
     profile['browser.helperApps.neverAsk.saveToDisk'] = 'text/csv'
 
@@ -46,17 +40,21 @@ def register_firefox_headless(language, name: :"firefox_headless_#{language}")
       options.args << "--headless"
     end
 
-    # If you need to trace the webdriver commands, un-comment this line
-    # Selenium::WebDriver.logger.level = :info
+    is_grid = ENV['SELENIUM_GRID_URL'].present?
 
-    driver = Capybara::Selenium::Driver.new(
-      app,
-      browser: :firefox,
-      options: options,
+    driver_opts = {
+      browser: is_grid ? :remote : :firefox,
+      url: ENV['SELENIUM_GRID_URL'],
       desired_capabilities: capabilities,
-
       http_client: client,
-    )
+      options: options,
+    }
+
+    if is_grid
+      driver_opts[:url] = ENV['SELENIUM_GRID_URL']
+    end
+
+    driver = Capybara::Selenium::Driver.new app, **driver_opts
 
     Capybara::Screenshot.register_driver(name) do |driver, path|
       driver.browser.save_screenshot(path)
@@ -66,24 +64,6 @@ def register_firefox_headless(language, name: :"firefox_headless_#{language}")
   end
 end
 
-register_firefox_headless 'en'
+register_firefox 'en'
 # Register german locale for custom field decimal test
-register_firefox_headless 'de'
-
-# Register mocking proxy driver
-register_firefox_headless 'en', name: :headless_firefox_billy do |profile, options, capabilities|
-  profile.assume_untrusted_certificate_issuer = false
-  profile.proxy = Selenium::WebDriver::Proxy.new(
-    http: "#{Billy.proxy.host}:#{Billy.proxy.port}",
-    ssl: "#{Billy.proxy.host}:#{Billy.proxy.port}")
-
-
-  capabilities[:accept_insecure_certs] = true
-end
-
-# Resize window if firefox
-RSpec.configure do |config|
-  config.before(:each, driver: Proc.new { |val| val.to_s.start_with? 'firefox_headless_' }) do
-    Capybara.page.driver.browser.manage.window.maximize
-  end
-end
+register_firefox 'de'

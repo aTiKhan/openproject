@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -30,8 +30,7 @@ require 'spec_helper'
 
 describe 'Enterprise trial management',
          type: :feature,
-         driver: :headless_firefox_billy do
-
+         driver: :chrome_billy do
   let(:admin) { FactoryBot.create(:admin) }
 
   let(:trial_id) { '1b6486b4-5a30-4042-8714-99d7c8e6b637' }
@@ -139,6 +138,29 @@ describe 'Enterprise trial management',
     }
   end
 
+  let(:domain_in_use_body) do
+    {
+      _type: "error",
+      code: 422,
+      identifier: "domain_taken",
+      description: "There can only be one active trial per domain."
+    }
+  end
+
+  let(:other_error_body) do
+    {
+      _type: "error",
+      code: 409,
+      description: "Token version is invalid",
+      identifier: "token_version_too_old",
+      errors: {
+        token_version: [
+          "does not have a valid value"
+        ]
+      }
+    }
+  end
+
   before do
     login_as(admin)
     visit enterprise_path
@@ -149,34 +171,58 @@ describe 'Enterprise trial management',
     fill_in 'First name', with: 'Foo'
     fill_in 'Last name', with: 'Bar'
     fill_in 'Email', with: mail
-    fill_in 'Domain', with: 'foo.example.com'
 
     find('#trial-general-consent').check
   end
 
   it 'blocks the request assuming the mail was used' do
     proxy.stub('https://augur.openproject-edge.com:443/public/v1/trials', method: 'post')
-      .and_return(headers: {'Access-Control-Allow-Origin' => '*'}, code: 422, body: mail_in_use_body.to_json)
+      .and_return(headers: { 'Access-Control-Allow-Origin' => '*' }, code: 422, body: mail_in_use_body.to_json)
 
     find('.button', text: 'Start free trial').click
     fill_out_modal
     find('.button:not(:disabled)', text: 'Submit').click
 
-    expect(page).to have_selector('.form--field.-error #trial-email')
-    expect(page).to have_text 'Each user can only create one trial.'
+    expect(page).to have_selector('.-required-highlighting #trial-email')
+    expect(page).to have_text('Each user can only create one trial.')
+    expect(page).to have_no_text 'email sent - waiting for confirmation'
+  end
+
+  it 'blocks the request assuming the domain was used' do
+    proxy.stub('https://augur.openproject-edge.com:443/public/v1/trials', method: 'post')
+      .and_return(headers: { 'Access-Control-Allow-Origin' => '*' }, code: 422, body: domain_in_use_body.to_json)
+
+    find('.button', text: 'Start free trial').click
+    fill_out_modal
+    find('.button:not(:disabled)', text: 'Submit').click
+
+    expect(page).to have_selector('.-required-highlighting #trial-domain-name')
+    expect(page).to have_text('There can only be one active trial per domain.')
+    expect(page).to have_no_text 'email sent - waiting for confirmation'
+  end
+
+  it 'shows an error in case of other errors' do
+    proxy.stub('https://augur.openproject-edge.com:443/public/v1/trials', method: 'post')
+      .and_return(headers: { 'Access-Control-Allow-Origin' => '*' }, code: 409, body: other_error_body.to_json)
+
+    find('.button', text: 'Start free trial').click
+    fill_out_modal
+    find('.button:not(:disabled)', text: 'Submit').click
+
+    expect(page).to have_text('Token version is invalid')
     expect(page).to have_no_text 'email sent - waiting for confirmation'
   end
 
   context 'with a waiting request pending' do
     before do
       proxy.stub('https://augur.openproject-edge.com:443/public/v1/trials', method: 'post')
-        .and_return(headers: {'Access-Control-Allow-Origin' => '*'}, code: 200, body: created_body.to_json)
+        .and_return(headers: { 'Access-Control-Allow-Origin' => '*' }, code: 200, body: created_body.to_json)
 
       proxy.stub("https://augur.openproject-edge.com:443/public/v1/trials/#{trial_id}")
-        .and_return(headers: {'Access-Control-Allow-Origin' => '*'}, code: 422, body: waiting_body.to_json)
+        .and_return(headers: { 'Access-Control-Allow-Origin' => '*' }, code: 422, body: waiting_body.to_json)
 
       proxy.stub("https://augur.openproject-edge.com:443/public/v1/trials/#{trial_id}/resend", method: 'post')
-        .and_return(headers: {'Access-Control-Allow-Origin' => '*'}, code: 200, body: waiting_body.to_json)
+        .and_return(headers: { 'Access-Control-Allow-Origin' => '*' }, code: 200, body: waiting_body.to_json)
 
       find('.button', text: 'Start free trial').click
       fill_out_modal
@@ -194,11 +240,11 @@ describe 'Enterprise trial management',
       # Stub the proxy to a successful return
       # which marks the user has confirmed the mail link
       proxy.stub("https://augur.openproject-edge.com:443/public/v1/trials/#{trial_id}")
-        .and_return(headers: {'Access-Control-Allow-Origin' => '*'}, code: 200, body: confirmed_body.to_json)
+        .and_return(headers: { 'Access-Control-Allow-Origin' => '*' }, code: 200, body: confirmed_body.to_json)
 
       # Stub the details URL to still return 403
       proxy.stub("https://augur.openproject-edge.com:443/public/v1/trials/#{trial_id}/details")
-        .and_return(headers: {'Access-Control-Allow-Origin' => '*'}, code: 403)
+        .and_return(headers: { 'Access-Control-Allow-Origin' => '*' }, code: 403)
 
       visit enterprise_path
 
@@ -220,7 +266,7 @@ describe 'Enterprise trial management',
       # Stub the proxy to a successful return
       # which marks the user has confirmed the mail link
       proxy.stub("https://augur.openproject-edge.com:443/public/v1/trials/#{trial_id}")
-        .and_return(headers: {'Access-Control-Allow-Origin' => '*'}, code: 200, body: confirmed_body.to_json)
+        .and_return(headers: { 'Access-Control-Allow-Origin' => '*' }, code: 200, body: confirmed_body.to_json)
 
       # Wait until the next request
       expect(page).to have_selector '.status--confirmed', text: 'confirmed', wait: 20

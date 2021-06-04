@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -54,7 +54,7 @@ class NewsController < ApplicationController
       end
       format.atom do
         render_feed(@newss,
-                    title: (@project ? @project.name : Setting.app_title) + ": #{l(:label_news_plural)}")
+                    title: (@project ? @project.name : Setting.app_title) + ": #{I18n.t(:label_news_plural)}")
       end
     end
   end
@@ -76,7 +76,7 @@ class NewsController < ApplicationController
     @news = News.new(project: @project, author: User.current)
     @news.attributes = permitted_params.news
     if @news.save
-      flash[:notice] = l(:notice_successful_create)
+      flash[:notice] = I18n.t(:notice_successful_create)
       redirect_to controller: '/news', action: 'index', project_id: @project
     else
       render action: 'new'
@@ -88,7 +88,7 @@ class NewsController < ApplicationController
   def update
     @news.attributes = permitted_params.news
     if @news.save
-      flash[:notice] = l(:notice_successful_update)
+      flash[:notice] = I18n.t(:notice_successful_update)
       redirect_to action: 'show', id: @news
     else
       render action: 'edit'
@@ -97,7 +97,7 @@ class NewsController < ApplicationController
 
   def destroy
     @news.destroy
-    flash[:notice] = l(:notice_successful_delete)
+    flash[:notice] = I18n.t(:notice_successful_delete)
     redirect_to action: 'index', project_id: @project
   end
 
@@ -117,6 +117,7 @@ class NewsController < ApplicationController
 
   def find_optional_project
     return true unless params[:project_id]
+
     @project = Project.find(params[:project_id])
     authorize
   rescue ActiveRecord::RecordNotFound

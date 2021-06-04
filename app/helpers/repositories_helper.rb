@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -63,7 +64,7 @@ module RepositoriesHelper
   end
 
   def render_changeset_changes
-    changes = @changeset.file_changes.limit(1000).order(Arel.sql('path')).map { |change|
+    changes = @changeset.file_changes.limit(1000).order(Arel.sql('path')).map do |change|
       case change.action
       when 'A'
         # Detects moved/copied files
@@ -77,7 +78,7 @@ module RepositoriesHelper
       else
         change
       end
-    }.compact
+    end.compact
 
     tree = {}
     changes.each do |change|
@@ -132,7 +133,7 @@ module RepositoriesHelper
                        show_revisions_path_project_repository_path(project_id: @project,
                                                                    repo_path: path_param,
                                                                    rev: @changeset.identifier),
-                       title: l(:label_folder))
+                       title: I18n.t(:label_folder))
 
         output << "<li class='#{style} icon icon-folder-#{calculate_folder_action(s)}'>#{text}</li>"
         output << render_changes_tree(s)
@@ -153,7 +154,7 @@ module RepositoriesHelper
         text << raw(" - #{h(c.revision)}") unless c.revision.blank?
 
         if c.action == 'M'
-          text << raw(' (' + link_to(l(:label_diff),
+          text << raw(' (' + link_to(I18n.t(:label_diff),
                                      diff_revision_project_repository_path(project_id: @project,
                                                                            repo_path: path_param,
                                                                            rev: @changeset.identifier)) + ') ')
@@ -170,6 +171,7 @@ module RepositoriesHelper
 
   def to_utf8_for_repositories(str)
     return str if str.nil?
+
     str = to_utf8_internal(str)
     if str.respond_to?(:force_encoding)
       str.force_encoding('UTF-8')
@@ -179,21 +181,21 @@ module RepositoriesHelper
 
   def to_utf8_internal(str)
     return str if str.nil?
+
     if str.respond_to?(:force_encoding)
       str.force_encoding('ASCII-8BIT')
     end
     return str if str.empty?
     return str if /\A[\r\n\t\x20-\x7e]*\Z/n.match(str) # for us-ascii
+
     if str.respond_to?(:force_encoding)
       str.force_encoding('UTF-8')
     end
     @encodings ||= Setting.repositories_encodings.split(',').map(&:strip)
     @encodings.each do |encoding|
-      begin
-        return str.to_s.encode('UTF-8', encoding)
-      rescue Encoding::InvalidByteSequenceError, Encoding::UndefinedConversionError
-        # do nothing here and try the next encoding
-      end
+      return str.to_s.encode('UTF-8', encoding)
+    rescue Encoding::InvalidByteSequenceError, Encoding::UndefinedConversionError
+      # do nothing here and try the next encoding
     end
     str = replace_invalid_utf8(str)
   end
@@ -202,11 +204,12 @@ module RepositoriesHelper
 
   def replace_invalid_utf8(str)
     return str if str.nil?
+
     if str.respond_to?(:force_encoding)
       str.force_encoding('UTF-8')
       if !str.valid_encoding?
         str = str.encode("US-ASCII", invalid: :replace,
-                         undef: :replace, replace: '?').encode("UTF-8")
+                                     undef: :replace, replace: '?').encode("UTF-8")
       end
     else
       # removes invalid UTF8 sequences
@@ -238,7 +241,7 @@ module RepositoriesHelper
 
   def default_selected_option
     [
-      "--- #{l(:actionview_instancetag_blank_option)} ---",
+      "--- #{I18n.t(:actionview_instancetag_blank_option)} ---",
       '',
       { disabled: true, selected: true }
     ]
@@ -251,10 +254,9 @@ module RepositoriesHelper
                data: {
                  url: url_for(controller: '/project_settings/repository',
                               action: 'show',
-                              id: @project.id),
+                              id: @project.id)
                },
-               disabled: (repository && !repository.new_record?)
-              )
+               disabled: (repository && !repository.new_record?))
   end
 
   def git_path_encoding_options(repository)
@@ -265,7 +267,7 @@ module RepositoriesHelper
   ##
   # Determines whether the repository settings save button should be shown.
   # By default, it is not shown when repository exists and is managed.
-  def show_settings_save_button?(repository)
+  def show_settings_save_button?(_repository)
     @repository.nil? ||
       @repository.new_record? ||
       !@repository.managed?
@@ -282,15 +284,15 @@ module RepositoriesHelper
   def changes_tree_change_title(action)
     case action
     when 'A'
-      l(:label_added)
+      I18n.t(:label_added)
     when 'D'
-      l(:label_deleted)
+      I18n.t(:label_deleted)
     when 'C'
-      l(:label_copied)
+      I18n.t(:label_copied)
     when 'R'
-      l(:label_renamed)
+      I18n.t(:label_renamed)
     else
-      l(:label_modified)
+      I18n.t(:label_modified)
     end
   end
 

@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,25 +24,19 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
 import {DisplayField} from "core-app/modules/fields/display/display-field.module";
-import {UserFieldPortalService} from "core-app/modules/fields/display/display-portal/display-user-field-portal/user-field-portal-service";
-import {DomPortalOutlet} from "@angular/cdk/portal";
-import {PortalCleanupService} from "core-app/modules/fields/display/display-portal/portal-cleanup.service";
 import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
+import {PrincipalRendererService} from "core-app/modules/principal/principal-renderer.service";
 
 export class UserDisplayField extends DisplayField {
-  @InjectField() userDisplayPortal:UserFieldPortalService;
-  @InjectField() portalCleanup:PortalCleanupService;
-
-  public outlet:DomPortalOutlet;
+  @InjectField() principalRenderer:PrincipalRendererService;
 
   public get value() {
     if (this.schema) {
       return this.attribute && this.attribute.name;
-    }
-    else {
+    } else {
       return null;
     }
   }
@@ -51,8 +45,12 @@ export class UserDisplayField extends DisplayField {
     if (this.placeholder === displayText) {
       this.renderEmpty(element);
     } else {
-      this.outlet = this.userDisplayPortal.create(element, [this.attribute]);
-      this.portalCleanup.add(() => this.outlet.dispose());
+      this.principalRenderer.render(
+        element,
+        this.attribute,
+        { hide: false, link: false },
+        { hide: false, size: 'medium' }
+      );
     }
   }
 }

@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -83,12 +83,16 @@ class WorkPackagesController < ApplicationController
   protected
 
   def export_list(mime_type)
-    export_storage = WorkPackages::Exports::ScheduleService
+    job_id = WorkPackages::Exports::ScheduleService
                      .new(user: current_user)
                      .call(query: @query, mime_type: mime_type, params: params)
                      .result
 
-    redirect_to work_packages_export_path(export_storage.id)
+    if request.headers['Accept']&.include?('application/json')
+      render json: { job_id: job_id }
+    else
+      redirect_to job_status_path(job_id)
+    end
   end
 
   def export_single(mime_type)
@@ -108,7 +112,7 @@ class WorkPackagesController < ApplicationController
 
   def atom_list
     render_feed(@work_packages,
-                title: "#{@project || Setting.app_title}: #{l(:label_work_package_plural)}")
+                title: "#{@project || Setting.app_title}: #{I18n.t(:label_work_package_plural)}")
   end
 
   private
@@ -199,7 +203,7 @@ class WorkPackagesController < ApplicationController
     @results = @query.results
     @work_packages = if @query.valid?
                        @results
-                         .sorted_work_packages
+                         .work_packages
                          .page(page_param)
                          .per_page(per_page_param)
                      else

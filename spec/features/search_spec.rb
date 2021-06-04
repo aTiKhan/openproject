@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -31,7 +31,7 @@ require 'spec_helper'
 describe 'Search', type: :feature, js: true, with_settings: { per_page_options: '5' }, with_mail: false do
   include ::Components::NgSelectAutocompleteHelpers
 
-  using_shared_fixtures :admin
+  shared_let(:admin) { FactoryBot.create :admin }
   let(:user) { admin }
   let(:project) { FactoryBot.create :project }
   let(:searchable) { true }
@@ -87,8 +87,8 @@ describe 'Search', type: :feature, js: true, with_settings: { per_page_options: 
 
   def expect_range(a, b)
     (a..b).each do |n|
-      expect(page.body).to include("No. #{n} WP")
-      expect(page.body).to have_selector("a[href*='#{work_package_path(work_packages[n - 1].id)}']")
+      expect(page).to have_content("No. #{n} WP")
+      expect(page).to have_selector("a[href*='#{work_package_path(work_packages[n - 1].id)}']")
     end
   end
 
@@ -167,7 +167,7 @@ describe 'Search', type: :feature, js: true, with_settings: { per_page_options: 
     end
   end
 
-  describe 'work package search' do
+  describe 'search for work packages' do
     context 'search in all projects' do
       let(:params) { [project, { q: query, work_packages: 1 }] }
 
@@ -225,19 +225,19 @@ describe 'Search', type: :feature, js: true, with_settings: { per_page_options: 
         global_search.submit_in_current_project
 
         # Expect that the "All" tab is selected.
-        expect(page).to have_selector('[tab-id="all"].selected')
+        expect(page).to have_selector('[data-qa-tab-id="all"][data-qa-tab-selected]')
 
         # Expect that the project scope is set to current_project and no module (this is the "all" tab) is requested.
         expect(current_url).to match(/\/#{project.identifier}\/search\?q=#{query}&scope=current_project$/)
 
         # Select "Work packages" tab
-        page.find('[tab-id="work_packages"]').click
+        page.find('[data-qa-tab-id="work_packages"]').click
 
         # Expect that the project scope is set to current_project and the module "work_packages" is requested.
         expect(current_url).to match(/\/search\?q=#{query}&work_packages=1&scope=current_project$/)
 
         # Expect that the "Work packages" tab is selected.
-        expect(page).to have_selector('[tab-id="work_packages"].selected')
+        expect(page).to have_selector('[data-qa-tab-id="work_packages"][data-qa-tab-selected]')
 
         table = Pages::EmbeddedWorkPackagesTable.new(find('.work-packages-embedded-view--container'))
         table.expect_work_package_count(5) # because we set the page size to this
@@ -270,9 +270,6 @@ describe 'Search', type: :feature, js: true, with_settings: { per_page_options: 
 
         table.expect_work_package_subject(work_packages[1].subject)
 
-        # Expect that changing the advanced filters will not affect the global search input.
-        expect(global_search.input.value).to eq query
-
         # Expect that a fresh global search will reset the advanced filters, i.e. that they are closed
         global_search.search work_packages[6].subject, submit: true
 
@@ -304,15 +301,15 @@ describe 'Search', type: :feature, js: true, with_settings: { per_page_options: 
         table.expect_work_package_subject(work_packages[0].subject)
         # ... for type: string
         global_search.search custom_field_string_value, submit: true
-        table.ensure_work_package_not_listed! work_packages[0]
         table.expect_work_package_subject(work_packages[1].subject)
+        table.ensure_work_package_not_listed! work_packages[0]
 
         # Change to project scope to include subprojects
         global_search.search other_work_package.subject
         global_search.submit_in_project_and_subproject_scope
 
         # Expect that the "Work packages" tab is selected.
-        expect(page).to have_selector('[tab-id="work_packages"].selected')
+        expect(page).to have_selector('[data-qa-tab-id="work_packages"][data-qa-tab-selected]')
 
         expect(page).to have_text "Search for \"#{other_work_package.subject}\" in #{project.name} and all subprojects"
 
@@ -338,6 +335,29 @@ describe 'Search', type: :feature, js: true, with_settings: { per_page_options: 
         filters.expect_open
         # As the current project (the subproject) has no subprojects, the filter for subprojectId is expected to be unavailable.
         filters.expect_no_filter_by 'subprojectId', 'subprojectId'
+      end
+    end
+  end
+
+  describe 'search for projects' do
+    let!(:searched_for_project) { FactoryBot.create(:project, name: 'Searched for project') }
+    let!(:other_project) { FactoryBot.create(:project, name: 'Other project') }
+
+    context 'globally' do
+      it 'finds the project' do
+        select_autocomplete(page.find('.top-menu-search--input'),
+                            query: "Searched",
+                            select_text: "In all projects ↵")
+
+        within '.global-search--tabs' do
+          click_on 'Projects'
+        end
+
+        expect(page)
+          .to have_link(searched_for_project.name)
+
+        expect(page)
+          .to have_no_link(other_project.name)
       end
     end
   end
@@ -392,28 +412,28 @@ describe 'Search', type: :feature, js: true, with_settings: { per_page_options: 
     it 'properly transmits parameters used in URL query' do
       global_search.search "Foo &"
       # Bug in ng-select causes highlights to break up entities
-      global_search.find_option "Foo &amp;&amp; Bar"
-      global_search.find_option "Foo &amp;# Bar"
+      global_search.find_option "Foo && Bar"
+      global_search.find_option "Foo &# Bar"
       global_search.expect_global_scope_marked
       global_search.submit_in_global_scope
 
-      table.ensure_work_package_not_listed! wp_2
       table.expect_work_package_listed(wp_1, wp_3)
+      table.ensure_work_package_not_listed! wp_2
 
       global_search.search "# Bar"
       global_search.find_option "Foo # Bar"
       global_search.find_option "Foo &# Bar"
       global_search.submit_in_global_scope
-      table.ensure_work_package_not_listed! wp_1
       table.expect_work_package_listed(wp_2)
+      table.ensure_work_package_not_listed! wp_1
 
       global_search.search "&"
       # Bug in ng-select causes highlights to break up entities
-      global_search.find_option "Foo &amp;&amp; Bar"
-      global_search.find_option "Foo &amp;# Bar"
+      global_search.find_option "Foo && Bar"
+      global_search.find_option "Foo &# Bar"
       global_search.submit_in_global_scope
-      table.ensure_work_package_not_listed! wp_2
       table.expect_work_package_listed(wp_1, wp_3)
+      table.ensure_work_package_not_listed! wp_2
     end
   end
 end

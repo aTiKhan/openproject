@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,27 +26,29 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {HalResource, HalResourceClass} from 'core-app/modules/hal/resources/hal-resource';
-import {QueryFilterResource} from 'core-app/modules/hal/resources/query-filter-resource';
-import {QueryFilterInstanceSchemaResource} from 'core-app/modules/hal/resources/query-filter-instance-schema-resource';
-import {QueryOperatorResource} from 'core-app/modules/hal/resources/query-operator-resource';
-import {Query} from "@angular/core";
+import { HalResource } from 'core-app/modules/hal/resources/hal-resource';
+import { QueryFilterResource } from 'core-app/modules/hal/resources/query-filter-resource';
+import { QueryFilterInstanceSchemaResource } from 'core-app/modules/hal/resources/query-filter-instance-schema-resource';
+import { QueryOperatorResource } from 'core-app/modules/hal/resources/query-operator-resource';
+import { InjectField } from "core-app/helpers/angular/inject-field.decorator";
+import { SchemaCacheService } from "core-components/schemas/schema-cache.service";
+import { PathHelperService } from "core-app/modules/common/path-helper/path-helper.service";
 
 export class QueryFilterInstanceResource extends HalResource {
   public filter:QueryFilterResource;
   public operator:QueryOperatorResource;
   public values:HalResource[]|string[];
-  public schema:QueryFilterInstanceSchemaResource;
   private memoizedCurrentSchemas:{ [key:string]:QueryFilterInstanceSchemaResource } = {};
 
-  /**
-   * Create a copied filter, taking over the manually set schema instance.
-   */
-  public $copy<T extends HalResource = HalResource>():T {
-    let clone = super.$copy<T>() as any;
-    clone.schema = this.schema;
+  @InjectField(SchemaCacheService) schemaCache:SchemaCacheService;
+  @InjectField(PathHelperService) pathHelper:PathHelperService;
 
-    return clone;
+  public $initialize(source:any) {
+    super.$initialize(source);
+
+    this.$links['schema'] = {
+      href: this.pathHelper.api.v3.apiV3Base + '/queries/filter_instance_schemas/' + this.filter.idFromLink
+    };
   }
 
   public get id():string {
@@ -65,14 +67,18 @@ export class QueryFilterInstanceResource extends HalResource {
    * Therefore, the schema differs based on the selected operator.
    */
   public get currentSchema():QueryFilterInstanceSchemaResource|null {
-    if (!this.schema || !this.operator) {
+    if (!this.operator) {
       return null;
     }
 
-    let key = this.operator.href!.toString();
+    const key = this.operator.href!.toString();
 
     if (this.memoizedCurrentSchemas[key] === undefined) {
-      this.memoizedCurrentSchemas[key] = this.schema.resultingSchema(this.operator);
+      try {
+        this.memoizedCurrentSchemas[key] = this.schemaCache.of(this).resultingSchema(this.operator);
+      } catch(e) {
+        console.error("Failed to access filter schema" + e);
+      }
     }
 
     return this.memoizedCurrentSchemas[key];
@@ -83,6 +89,15 @@ export class QueryFilterInstanceResource extends HalResource {
   }
 
   public findOperator(operatorSymbol:string):QueryOperatorResource|undefined {
-    return _.find(this.schema.availableOperators, (operator:QueryOperatorResource) => operator.id === operatorSymbol) as QueryOperatorResource|undefined;
+    return _.find(this.schemaCache.of(this).availableOperators, (operator:QueryOperatorResource) => operator.id === operatorSymbol) as QueryOperatorResource|undefined;
+  }
+
+  public isTemplated() {
+    let flag = false;
+    (this.values as any[]).find((value:any) => {
+      const href:string = value?.href || value.toString() || '';
+      flag = href.includes('{id}');
+    });
+    return flag;
   }
 }

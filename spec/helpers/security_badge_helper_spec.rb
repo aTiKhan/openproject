@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -41,7 +41,7 @@ describe SecurityBadgeHelper, type: :helper do
       expect(uri.host).to eq("releases.openproject.com")
       expect(query.keys).to match_array(["uuid", "type", "version", "db", "lang", "ee"])
       expect(query["uuid"]).to eq("abcd1234")
-      expect(query["version"]).to eq(OpenProject::VERSION.to_s)
+      expect(query["version"]).to eq(OpenProject::VERSION.to_semver)
       expect(query["type"]).to eq("manual")
       expect(query["ee"]).to eq("false")
     end

@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -86,12 +86,12 @@ class WorkPackages::MovesController < ApplicationController
 
   def set_flash_from_bulk_work_package_save(work_packages, unsaved_work_package_ids)
     if unsaved_work_package_ids.empty? and not work_packages.empty?
-      flash[:notice] = @copy ? l(:notice_successful_create) : l(:notice_successful_update)
+      flash[:notice] = @copy ? I18n.t(:notice_successful_create) : I18n.t(:notice_successful_update)
     else
-      flash[:error] = l(:notice_failed_to_save_work_packages,
-                        count: unsaved_work_package_ids.size,
-                        total: work_packages.size,
-                        ids: '#' + unsaved_work_package_ids.join(', #'))
+      flash[:error] = I18n.t(:notice_failed_to_save_work_packages,
+                             count: unsaved_work_package_ids.size,
+                             total: work_packages.size,
+                             ids: '#' + unsaved_work_package_ids.join(', #'))
     end
   end
 
@@ -100,11 +100,11 @@ class WorkPackages::MovesController < ApplicationController
   def dependent_error_ids(parent_id, service_call)
     ids = service_call
       .results_with_errors(include_self: false)
-      .map { |result| result.context[:copied_from]&.id }
+      .map { |result| result.state.copied_from_work_package_id }
       .compact
 
     if ids.present?
-      joined = ids.map {|id| "##{id}" }.join(" ")
+      joined = ids.map { |id| "##{id}" }.join(" ")
       ["#{parent_id} (+ children errors: #{joined})"]
     else
       [parent_id]
@@ -112,7 +112,7 @@ class WorkPackages::MovesController < ApplicationController
   end
 
   def default_breadcrumb
-    l(:label_move_work_package)
+    I18n.t(:label_move_work_package)
   end
 
   private
@@ -122,7 +122,7 @@ class WorkPackages::MovesController < ApplicationController
     unless @project
       # TODO: let users bulk move/copy work packages from different projects
       render_error message: :'work_packages.move.unsupported_for_multiple_projects', status: 400
-      return false
+      false
     end
   end
 

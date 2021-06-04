@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,27 +24,27 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {Component, ElementRef, EventEmitter, Injector, Input, OnDestroy, OnInit, Optional, Output} from '@angular/core';
-import {StateService, Transition, TransitionService} from '@uirouter/core';
-import {ConfigurationService} from 'core-app/modules/common/config/configuration.service';
-import {EditableAttributeFieldComponent} from 'core-app/modules/fields/edit/field/editable-attribute-field.component';
-import {input} from 'reactivestates';
-import {filter, map, take} from 'rxjs/operators';
-import {HalResourceEditingService} from "core-app/modules/fields/edit/services/hal-resource-editing.service";
-import {HalResourceNotificationService} from "core-app/modules/hal/services/hal-resource-notification.service";
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
+import { Component, ElementRef, EventEmitter, Injector, Input, OnDestroy, OnInit, Optional, Output } from '@angular/core';
+import { StateService, Transition, TransitionService } from '@uirouter/core';
+import { ConfigurationService } from 'core-app/modules/common/config/configuration.service';
+import { EditableAttributeFieldComponent } from 'core-app/modules/fields/edit/field/editable-attribute-field.component';
+import { input } from 'reactivestates';
+import { filter, map, take } from 'rxjs/operators';
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
 import {
   activeFieldClassName,
   activeFieldContainerClassName,
   EditForm
 } from "core-app/modules/fields/edit/edit-form/edit-form";
-import {HalResource} from "core-app/modules/hal/resources/hal-resource";
-import {IFieldSchema} from "core-app/modules/fields/field.base";
-import {EditFieldHandler} from "core-app/modules/fields/edit/editing-portal/edit-field-handler";
-import {EditingPortalService} from "core-app/modules/fields/edit/editing-portal/editing-portal-service";
-import {EditFormRoutingService} from "core-app/modules/fields/edit/edit-form/edit-form-routing.service";
+import { HalResource } from "core-app/modules/hal/resources/hal-resource";
+import { IFieldSchema } from "core-app/modules/fields/field.base";
+import { EditFieldHandler } from "core-app/modules/fields/edit/editing-portal/edit-field-handler";
+import { EditingPortalService } from "core-app/modules/fields/edit/editing-portal/editing-portal-service";
+import { EditFormRoutingService } from "core-app/modules/fields/edit/edit-form/edit-form-routing.service";
+import { ResourceChangesetCommit } from "core-app/modules/fields/edit/services/hal-resource-editing.service";
+import { GlobalEditFormChangesTrackerService } from "core-app/modules/fields/edit/services/global-edit-form-changes-tracker/global-edit-form-changes-tracker.service";
 
 @Component({
   selector: 'edit-form,[edit-form]',
@@ -52,7 +52,7 @@ import {EditFormRoutingService} from "core-app/modules/fields/edit/edit-form/edi
 })
 export class EditFormComponent extends EditForm<HalResource> implements OnInit, OnDestroy {
   @Input('resource') resource:HalResource;
-  @Input('inEditMode') initializeEditMode:boolean = false;
+  @Input('inEditMode') initializeEditMode = false;
   @Input('skippedFields') skippedFields:string[] = [];
 
   @Output('onSaved') onSavedEmitter = new EventEmitter<{ savedResource:HalResource, isInitial:boolean }>();
@@ -68,7 +68,8 @@ export class EditFormComponent extends EditForm<HalResource> implements OnInit, 
               protected readonly editingPortalService:EditingPortalService,
               protected readonly $state:StateService,
               protected readonly I18n:I18nService,
-              @Optional() protected readonly editFormRouting:EditFormRoutingService) {
+              @Optional() protected readonly editFormRouting:EditFormRoutingService,
+              private globalEditFormChangesTrackerService:GlobalEditFormChangesTrackerService) {
     super(injector);
 
     const confirmText = I18n.t('js.work_packages.confirm_edit_cancel');
@@ -86,28 +87,25 @@ export class EditFormComponent extends EditForm<HalResource> implements OnInit, 
           return false;
         }
 
-        this.stop();
+        this.cancel(false);
       }
 
       return true;
     });
   }
 
-  ngOnDestroy() {
-    this.destroy();
-  }
-
   ngOnInit() {
     this.editMode = this.initializeEditMode;
+    this.globalEditFormChangesTrackerService.addToActiveForms(this);
 
     if (this.initializeEditMode) {
       this.start();
     }
   }
 
-  destroy() {
+  ngOnDestroy() {
     this.unregisterListener();
-    super.destroy();
+    this.globalEditFormChangesTrackerService.removeFromActiveForms(this);
   }
 
   public async activateField(form:EditForm, schema:IFieldSchema, fieldName:string, errors:string[]):Promise<EditFieldHandler> {
@@ -125,15 +123,24 @@ export class EditFormComponent extends EditForm<HalResource> implements OnInit, 
     });
   }
 
-  public async reset(fieldName:string, focus:boolean = false) {
+  public async reset(fieldName:string, focus = false) {
     const ctrl = await this.waitForField(fieldName);
     ctrl.reset();
     ctrl.deactivate(focus);
   }
 
-  public onSaved(isInitial:boolean, saved:HalResource) {
-    super.onSaved(isInitial, saved);
-    this.stopEditingAndLeave(saved, isInitial);
+  public onSaved(commit:ResourceChangesetCommit) {
+    this.cancel(false);
+    this.onSavedEmitter.emit({ savedResource: commit.resource, isInitial: commit.wasNew });
+  }
+
+  public cancel(reset = false) {
+    this.editMode = false;
+    this.closeEditFields('all', reset);
+
+    if (reset) {
+      this.halEditing.reset(this.change);
+    }
   }
 
   public requireVisible(fieldName:string):Promise<void> {
@@ -178,27 +185,6 @@ export class EditFormComponent extends EditForm<HalResource> implements OnInit, 
 
   public start() {
     _.each(this.fields, ctrl => this.activate(ctrl.fieldName));
-  }
-
-  public stop() {
-    this.editMode = false;
-    this.closeEditFields();
-    this.halEditing.stopEditing(this.resource);
-    this.destroy();
-  }
-
-  public save() {
-    const isInitial = this.resource.isNew;
-    return this
-      .submit()
-      .then((savedResource:HalResource) => {
-        this.stopEditingAndLeave(savedResource, isInitial);
-      });
-  }
-
-  public stopEditingAndLeave(savedResource:HalResource, isInitial:boolean) {
-    this.stop();
-    this.onSavedEmitter.emit({savedResource, isInitial});
   }
 
   protected focusOnFirstError():void {

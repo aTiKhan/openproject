@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -69,7 +69,7 @@ describe WorkPackages::CreateService, 'integration', type: :model do
   end
   let(:service_result) do
     instance
-      .call(attributes)
+      .call(**attributes)
   end
 
   before do
@@ -111,9 +111,9 @@ describe WorkPackages::CreateService, 'integration', type: :model do
       expect(new_work_package.status)
         .to eql(default_status)
 
-      # assign the default type
+      # assign the first type in the project (not related to is_default)
       expect(new_work_package.type)
-        .to eql(default_type)
+        .to eql(type)
 
       # assign the default priority
       expect(new_work_package.priority)
@@ -138,7 +138,7 @@ describe WorkPackages::CreateService, 'integration', type: :model do
       end
 
       it 'reports on invalid attachments and sets the new if everything is valid' do
-        result = instance.call(attributes.merge(attachment_ids: [other_users_attachment.id]))
+        result = instance.call(**attributes.merge(attachment_ids: [other_users_attachment.id]))
 
         expect(result)
           .to be_failure
@@ -153,7 +153,7 @@ describe WorkPackages::CreateService, 'integration', type: :model do
         expect(other_users_attachment.reload.container)
           .to be_nil
 
-        result = instance.call(attributes.merge(attachment_ids: [users_attachment.id]))
+        result = instance.call(**attributes.merge(attachment_ids: [users_attachment.id]))
 
         expect(result)
           .to be_success

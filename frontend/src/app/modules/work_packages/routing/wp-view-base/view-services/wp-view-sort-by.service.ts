@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,20 +24,19 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {States} from 'core-components/states.service';
-import {combine} from 'reactivestates';
-import {mapTo} from 'rxjs/operators';
-import {QueryResource} from 'core-app/modules/hal/resources/query-resource';
-import {IsolatedQuerySpace} from "core-app/modules/work_packages/query-space/isolated-query-space";
-import {Injectable} from '@angular/core';
-import {WorkPackageQueryStateService} from './wp-view-base.service';
-import {Observable} from 'rxjs';
-import {QuerySortByResource} from 'core-app/modules/hal/resources/query-sort-by-resource';
-import {PathHelperService} from "core-app/modules/common/path-helper/path-helper.service";
-import {QueryColumn} from "core-components/wp-query/query-column";
-import {WorkPackagesListService} from "core-components/wp-list/wp-list.service";
+import { States } from 'core-components/states.service';
+import { combine } from 'reactivestates';
+import { mapTo } from 'rxjs/operators';
+import { QueryResource } from 'core-app/modules/hal/resources/query-resource';
+import { IsolatedQuerySpace } from "core-app/modules/work_packages/query-space/isolated-query-space";
+import { Injectable } from '@angular/core';
+import { WorkPackageQueryStateService } from './wp-view-base.service';
+import { Observable } from 'rxjs';
+import { QuerySortByResource } from 'core-app/modules/hal/resources/query-sort-by-resource';
+import { PathHelperService } from "core-app/modules/common/path-helper/path-helper.service";
+import { QueryColumn } from "core-components/wp-query/query-column";
 
 @Injectable()
 export class WorkPackageViewSortByService extends WorkPackageQueryStateService<QuerySortByResource[]> {
@@ -81,12 +80,12 @@ export class WorkPackageViewSortByService extends WorkPackageQueryStateService<Q
   public isSortable(column:QueryColumn):boolean {
     return !!_.find(
       this.available,
-      (candidate) => candidate.column.$href === column.$href
+      (candidate) => candidate.column.href === column.href
     );
   }
 
   public addSortCriteria(column:QueryColumn, criteria:string) {
-    let available = this.findAvailableDirection(column, criteria);
+    const available = this.findAvailableDirection(column, criteria);
 
     if (available) {
       this.add(available);
@@ -94,7 +93,7 @@ export class WorkPackageViewSortByService extends WorkPackageQueryStateService<Q
   }
 
   public setAsSingleSortCriteria(column:QueryColumn, criteria:string) {
-    let available:QuerySortByResource = this.findAvailableDirection(column, criteria)!;
+    const available:QuerySortByResource = this.findAvailableDirection(column, criteria)!;
 
     if (available) {
       this.update([available]);
@@ -104,14 +103,14 @@ export class WorkPackageViewSortByService extends WorkPackageQueryStateService<Q
   public findAvailableDirection(column:QueryColumn, direction:string):QuerySortByResource | undefined {
     return _.find(
       this.available,
-      (candidate) => (candidate.column.$href === column.$href &&
-        candidate.direction.$href === direction)
+      (candidate) => (candidate.column.href === column.href &&
+        candidate.direction.href === direction)
     );
   }
 
   public add(sortBy:QuerySortByResource) {
-    let newValue = _
-      .uniqBy([sortBy, ...this.current], sortBy => sortBy.column.$href)
+    const newValue = _
+      .uniqBy([sortBy, ...this.current], sortBy => sortBy.column.href)
       .slice(0, 3);
 
     this.update(newValue);
@@ -122,7 +121,7 @@ export class WorkPackageViewSortByService extends WorkPackageQueryStateService<Q
   }
 
   public switchToManualSorting(query:QueryResource):boolean {
-    let manualSortObject =  this.manualSortObject;
+    const manualSortObject =  this.manualSortObject;
     if (manualSortObject && !this.isManualSortingMode) {
 
       if (query && query.persisted) {
@@ -160,7 +159,7 @@ export class WorkPackageViewSortByService extends WorkPackageQueryStateService<Q
 
   private get manualSortObject() {
     return _.find(this.available, sort => {
-      return sort.column.$href!.endsWith('/manualSorting');
+      return sort.column.href!.endsWith('/manualSorting');
     });
   }
 }

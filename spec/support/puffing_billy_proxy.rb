@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -33,12 +34,26 @@
 # This allows us to stub requests to external APIs to guarantee responses regardless of
 # their availability.
 #
-# In order to use the proxied server, you need to use `driver: headless_firefox_billy` in your examples
+# In order to use the proxied server, you need to use `driver: firefox_billy` in your examples
 #
 # See https://github.com/oesmith/puffing-billy for more information
 require 'billy/capybara/rspec'
 
 require 'table_print' # Add this dependency to your gemfile
+
+##
+# Patch `puffing-billy`'s proxy so that it doesn't try to stop
+# eventmachine's reactor if it's not running.
+# https://github.com/oesmith/puffing-billy/issues/253
+module BillyProxyPatch
+  def stop
+    return unless EM.reactor_running?
+  rescue Errno::ECONNRESET => e
+    warn "Got error while shutting down Billy proxy"
+  end
+end
+
+::Billy::Proxy.prepend(BillyProxyPatch)
 
 ##
 # To debug stubbed and proxied connections

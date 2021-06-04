@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -52,20 +52,18 @@ module CustomActions::Actions::Strategies::ValidateInRange
   def validate_smaller_than_maximum(errors)
     if maximum && values[0] > maximum
       errors.add :actions,
-                 I18n.t(:'activerecord.errors.models.custom_actions.smaller_than_or_equal_to',
-                        name: human_name,
-                        count: maximum),
-                 error_symbol: :smaller_than_or_equal_to
+                 :smaller_than_or_equal_to,
+                 name: human_name,
+                 count: maximum
     end
   end
 
   def validate_greater_than_minimum(errors)
     if minimum && values[0] < minimum
       errors.add :actions,
-                 I18n.t(:'activerecord.errors.models.custom_actions.greater_than_or_equal_to',
-                        name: human_name,
-                        count: minimum),
-                 error_symbol: :greater_than_or_equal_to
+                 :greater_than_or_equal_to,
+                 name: human_name,
+                 count: minimum
     end
   end
 end

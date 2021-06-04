@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -35,7 +36,7 @@ module UsersHelper
   # @param extra [Hash] A hash containing extra entries with a count for each.
   #                     For example: { random: 42 }
   def users_status_options_for_select(selected, extra: {})
-    statuses = User::StatusOptions.user_statuses_with_count extra: extra
+    statuses = Users::StatusOptions.user_statuses_with_count extra: extra
 
     options = statuses.map do |sym, count|
       ["#{translate_user_status(sym)} (#{count})", sym]
@@ -52,7 +53,7 @@ module UsersHelper
   def full_user_status(user, include_num_failed_logins = false)
     user_status = ''
     unless user.active?
-      user_status = translate_user_status(user.status_name)
+      user_status = translate_user_status(user.status)
     end
     brute_force_status = ''
     if user.failed_too_many_recent_login_attempts?
@@ -77,18 +78,18 @@ module UsersHelper
 
   STATUS_CHANGE_ACTIONS = {
     # status, blocked    => [[button_title, button_name], ...]
-    [:active, false]     => [[:lock, 'lock']],
-    [:active, true]      => [[:reset_failed_logins, 'unlock'],
-                             [:lock, 'lock']],
-    [:locked, false]     => [[:unlock, 'unlock']],
-    [:locked, true]      => [[:unlock_and_reset_failed_logins, 'unlock']],
+    [:active, false] => [[:lock, 'lock']],
+    [:active, true] => [[:reset_failed_logins, 'unlock'],
+                        [:lock, 'lock']],
+    [:locked, false] => [[:unlock, 'unlock']],
+    [:locked, true] => [[:unlock_and_reset_failed_logins, 'unlock']],
     [:registered, false] => [[:activate, 'activate']],
-    [:registered, true]  => [[:activate_and_reset_failed_logins, 'activate']],
+    [:registered, true] => [[:activate_and_reset_failed_logins, 'activate']]
   }
 
   # Create buttons to lock/unlock a user and reset failed logins
   def build_change_user_status_action(user)
-    status = user.status_name.to_sym
+    status = user.status.to_sym
     blocked = !!user.failed_too_many_recent_login_attempts?
 
     result = ''.html_safe
@@ -96,12 +97,6 @@ module UsersHelper
       result << (yield I18n.t(title, scope: :user), name) + ' '.html_safe
     end
     result
-  end
-
-  ##
-  # Returns the user avatar or a default image
-  def user_avatar_icon
-    op_icon('icon-context icon-user')
   end
 
   def change_user_status_buttons(user)
@@ -131,10 +126,18 @@ module UsersHelper
   # Disables projects the user is already member in
   def options_for_membership_project_select(user, projects)
     options = project_tree_options_for_select(projects, disabled: user.projects.ids.to_set)
-    content_tag('option', "--- #{l(:actionview_instancetag_blank_option)} ---") + options
+    content_tag('option', "--- #{I18n.t(:actionview_instancetag_blank_option)} ---") + options
   end
 
   def user_mail_notification_options(user)
-    user.valid_notification_options.map { |o| [l(o.last), o.first] }
+    user.valid_notification_options.map { |o| [I18n.t(o.last), o.first] }
+  end
+
+  def user_name(user)
+    user ? user.name : I18n.t('user.deleted')
+  end
+
+  def can_users_have_auth_source?
+    AuthSource.any? && !OpenProject::Configuration.disable_password_login?
   end
 end

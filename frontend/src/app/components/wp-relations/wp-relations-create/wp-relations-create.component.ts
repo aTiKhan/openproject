@@ -1,11 +1,10 @@
-import {RelationResource} from 'core-app/modules/hal/resources/relation-resource';
-import {WorkPackageResource} from 'core-app/modules/hal/resources/work-package-resource';
-import {WorkPackageCacheService} from '../../work-packages/work-package-cache.service';
-import {WorkPackageRelationsService} from '../wp-relations.service';
-import {Component, Input} from "@angular/core";
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
-import {HalEventsService} from "core-app/modules/hal/services/hal-events.service";
-import {WorkPackageNotificationService} from "core-app/modules/work_packages/notifications/work-package-notification.service";
+import { RelationResource } from 'core-app/modules/hal/resources/relation-resource';
+import { WorkPackageResource } from 'core-app/modules/hal/resources/work-package-resource';
+import { WorkPackageRelationsService } from '../wp-relations.service';
+import { Component, Input } from "@angular/core";
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
+import { HalEventsService } from "core-app/modules/hal/services/hal-events.service";
+import { WorkPackageNotificationService } from "core-app/modules/work_packages/notifications/work-package-notification.service";
 
 @Component({
   selector: 'wp-relations-create',
@@ -14,7 +13,7 @@ import {WorkPackageNotificationService} from "core-app/modules/work_packages/not
 export class WorkPackageRelationsCreateComponent {
   @Input() readonly workPackage:WorkPackageResource;
 
-  public showRelationsCreateForm:boolean = false;
+  public showRelationsCreateForm = false;
   public selectedRelationType:string = RelationResource.DEFAULT();
   public selectedWpId:string;
   public relationTypes = RelationResource.LOCALIZED_RELATION_TYPES(false);
@@ -30,8 +29,7 @@ export class WorkPackageRelationsCreateComponent {
   constructor(readonly I18n:I18nService,
               protected wpRelations:WorkPackageRelationsService,
               protected notificationService:WorkPackageNotificationService,
-              protected halEvents:HalEventsService,
-              protected wpCacheService:WorkPackageCacheService) {
+              protected halEvents:HalEventsService) {
   }
 
 

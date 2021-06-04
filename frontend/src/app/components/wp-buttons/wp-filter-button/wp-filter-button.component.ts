@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,14 +24,14 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {AbstractWorkPackageButtonComponent} from 'core-components/wp-buttons/wp-buttons.module';
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@angular/core';
-import {WorkPackageFiltersService} from 'core-components/filters/wp-filters/wp-filters.service';
-import {WorkPackageViewFiltersService} from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-filters.service";
-import {componentDestroyed} from "@w11k/ngx-componentdestroyed";
+import { AbstractWorkPackageButtonComponent } from 'core-components/wp-buttons/wp-buttons.module';
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { WorkPackageFiltersService } from 'core-components/filters/wp-filters/wp-filters.service';
+import { WorkPackageViewFiltersService } from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-filters.service";
+import { componentDestroyed } from "@w11k/ngx-componentdestroyed";
 
 @Component({
   selector: 'wp-filter-button',
@@ -40,10 +40,10 @@ import {componentDestroyed} from "@w11k/ngx-componentdestroyed";
 })
 export class WorkPackageFilterButtonComponent extends AbstractWorkPackageButtonComponent implements OnInit {
   public count:number;
-  public initialized:boolean = false;
+  public initialized = false;
 
-  public buttonId:string = 'work-packages-filter-toggle-button';
-  public iconClass:string = 'icon-filter';
+  public buttonId = 'work-packages-filter-toggle-button';
+  public iconClass = 'icon-filter';
 
   constructor(readonly I18n:I18nService,
               protected cdRef:ChangeDetectorRef,

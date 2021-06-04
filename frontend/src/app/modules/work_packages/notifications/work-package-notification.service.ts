@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,25 +24,24 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {StateService} from '@uirouter/core';
-import {Injectable, Injector} from '@angular/core';
-import {INotification} from 'core-app/modules/common/notifications/notifications.service';
-import {HalResourceNotificationService} from "core-app/modules/hal/services/hal-resource-notification.service";
-import {WorkPackageResource} from "core-app/modules/hal/resources/work-package-resource";
-import {WorkPackageCacheService} from "core-components/work-packages/work-package-cache.service";
+import { Injectable, Injector } from '@angular/core';
+import { INotification } from 'core-app/modules/common/notifications/notifications.service';
+import { HalResourceNotificationService } from "core-app/modules/hal/services/hal-resource-notification.service";
+import { WorkPackageResource } from "core-app/modules/hal/resources/work-package-resource";
+import { APIV3Service } from "core-app/modules/apiv3/api-v3.service";
 
 @Injectable()
 export class WorkPackageNotificationService extends HalResourceNotificationService {
 
   constructor(readonly injector:Injector,
-              protected wpCacheService:WorkPackageCacheService) {
+              readonly apiV3Service:APIV3Service) {
     super(injector);
   }
 
-  public showSave(resource:WorkPackageResource, isCreate:boolean = false) {
-    let message:any = {
+  public showSave(resource:WorkPackageResource, isCreate = false) {
+    const message:any = {
       message: this.I18n.t('js.notice_successful_' + (isCreate ? 'create' : 'update')),
     };
 
@@ -58,7 +57,7 @@ export class WorkPackageNotificationService extends HalResourceNotificationServi
         type: 'error',
         link: {
           text: this.I18n.t('js.hal.error.update_conflict_refresh'),
-          target: () => this.wpCacheService.require(resource.id!, true)
+          target: () => this.apiV3Service.work_packages.id(resource).refresh()
         }
       });
 
@@ -72,7 +71,8 @@ export class WorkPackageNotificationService extends HalResourceNotificationServi
     // Don't show the 'Show in full screen' link  if we're there already
     if (!this.$state.includes('work-packages.show')) {
       message.link = {
-        target: () => this.$state.go('work-packages.show.activity', {workPackageId: resource.id}),
+        target: () =>
+          this.$state.go('work-packages.show.tabs', { tabIdentifier: 'activity', workPackageId: resource.id }),
         text: this.I18n.t('js.work_packages.message_successful_show_in_fullscreen')
       };
     }

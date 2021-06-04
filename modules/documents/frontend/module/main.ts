@@ -1,15 +1,12 @@
-// -- copyright
-// OpenProject Documents Plugin
-//
-// Former OpenProject Core functionality extracted into a plugin.
-//
-// Copyright (C) 2009-2014 the OpenProject Foundation (OPF)
+//-- copyright
+// OpenProject is an open source project management software.
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
 //
 // OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-//   # Copyright (C) 2006-2013 Jean-Philippe Lang
+// Copyright (C) 2006-2013 Jean-Philippe Lang
 // Copyright (C) 2010-2013 the ChiliProject Team
 //
 // This program is free software; you can redistribute it and/or
@@ -27,20 +24,20 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {NgModule} from '@angular/core';
-import {OpenProjectPluginContext} from "core-app/modules/plugins/plugin-context";
-import {DocumentResource} from './hal/resources/document-resource';
-import {multiInput} from 'reactivestates';
+import { NgModule } from '@angular/core';
+import { OpenProjectPluginContext } from "core-app/modules/plugins/plugin-context";
+import { DocumentResource } from './hal/resources/document-resource';
+import { multiInput } from 'reactivestates';
 
 export function initializeDocumentPlugin() {
   window.OpenProject.getPluginContext()
     .then((pluginContext:OpenProjectPluginContext) => {
-      let halResourceService = pluginContext.services.halResource;
-      halResourceService.registerResource('Document', {cls: DocumentResource});
+      const halResourceService = pluginContext.services.halResource;
+      halResourceService.registerResource('Document', { cls: DocumentResource });
 
-      let states = pluginContext.services.states;
+      const states = pluginContext.services.states;
       states.add('documents', multiInput<DocumentResource>());
     });
 }

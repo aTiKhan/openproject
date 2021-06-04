@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -29,16 +29,14 @@
 #++
 
 module Projects
-  class DeleteProjectJob < ApplicationJob
+  class DeleteProjectJob < UserJob
     queue_with_priority :low
     include OpenProject::LocaleHelper
 
-    attr_reader :user_id,
-                :project_id
+    attr_reader :project
 
-    def perform(user_id:, project_id:)
-      @user_id = user_id
-      @project_id = project_id
+    def execute(project:)
+      @project = project
 
       service_call = delete_project
 
@@ -59,19 +57,12 @@ module Projects
 
     def log_standard_error(e)
       logger.error('Encountered an error when trying to delete project '\
-                   "'#{project_id}' : #{e.message} #{e.backtrace.join("\n")}")
+                   "'#{project}' : #{e.message} #{e.backtrace.join("\n")}")
     end
 
     def log_service_failure(service_call)
-      logger.error("Failed to delete project #{project} in background job: #{service_call.errors.join("\n")}")
-    end
-
-    def user
-      @user ||= User.find user_id
-    end
-
-    def project
-      @project ||= Project.find project_id
+      logger.error "Failed to delete project #{project} in background job: " \
+                   "#{service_call.message}"
     end
 
     def logger

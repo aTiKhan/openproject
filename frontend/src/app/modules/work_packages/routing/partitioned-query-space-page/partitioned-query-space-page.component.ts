@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,26 +24,33 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {ChangeDetectionStrategy, Component, OnDestroy, OnInit} from "@angular/core";
-import {QueryResource} from 'core-app/modules/hal/resources/query-resource';
-import {OpTitleService} from "core-components/html/op-title.service";
-import {WorkPackagesViewBase} from "core-app/modules/work_packages/routing/wp-view-base/work-packages-view.base";
-import {take} from "rxjs/operators";
-import {HalResourceNotificationService} from "core-app/modules/hal/services/hal-resource-notification.service";
-import {WorkPackageNotificationService} from "core-app/modules/work_packages/notifications/work-package-notification.service";
-import {QueryParamListenerService} from "core-components/wp-query/query-param-listener.service";
-import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
-import {ComponentType} from "@angular/cdk/overlay";
-import {Ng2StateDeclaration} from "@uirouter/angular";
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from "@angular/core";
+import { QueryResource } from 'core-app/modules/hal/resources/query-resource';
+import { OpTitleService } from "core-components/html/op-title.service";
+import { WorkPackagesViewBase } from "core-app/modules/work_packages/routing/wp-view-base/work-packages-view.base";
+import { take } from "rxjs/operators";
+import { HalResourceNotificationService } from "core-app/modules/hal/services/hal-resource-notification.service";
+import { WorkPackageNotificationService } from "core-app/modules/work_packages/notifications/work-package-notification.service";
+import { QueryParamListenerService } from "core-components/wp-query/query-param-listener.service";
+import { InjectField } from "core-app/helpers/angular/inject-field.decorator";
+import { ComponentType } from "@angular/cdk/overlay";
+import { Ng2StateDeclaration } from "@uirouter/angular";
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
+import { WorkPackageFilterContainerComponent } from "core-components/filters/filter-container/filter-container.directive";
+import { OpModalService } from 'core-app/modules/modal/modal.service';
+import { InviteUserModalComponent } from 'core-app/modules/invite-user-modal/invite-user.component';
 
-export interface ToolbarButtonComponentDefinition {
+export interface DynamicComponentDefinition {
   component:ComponentType<any>;
-  containerClasses?:string;
-  show?:() => boolean;
   inputs?:{ [inputName:string]:any };
   outputs?:{ [outputName:string]:Function };
+}
+
+export interface ToolbarButtonComponentDefinition extends DynamicComponentDefinition {
+  containerClasses?:string;
+  show?:() => boolean;
 }
 
 export type ViewPartitionState = '-split'|'-left-only'|'-right-only';
@@ -60,8 +67,10 @@ export type ViewPartitionState = '-split'|'-left-only'|'-right-only';
   ]
 })
 export class PartitionedQuerySpacePageComponent extends WorkPackagesViewBase implements OnInit, OnDestroy {
+  @InjectField() I18n!:I18nService;
   @InjectField() titleService:OpTitleService;
   @InjectField() queryParamListener:QueryParamListenerService;
+  @InjectField() opModalService:OpModalService;
 
   text:{ [key:string]:string } = {
     'jump_to_pagination': this.I18n.t('js.work_packages.jump_marks.pagination'),
@@ -76,36 +85,44 @@ export class PartitionedQuerySpacePageComponent extends WorkPackagesViewBase imp
   currentQuery:QueryResource|undefined;
 
   /** Whether we're saving the query */
-  querySaving:boolean;
+  toolbarDisabled:boolean;
 
   /** Do we currently have query props ? */
-  hasQueryProps:boolean;
+  showToolbarSaveButton:boolean;
 
   /** Listener callbacks */
   unRegisterTitleListener:Function;
   removeTransitionSubscription:Function;
 
   /** Determine when query is initially loaded */
-  tableInformationLoaded = false;
+  showToolbar = false;
 
   /** The toolbar buttons to render */
   toolbarButtonComponents:ToolbarButtonComponentDefinition[] = [];
 
   /** Whether filtering is allowed */
-  filterAllowed:boolean = true;
+  filterAllowed = true;
 
   /** We need to pass the correct partition state to the view to manage the grid */
   currentPartition:ViewPartitionState = '-split';
 
+  /** What route (if any) should we go back to using the back button left of the title? */
+  backButtonCallback:Function|undefined;
+
+  /** Which filter container component to mount */
+  filterContainerDefinition:DynamicComponentDefinition = {
+    component: WorkPackageFilterContainerComponent
+  };
+
   ngOnInit() {
     super.ngOnInit();
 
-    this.hasQueryProps = !!this.$state.params.query_props;
+    this.showToolbarSaveButton = !!this.$state.params.query_props;
     this.setPartition(this.$state.current);
     this.removeTransitionSubscription = this.$transitions.onSuccess({}, (transition):any => {
       const params = transition.params('to');
       const toState = transition.to();
-      this.hasQueryProps = !!params.query_props;
+      this.showToolbarSaveButton = !!params.query_props;
       this.setPartition(toState);
       this.cdRef.detectChanges();
     });
@@ -124,9 +141,9 @@ export class PartitionedQuerySpacePageComponent extends WorkPackagesViewBase imp
         this.untilDestroyed()
       ).subscribe(() => {
       /** Ensure we reload the query from the changed props */
-      this.currentQuery = undefined;
-      this.refresh(true, true);
-    });
+        this.currentQuery = undefined;
+        this.refresh(true, true);
+      });
 
     // Update title on entering this state
     this.unRegisterTitleListener = this.$transitions.onSuccess({}, () => {
@@ -157,7 +174,7 @@ export class PartitionedQuerySpacePageComponent extends WorkPackagesViewBase imp
       .values$()
       .pipe(take(1))
       .subscribe(() => {
-        this.tableInformationLoaded = true;
+        this.showToolbar = true;
         this.cdRef.detectChanges();
       });
   }
@@ -177,25 +194,24 @@ export class PartitionedQuerySpacePageComponent extends WorkPackagesViewBase imp
     this.queryParamListener.removeQueryChangeListener();
   }
 
-  public saveQueryFromTitle(val:string) {
+  public changeChangesFromTitle(val:string) {
     if (this.currentQuery && this.currentQuery.persisted) {
-      this.updateQueryName(val);
+      this.updateTitleName(val);
     } else {
       this.wpListService
         .create(this.currentQuery!, val)
-        .then(() => this.querySaving = false)
-        .catch(() => this.querySaving = false);
+        .then(() => this.toolbarDisabled = false)
+        .catch(() => this.toolbarDisabled = false);
     }
   }
 
-  updateQueryName(val:string) {
-    this.querySaving = true;
+  updateTitleName(val:string) {
+    this.toolbarDisabled = true;
     this.currentQuery!.name = val;
     this.wpListService.save(this.currentQuery)
-      .then(() => this.querySaving = false)
-      .catch(() => this.querySaving = false);
+      .then(() => this.toolbarDisabled = false)
+      .catch(() => this.toolbarDisabled = false);
   }
-
 
   updateTitle(query?:QueryResource) {
 
@@ -215,26 +231,42 @@ export class PartitionedQuerySpacePageComponent extends WorkPackagesViewBase imp
 
     // Update the title if we're in the list state alone
     if (this.shouldUpdateHtmlTitle()) {
-      this.titleService.setFirstPart(this.selectedTitle);
+      this.titleService.setFirstPart(this.selectedTitle!);
     }
   }
 
-  refresh(visibly:boolean = false, firstPage:boolean = false):Promise<unknown> {
+  refresh(visibly = false, firstPage = false):Promise<unknown> {
     let promise:Promise<unknown>;
+    const query = this.currentQuery;
 
-    if (firstPage) {
+    if (firstPage || !query) {
       promise = this.loadFirstPage();
     } else {
-      promise = this.wpListService.reloadCurrentResultsList();
+      const pagination = this.wpListService.getPaginationInfo();
+      promise = this.wpListService
+        .loadQueryFromExisting(query, pagination, this.projectIdentifier)
+        .toPromise();
     }
 
     if (visibly) {
-      this.loadingIndicator = promise.then(() => {
+      return this.loadingIndicator = promise.then((loadedQuery:QueryResource) => {
+        this.wpStatesInitialization.initialize(loadedQuery, loadedQuery.results);
         return this.additionalLoadingTime();
       });
     }
 
-    return promise;
+    return promise.then((loadedQuery:QueryResource) => {
+      this.wpStatesInitialization.initialize(loadedQuery, loadedQuery.results);
+    });
+  }
+
+  protected inviteModal = InviteUserModalComponent;
+
+  openInviteUserModal() {
+    const inviteModal = this.opModalService.show(this.inviteModal, 'global');
+    inviteModal.closingEvent.subscribe((modal:any) => {
+      console.log('Modal closed!', modal);
+    });
   }
 
   protected loadFirstPage():Promise<QueryResource> {

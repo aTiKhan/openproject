@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@ describe AccountController, type: :controller do
     User.current = nil
   end
 
-  context 'GET #omniauth_login', with_settings: { self_registration: '3' } do
+  context 'GET #omniauth_login', with_settings: { self_registration: Setting::SelfRegistration.automatic } do
     describe 'with on-the-fly registration' do
       context 'providing all required fields' do
         let(:omniauth_hash) do
@@ -44,8 +44,7 @@ describe AccountController, type: :controller do
             info: { name: 'foo',
                     email: 'foo@bar.com',
                     first_name: 'foo',
-                    last_name: 'bar'
-            }
+                    last_name: 'bar' }
           )
         end
 
@@ -72,6 +71,35 @@ describe AccountController, type: :controller do
         end
       end
 
+      describe 'strategy uid mapping override' do
+        let(:omniauth_strategy) { double('Google Strategy') }
+        let(:omniauth_hash) do
+          OmniAuth::AuthHash.new(
+            provider: 'google',
+            uid: 'foo',
+            info: {
+              uid: 'internal',
+              email: 'whattheheck@example.com',
+              first_name: 'what',
+              last_name: 'theheck'
+            }
+          )
+        end
+
+        before do
+          request.env['omniauth.auth'] = omniauth_hash
+          request.env['omniauth.strategy'] = omniauth_strategy
+        end
+
+        it 'takes the uid from the mapped attributes' do
+          post :omniauth_login, params: { provider: :google }
+
+          user = User.find_by_login('whattheheck@example.com')
+          expect(user).to be_an_instance_of(User)
+          expect(user.identity_url).to eq 'google:internal'
+        end
+      end
+
       describe 'strategy attribute mapping override' do
         let(:omniauth_strategy) { double('Google Strategy') }
         let(:omniauth_hash) do
@@ -80,8 +108,7 @@ describe AccountController, type: :controller do
             uid: 'foo',
             info: { email: 'whattheheck@example.com',
                     first_name: 'what',
-                    last_name: 'theheck'
-            },
+                    last_name: 'theheck' },
             extra: { raw_info: {
               real_uid: 'bar@example.org',
               first_name: 'foo',
@@ -135,7 +162,7 @@ describe AccountController, type: :controller do
             provider: 'google',
             uid: '123545',
             info: { name: 'foo', email: 'foo@bar.com' }
-          # first_name and last_name not set
+            # first_name and last_name not set
           )
         end
 
@@ -155,7 +182,8 @@ describe AccountController, type: :controller do
 
           auth_source_registration = omniauth_hash.merge(
             omniauth: true,
-            timestamp: Time.new)
+            timestamp: Time.new
+          )
           session[:auth_source_registration] = auth_source_registration
           post :register,
                params: {
@@ -179,7 +207,8 @@ describe AccountController, type: :controller do
           before do
             session[:auth_source_registration] = omniauth_hash.merge(
               omniauth: true,
-              timestamp: Time.new - 42.days)
+              timestamp: Time.new - 42.days
+            )
           end
 
           it 'does not register the user when providing all the missing fields' do
@@ -214,7 +243,8 @@ describe AccountController, type: :controller do
         end
       end
 
-      context 'with self-registration disabled' do
+      context 'with self-registration disabled',
+              with_settings: { self_registration: Setting::SelfRegistration.disabled } do
         let(:omniauth_hash) do
           OmniAuth::AuthHash.new(
             provider: 'google',
@@ -222,14 +252,11 @@ describe AccountController, type: :controller do
             info: { name: 'foo',
                     email: 'foo@bar.com',
                     first_name: 'foo',
-                    last_name: 'bar'
-            }
+                    last_name: 'bar' }
           )
         end
 
         before do
-          allow(Setting).to receive(:self_registration?).and_return(false)
-
           request.env['omniauth.auth'] = omniauth_hash
           request.env['omniauth.origin'] = 'https://example.net/some_back_url'
 
@@ -253,14 +280,13 @@ describe AccountController, type: :controller do
           uid: '123545',
           info: { name: 'foo',
                   last_name: 'bar',
-                  email: 'foo@bar.com'
-          }
+                  email: 'foo@bar.com' }
         )
       end
 
       let(:user) do
         FactoryBot.build(:user, force_password_change: false,
-                                 identity_url: 'google:123545')
+                                identity_url: 'google:123545')
       end
 
       before do
@@ -414,7 +440,7 @@ describe AccountController, type: :controller do
       end
 
       context 'with a registered and not activated accout',
-              with_settings: { self_registration: '1' } do
+              with_settings: { self_registration: Setting::SelfRegistration.by_email } do
         before do
           user.register
           user.save!
@@ -432,7 +458,7 @@ describe AccountController, type: :controller do
       end
 
       context 'with an invited user and self registration disabled',
-              with_settings: { self_registration: '0' } do
+              with_settings: { self_registration: Setting::SelfRegistration.disabled } do
         before do
           user.invite
           user.save!
@@ -474,8 +500,7 @@ describe AccountController, type: :controller do
           provider: 'google',
           # id is deliberately missing here to make the auth_hash invalid
           info: { name: 'foo',
-                  email: 'foo@bar.com'
-          }
+                  email: 'foo@bar.com' }
         )
       end
 
@@ -485,8 +510,9 @@ describe AccountController, type: :controller do
         post :omniauth_login, params: { provider: :google }
       end
 
-      it 'should respond with a 400' do
-        expect(response.code.to_i).to eql(400)
+      it 'should respond with an error' do
+        expect(flash[:error]).to include 'The authentication information returned from the identity provider was invalid.'
+        expect(response).to redirect_to signin_path
       end
 
       it 'should not sign in the user' do
@@ -508,15 +534,6 @@ describe AccountController, type: :controller do
         expect(Rails.logger).to receive(:warn).with('invalid_credentials')
         post :omniauth_failure, params: { message: 'invalid_credentials' }
       end
-    end
-  end
-
-  describe '#identity_url_from_omniauth' do
-    let(:omniauth_hash) { { provider: 'developer', uid: 'veryuniqueid' } }
-
-    it 'should return the correct identity_url' do
-      result = AccountController.new.send(:identity_url_from_omniauth, omniauth_hash)
-      expect(result).to eql('developer:veryuniqueid')
     end
   end
 end

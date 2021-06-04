@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -28,14 +28,22 @@
 # See docs/COPYRIGHT.rdoc for more details.
 #++
 
-class Attachments::CleanupUncontaineredJob < ApplicationJob
+class Attachments::CleanupUncontaineredJob < ::Cron::CronJob
   queue_with_priority :low
+
+  # runs at 10:03 pm
+  self.cron_expression = '03 22 * * *'
 
   def perform
     Attachment
       .where(container: nil)
       .where(too_old)
       .destroy_all
+
+    Attachment
+      .pending_direct_uploads
+      .where(too_old)
+      .destroy_all # prepared direct uploads that never finished
   end
 
   private

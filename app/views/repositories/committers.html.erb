@@ -1,12 +1,12 @@
 <%#-- copyright
 OpenProject is an open source project management software.
-Copyright (C) 2012-2020 the OpenProject GmbH
+Copyright (C) 2012-2021 the OpenProject GmbH
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License version 3.
 
 OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-Copyright (C) 2006-2017 Jean-Philippe Lang
+Copyright (C) 2006-2013 Jean-Philippe Lang
 Copyright (C) 2010-2013 the ChiliProject Team
 
 This program is free software; you can redistribute it and/or
@@ -26,8 +26,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 See docs/COPYRIGHT.rdoc for more details.
 
 ++#%>
-<%= toolbar title: l(:label_repository) %>
-<%= simple_format(l(:text_repository_usernames_mapping)) %>
+<%= toolbar title: t(:label_repository) %>
+<%= simple_format(t(:text_repository_usernames_mapping)) %>
 <% if @committers.empty? %>
   <% no_results_box %>
 <% else %>
@@ -68,7 +68,7 @@ See docs/COPYRIGHT.rdoc for more details.
                 <td><%=h committer %></td>
                 <td>
                   <%= hidden_field_tag "committers[#{i}][]", committer %>
-                  <%= select_tag "committers[#{i}][]", content_tag('option', "-- #{l :actionview_instancetag_blank_option} --", value: '') + options_from_collection_for_select(@users, 'id', 'name', user_id.to_i) %>
+                  <%= select_tag "committers[#{i}][]", content_tag('option', "-- #{t(:actionview_instancetag_blank_option)} --", value: '') + options_from_collection_for_select(@users, 'id', 'name', user_id.to_i) %>
                 </td>
               </tr>
               <% i += 1 -%>
@@ -80,9 +80,9 @@ See docs/COPYRIGHT.rdoc for more details.
     </div>
     <hr class="form--separator" />
     <p>
-      <%= submit_tag l(:button_update), class: 'button -highlight' %>
+      <%= submit_tag t(:button_update), class: 'button -highlight' %>
       <%= link_to settings_repository_project_path(@project.id), class: 'button' do %>
-        <span class="button--text"><%= l(:button_cancel) %></span>
+        <span class="button--text"><%= t(:button_cancel) %></span>
       <% end %>
     </p>
   <% end %>

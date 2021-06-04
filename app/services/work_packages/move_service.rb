@@ -30,7 +30,6 @@ class WorkPackages::MoveService
       .descendants
       .order_by_ancestors('asc')
       .each do |wp|
-
       copied = copy_with_updated_parent_id(wp, attributes, ancestors)
 
       result.add_dependent!(copied)
@@ -43,14 +42,14 @@ class WorkPackages::MoveService
     WorkPackages::CopyService
       .new(user: user,
            work_package: wp)
-      .call(attributes.symbolize_keys)
+      .call(**attributes.symbolize_keys)
   end
 
   def update(attributes)
     WorkPackages::UpdateService
       .new(user: user,
            model: work_package)
-      .call(attributes.symbolize_keys)
+      .call(**attributes.symbolize_keys)
   end
 
   def copy_with_updated_parent_id(wp, attributes, ancestors)

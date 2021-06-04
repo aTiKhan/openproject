@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -44,23 +44,18 @@ module Grids
 
     attribute_alias :type, :scope
 
-    def validate
-      validate_allowed
-      validate_registered_widgets
-      validate_widget_collisions
-      validate_widgets_within
-      validate_widgets_start_before_end
-
-      run_registration_validations
-
-      super
-    end
-
     attribute :widgets
 
     attribute :name
 
     attribute :options
+
+    validate :validate_allowed
+    validate :validate_registered_widgets
+    validate :validate_widget_collisions
+    validate :validate_widgets_within
+    validate :validate_widgets_start_before_end
+    validate :run_registration_validations
 
     def self.model
       Grid

@@ -1,12 +1,12 @@
 <%#-- copyright
 OpenProject is an open source project management software.
-Copyright (C) 2012-2020 the OpenProject GmbH
+Copyright (C) 2012-2021 the OpenProject GmbH
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License version 3.
 
 OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-Copyright (C) 2006-2017 Jean-Philippe Lang
+Copyright (C) 2006-2013 Jean-Philippe Lang
 Copyright (C) 2010-2013 the ChiliProject Team
 
 This program is free software; you can redistribute it and/or
@@ -29,11 +29,10 @@ See docs/COPYRIGHT.rdoc for more details.
 
 <% content_for :header_tags do %>
   <%= render :partial => 'shared/backlogs_header' %>
-  <%= stylesheet_link_tag 'backlogs/master_backlog.css' %>
 <% end %>
 
 <div class='contextual'></div>
-<% html_title l(:label_backlogs) %>
+<% html_title t(:label_backlogs) %>
 
 <%= toolbar title: t(:label_backlogs) do %>
     <li class="toolbar-item">

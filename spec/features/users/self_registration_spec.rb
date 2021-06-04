@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -29,16 +29,12 @@
 require 'spec_helper'
 
 describe 'user self registration', type: :feature, js: true do
-  let(:admin) { FactoryBot.create :admin, password: 'Test123Test123', password_confirmation: 'Test123Test123' }
+  let(:admin_password) { 'Test123Test123' }
+  let(:admin) { FactoryBot.create :admin, password: admin_password, password_confirmation: admin_password }
   let(:home_page) { Pages::Home.new }
 
-  context 'with "manual account activation"' do
-    before do
-      allow(Setting)
-        .to receive(:self_registration?)
-        .and_return true
-    end
-
+  context 'with "manual account activation"',
+          with_settings: { self_registration: Setting::SelfRegistration.manual.to_s } do
     it 'allows self registration on login page (Regression #28076)' do
       visit signin_path
 
@@ -63,17 +59,16 @@ describe 'user self registration', type: :feature, js: true do
       home_page.visit!
 
       # registration as an anonymous user
-      within '.top-menu-items-right .menu_root' do
+      within '.op-app-header' do
         click_link 'Sign in'
 
-        # Wait until click handler has been initialized
-        sleep(0.1)
-
+        SeleniumHubWaiter.wait
         click_link 'Create a new account'
       end
 
       # deliberately inserting a wrong password confirmation
       within '.registration-modal' do
+        SeleniumHubWaiter.wait
         fill_in 'Username', with: 'heidi'
         fill_in 'First name', with: 'Heidi'
         fill_in 'Last name', with: 'Switzerland'
@@ -91,6 +86,7 @@ describe 'user self registration', type: :feature, js: true do
       within '.registration-modal' do
         # Cannot use 'Password' here as the error message on 'Confirmation' is part of the label
         # and contains the string 'Password' as well
+        SeleniumHubWaiter.wait
         fill_in 'user_password', with: 'test123=321test'
         fill_in 'Confirmation', with: 'test123=321test'
 
@@ -100,7 +96,7 @@ describe 'user self registration', type: :feature, js: true do
       expect(page)
         .to have_content('Your account was created and is now pending administrator approval.')
 
-      registered_user = User.find_by(status: Principal::STATUSES[:registered])
+      registered_user = User.find_by(status: Principal.statuses[:registered])
 
       # Trying unsuccessfully to login
       login_with 'heidi', 'test123=321test'
@@ -109,7 +105,7 @@ describe 'user self registration', type: :feature, js: true do
         .to have_content I18n.t(:'account.error_inactive_manual_activation')
 
       # activation as admin
-      login_with admin.login, admin.password
+      login_with admin.login, admin_password
 
       user_page = Pages::Admin::Users::Edit.new(registered_user.id)
 
@@ -125,7 +121,7 @@ describe 'user self registration', type: :feature, js: true do
       # Test logging in as newly created and activated user
       login_with 'heidi', 'test123=321test'
 
-      within '.top-menu-items-right .menu_root' do
+      within '.op-app-header' do
         expect(page)
           .to have_selector("a[title='#{registered_user.name}']")
       end

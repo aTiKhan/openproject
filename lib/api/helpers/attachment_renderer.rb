@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -33,6 +33,21 @@
 module API
   module Helpers
     module AttachmentRenderer
+      def self.content_endpoint(&block)
+        ->(*) {
+          helpers ::API::Helpers::AttachmentRenderer
+
+          finally do
+            set_cache_headers
+          end
+
+          get do
+            attachment = instance_exec(&block)
+            respond_with_attachment attachment, cache_seconds: fog_cache_seconds
+          end
+        }
+      end
+
       ##
       # Render an attachment, either by redirecting
       # to the external storage,
@@ -43,23 +58,51 @@ module API
       # @param cache_seconds [integer] Time in seconds the cache headers signal the browser to cache the attachment.
       #                                Defaults to no cache headers.
       def respond_with_attachment(attachment, cache_seconds: nil)
-        if cache_seconds
-          set_cache_headers!(cache_seconds)
-        end
+        prepare_cache_headers(cache_seconds) if cache_seconds
 
         if attachment.external_storage?
-          redirect attachment.external_url(expires_in: cache_seconds).to_s
+          redirect_to_external_attachment(attachment, cache_seconds)
         else
-          content_type attachment.content_type
-          header['Content-Disposition'] = "#{attachment.content_disposition}; filename=#{attachment.filename}"
-          env['api.format'] = :binary
-          file attachment.diskfile.path
+          send_attachment(attachment)
         end
       end
 
-      def set_cache_headers!(seconds)
-        header "Cache-Control", "public, max-age=#{seconds}"
-        header "Expires", CGI.rfc1123_date(Time.now.utc + seconds)
+      private
+
+      def redirect_to_external_attachment(attachment, cache_seconds)
+        set_cache_headers!
+        redirect attachment.external_url(expires_in: cache_seconds).to_s
+      end
+
+      def send_attachment(attachment)
+        content_type attachment.content_type
+        header['Content-Disposition'] = "#{attachment.content_disposition}; filename=#{attachment.filename}"
+        env['api.format'] = :binary
+        sendfile attachment.diskfile.path
+      end
+
+      def set_cache_headers
+        set_cache_headers! if @stream
+      end
+
+      def prepare_cache_headers(seconds)
+        @prepared_cache_headers = { "Cache-Control" => "public, max-age=#{seconds}",
+                                    "Expires" => CGI.rfc1123_date(Time.now.utc + seconds) }
+      end
+
+      def set_cache_headers!(seconds = nil)
+        prepare_cache_headers(seconds) if seconds
+
+        (@prepared_cache_headers || {}).each do |key, value|
+          header key, value
+        end
+      end
+
+      def fog_cache_seconds
+        [
+          0,
+          OpenProject::Configuration.fog_download_url_expires_in.to_i - 10
+        ].max
       end
 
       def avatar_link_expires_in

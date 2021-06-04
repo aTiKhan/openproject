@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -29,23 +29,25 @@
 require 'spec_helper'
 
 describe PermittedParams, type: :model do
-  let(:user) { FactoryBot.build(:user) }
-  let(:admin) { FactoryBot.build(:admin) }
+  let(:user) { FactoryBot.build_stubbed(:user) }
+  let(:admin) { FactoryBot.build_stubbed(:admin) }
 
   shared_context 'prepare params comparison' do
     let(:params_key) { defined?(hash_key) ? hash_key : attribute }
     let(:params) do
-      nested_params = if defined?(nested_key)
-                        { nested_key => hash }
-                      else
-                        hash
-                      end
+      nested_params =
+        if defined?(nested_key)
+          { nested_key => hash }
+        else
+          hash
+        end
 
-      ac_params = if defined?(flat) && flat
-                    nested_params
-                  else
-                    { params_key => nested_params }
-                  end
+      ac_params =
+        if defined?(flat) && flat
+          nested_params
+        else
+          { params_key => nested_params }
+        end
 
       ActionController::Parameters.new(ac_params)
     end
@@ -102,31 +104,6 @@ describe PermittedParams, type: :model do
     end
 
     it_behaves_like 'allows params'
-  end
-
-  describe '#time_entry' do
-    let(:attribute) { :time_entry }
-
-    context 'whitelisted params' do
-      let(:hash) do
-        acceptable_params = %w(hours comments work_package_id
-                               activity_id spent_on)
-
-        acceptable_params_with_data = HashWithIndifferentAccess[acceptable_params.map { |x| [x, 'value'] }]
-
-        acceptable_params_with_data['custom_field_values'] = { '1' => 'foo', '2' => 'bar', '3' => 'baz' }
-
-        acceptable_params_with_data
-      end
-
-      it_behaves_like 'allows params'
-    end
-
-    context 'empty' do
-      let(:hash) { {} }
-
-      it_behaves_like 'allows params'
-    end
   end
 
   describe '#news' do
@@ -444,6 +421,12 @@ describe PermittedParams, type: :model do
       it_behaves_like 'allows params'
     end
 
+    context 'budget_id' do
+      let(:hash) { { 'budget_id' => '1' } }
+
+      it_behaves_like 'allows params'
+    end
+
     context 'notes' do
       let(:hash) { { 'journal_notes' => 'blubs' } }
 
@@ -476,35 +459,6 @@ describe PermittedParams, type: :model do
       end
 
       context 'user is not allowed to add watchers' do
-        let(:allowed_to) { false }
-
-        it do
-          expect(subject).to eq({})
-        end
-      end
-    end
-
-    context 'time_entry' do
-      include_context 'prepare params comparison'
-
-      let(:hash) { { 'time_entry' => { 'hours' => '5', 'activity_id' => '1', 'comments' => 'lorem' } } }
-      let(:project) { double('project') }
-
-      before do
-        allow(user).to receive(:allowed_to?).with(:log_time, project).and_return(allowed_to)
-      end
-
-      subject { PermittedParams.new(params, user).update_work_package(project: project).to_h }
-
-      context 'user has the log_time permission' do
-        let(:allowed_to) { true }
-
-        it do
-          expect(subject).to eq(hash)
-        end
-      end
-
-      context 'user lacks the log_time permission' do
         let(:allowed_to) { false }
 
         it do
@@ -552,101 +506,83 @@ describe PermittedParams, type: :model do
 
     subject { PermittedParams.new(params, user).send(attribute, external_authentication, change_password_allowed).to_h }
 
-    admin_permissions = ['admin',
-                         'login',
-                         'firstname',
-                         'lastname',
-                         'mail',
-                         'mail_notification',
-                         'language',
-                         'custom_fields',
-                         'auth_source_id',
-                         'force_password_change']
+    all_permissions = ['admin',
+                       'login',
+                       'firstname',
+                       'lastname',
+                       'mail',
+                       'mail_notification',
+                       'language',
+                       'custom_fields',
+                       'auth_source_id',
+                       'force_password_change']
 
-    %i(user_update_as_admin user_create_as_admin).each do |method|
-      describe method do
-        let(:attribute) { method }
+    describe :user_create_as_admin do
+      let(:attribute) { :user_create_as_admin }
+      let(:default_permissions) { %w[custom_fields firstname lastname language mail mail_notification auth_source_id] }
 
-        context 'non-admin' do
-          let(:hash) { Hash[admin_permissions.zip(admin_permissions)] }
+      context 'non-admin' do
+        let(:hash) { Hash[all_permissions.zip(all_permissions)] }
 
-          it 'permits nothing' do
+        it 'permits default permissions' do
+          expect(subject.keys).to match_array(default_permissions)
+        end
+      end
+
+      context 'non-admin with global :manage_user permission' do
+        let(:user) { FactoryBot.create(:user, global_permission: :manage_user) }
+        let(:hash) { Hash[all_permissions.zip(all_permissions)] }
+
+        it 'permits default permissions and "login"' do
+          expect(subject.keys).to match_array(default_permissions + ['login'])
+        end
+      end
+
+      context 'admin' do
+        let(:user) { admin }
+
+        all_permissions.each do |field|
+          context field do
+            let(:hash) { { field => 'test' } }
+
+            it "permits #{field}" do
+              expect(subject).to eq(field => 'test')
+            end
+          end
+        end
+
+        context 'with no password change allowed' do
+          let(:hash) { { 'force_password_change' => 'true' } }
+          let(:change_password_allowed) { false }
+
+          it 'does not permit force_password_change' do
             expect(subject).to eq({})
           end
         end
 
-        context 'admin' do
-          let(:user) { admin }
+        context 'with external authentication' do
+          let(:hash) { { 'auth_source_id' => 'true' } }
+          let(:external_authentication) { true }
 
-          admin_permissions.each do |field|
-            context field do
-              let(:hash) { { field => 'test' } }
-
-              it "permits #{field}" do
-                expect(subject).to eq(field => 'test')
-              end
-            end
-          end
-
-          context 'with no password change allowed' do
-            let(:hash) { { 'force_password_change' => 'true' } }
-            let(:change_password_allowed) { false }
-
-            it 'does not permit force_password_change' do
-              expect(subject).to eq({})
-            end
-          end
-
-          context 'with external authentication' do
-            let(:hash) { { 'auth_source_id' => 'true' } }
-            let(:external_authentication) { true }
-
-            it 'does not permit auth_source_id' do
-              expect(subject).to eq({})
-            end
-          end
-
-          context 'custom field values' do
-            let(:hash) { { 'custom_field_values' => { '1' => '5' } } }
-
-            it 'permits custom_field_values' do
-              expect(subject).to eq(hash)
-            end
-          end
-
-          context "custom field values that do not follow the schema 'id as string' => 'value as string'" do
-            let(:hash) { { 'custom_field_values' => { 'blubs' => '5', '5' => { '1' => '2' } } } }
-
-            it 'are removed' do
-              expect(subject).to eq({})
-            end
+          it 'does not permit auth_source_id' do
+            expect(subject).to eq({})
           end
         end
-      end
-    end
 
-    describe '#user_update_as_admin' do
-      let(:attribute) { :user_update_as_admin }
-      let(:user) { admin }
+        context 'custom field values' do
+          let(:hash) { { 'custom_field_values' => { '1' => '5' } } }
 
-      context 'group_ids' do
-        let(:hash) { { 'group_ids' => ['1', '2'] } }
-
-        it 'permits group_ids' do
-          expect(subject).to eq(hash)
+          it 'permits custom_field_values' do
+            expect(subject).to eq(hash)
+          end
         end
-      end
-    end
 
-    describe '#user_create_as_admin' do
-      let(:attribute) { :user_create_as_admin }
-      let(:user) { admin }
+        context "custom field values that do not follow the schema 'id as string' => 'value as string'" do
+          let(:hash) { { 'custom_field_values' => { 'blubs' => '5', '5' => { '1' => '2' } } } }
 
-      context 'group_ids' do
-        let(:hash) { { 'group_ids' => ['1', '2'] } }
-
-        it 'forbids group_ids' do
-          expect(subject).to eq({})
+          it 'are removed' do
+            expect(subject).to eq({})
+          end
         end
       end
     end
@@ -672,7 +608,7 @@ describe PermittedParams, type: :model do
         end
       end
 
-      (admin_permissions - user_permissions).each do |field|
+      (all_permissions - user_permissions).each do |field|
         context "#{field} (admin-only)" do
           let(:hash) { { field => 'test' } }
 
@@ -784,7 +720,7 @@ describe PermittedParams, type: :model do
       before do
         allow(OpenProject::Configuration)
           .to receive(:disable_password_login?)
-          .and_return(false)
+                .and_return(false)
       end
 
       let(:hash) do
@@ -806,7 +742,7 @@ describe PermittedParams, type: :model do
       before do
         allow(OpenProject::Configuration)
           .to receive(:disable_password_login?)
-          .and_return(true)
+                .and_return(true)
       end
 
       let(:hash) do
@@ -835,7 +771,7 @@ describe PermittedParams, type: :model do
       before do
         allow(OpenProject::Configuration)
           .to receive(:registration_footer)
-          .and_return({})
+                .and_return({})
       end
 
       let(:hash) do
@@ -855,7 +791,7 @@ describe PermittedParams, type: :model do
       before do
         allow(OpenProject::Configuration)
           .to receive(:registration_footer)
-          .and_return("en" => "configured footer")
+                .and_return("en" => "configured footer")
       end
 
       let(:hash) do
@@ -995,8 +931,8 @@ describe PermittedParams, type: :model do
       it_behaves_like 'forbids params'
     end
 
-    describe 'created_on' do
-      let(:hash) { { 'created_on' => 'blubs' } }
+    describe 'created_at' do
+      let(:hash) { { 'created_at' => 'blubs' } }
 
       it_behaves_like 'forbids params'
     end

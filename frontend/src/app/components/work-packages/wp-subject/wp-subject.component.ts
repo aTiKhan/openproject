@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,14 +24,14 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {Component, Input, OnInit} from '@angular/core';
-import {UIRouterGlobals} from '@uirouter/core';
-import {WorkPackageResource} from 'core-app/modules/hal/resources/work-package-resource';
-import {WorkPackageCacheService} from '../work-package-cache.service';
-import {randomString} from "core-app/helpers/random-string";
-import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
+import { Component, Input, OnInit } from '@angular/core';
+import { UIRouterGlobals } from '@uirouter/core';
+import { WorkPackageResource } from 'core-app/modules/hal/resources/work-package-resource';
+import { randomString } from "core-app/helpers/random-string";
+import { UntilDestroyedMixin } from "core-app/helpers/angular/until-destroyed.mixin";
+import { APIV3Service } from "core-app/modules/apiv3/api-v3.service";
 
 @Component({
   selector: 'wp-subject',
@@ -43,14 +43,17 @@ export class WorkPackageSubjectComponent extends UntilDestroyedMixin implements 
   public readonly uniqueElementIdentifier = `work-packages--subject-type-row-${randomString(16)}`;
 
   constructor(protected uiRouterGlobals:UIRouterGlobals,
-              protected wpCacheService:WorkPackageCacheService) {
+              protected apiV3Service:APIV3Service) {
     super();
   }
 
   ngOnInit() {
     if (!this.workPackage) {
-      this.wpCacheService.loadWorkPackage(this.uiRouterGlobals.params['workPackageId'])
-        .values$()
+      this
+        .apiV3Service
+        .work_packages
+        .id(this.uiRouterGlobals.params['workPackageId'])
+        .requireAndStream()
         .pipe(
           this.untilDestroyed()
         )

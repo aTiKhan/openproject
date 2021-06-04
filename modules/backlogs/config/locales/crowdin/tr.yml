@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -19,13 +19,12 @@
 #Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #See docs/COPYRIGHT.rdoc for more details.
 #++
-#---
 tr:
   activerecord:
     attributes:
       work_package:
         position: "Konum"
-        remaining_hours: "Kalan Saatler"
+        remaining_hours: "Kalan saat"
         remaining_time: "Kalan saat"
         story_points: "Hikaye Puanları"
         backlogs_work_package_type: "Bekleme listesi türü"
@@ -37,18 +36,12 @@ tr:
               can_only_contain_work_packages_of_current_sprint: "yalnızca geçerli sprintteki iş paketlerinin kimliklerini içerebilir."
               must_block_at_least_one_work_package: "en az bir biletin kimliğini içermelidir."
             parent_id:
+              parent_child_relationship_across_projects: "iş paketi bir bekleme listesi işidir ve bu nedenle mevcut projenin dışında bir üst öğeye sahip olamaz.%{work_package_name}"
               type_must_be_one_of_the_following: "Tür, aşağıdakilerden biri olmalıdır: %{type_names}."
-        sprint:
-          cannot_end_before_it_starts: "Sprint başlamadan önce bitemez."
-  activemodel:
-    errors:
-      models:
-        work_package:
-          attributes:
             version_id:
               task_version_must_be_the_same_as_story_version: "ana hikaye sürümüyle aynı olmalıdır."
-            parent_id:
-              parent_child_relationship_across_projects: "iş paketi bir bekleme listesi işidir ve bu nedenle mevcut projenin dışında bir üst öğeye sahip olamaz.%{work_package_name}"
+        sprint:
+          cannot_end_before_it_starts: "Sprint başlamadan önce bitemez."
   backlogs:
     add_new_story: "Yeni Hikaye"
     any: "herhangi bir"
@@ -106,6 +99,7 @@ tr:
   backlogs_empty_title: "Beklentilerde kullanılacak hiçbir sürüm tanımlanmadı"
   backlogs_empty_action_text: "Geri sayımlara başlamak için yeni bir sürüm oluşturun ve bir bekleme listesi sütununa atayın."
   button_edit_wiki: "Wiki sayfalarını düzenlemek"
+  error_backlogs_task_cannot_be_story: "Ayarlar geçersiz. Seçilen görev türü aynı zamanda bir hikaye türü olamaz."
   error_intro_plural: "Aşağıdaki hatalar algılandı:"
   error_intro_singular: "Aşağıdaki hatalar algılandı:"
   error_outro: "Lütfen yukarıdaki hataları tekrar göndermeden önce düzeltin."

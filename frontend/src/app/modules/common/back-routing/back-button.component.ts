@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,29 +24,21 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
-import {BackRoutingService} from "core-app/modules/common/back-routing/back-routing.service";
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { BackRoutingService } from "core-app/modules/common/back-routing/back-routing.service";
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
 
 @Component({
-  template: `
-    <div class="wp-show--back-button hide-when-print">
-      <accessible-by-keyboard (execute)="goBack()"
-                              [linkClass]="classes()"
-                              [linkAriaLabel]="text.goBack"
-                              [linkTitle]="text.goBack">
-        <op-icon icon-classes="button--icon icon-back-up"></op-icon>
-      </accessible-by-keyboard>
-    </div>
-  `,
+  templateUrl: './back-button.component.html',
+  styleUrls: ['./back-button.component.sass'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  selector: 'back-button',
+  selector: 'op-back-button',
 })
 export class BackButtonComponent {
   @Input() public linkClass:string;
-  @Input() public customBackMethod:Function;
+  @Input() public customBackMethod:() => unknown;
 
   public text = {
     goBack: this.I18n.t('js.button_back')
@@ -56,18 +48,11 @@ export class BackButtonComponent {
               readonly I18n:I18nService) {
   }
 
-  public goBack() {
+  public goBack():void {
     if (this.customBackMethod) {
       this.customBackMethod();
     } else {
       this.backRoutingService.goBack();
     }
-  }
-
-  public classes():string {
-    let classes = 'button ';
-    classes += this.linkClass ? this.linkClass : '';
-
-    return classes;
   }
 }

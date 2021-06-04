@@ -25,7 +25,7 @@ module Bim
       end
 
       def uploader
-        icon = avatar model.uploader, class: 'avatar-mini'
+        icon = avatar model.uploader, size: :mini
         icon + model.uploader.name
       end
 
@@ -38,7 +38,7 @@ module Bim
       end
 
       def still_processing?
-        model.xkt_attachment.nil? || model.metadata_attachment.nil?
+        model.xkt_attachment.nil?
       end
 
       ###

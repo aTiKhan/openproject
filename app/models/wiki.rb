@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -55,7 +56,9 @@ class Wiki < ApplicationRecord
   # if page doesn't exist, return a new page
   def find_or_new_page(title)
     title = start_page if title.blank?
-    find_page(title) || WikiPage.new(wiki: self, title: title)
+    # If a new page is initialized, it needs to have a slug (via the ensure_unique_url)
+    # method right away, so that the correct menu item (if that exists already) is highlighted
+    find_page(title) || WikiPage.new(wiki: self, title: title).tap(&:ensure_unique_url)
   end
 
   ##
@@ -64,7 +67,7 @@ class Wiki < ApplicationRecord
   def find_page(title, options = {})
     title = start_page if title.blank?
 
-    page = pages.where(slug: title.to_url).first
+    page = pages.find_by(slug: WikiPage.slug(title))
     if !page && !(options[:with_redirect] == false)
       # search for a redirect
       redirect = matching_redirect(title)
@@ -80,7 +83,7 @@ class Wiki < ApplicationRecord
   #   Wiki.find_page("foo:bar")
   def self.find_page(title, options = {})
     project = options[:project]
-    if title.to_s =~ %r{\A([^\:]+)\:(.*)\z}
+    if title.to_s =~ %r{\A([^:]+):(.*)\z}
       project_identifier = $1
       title = $2
       project = Project.find_by(identifier: project_identifier) || Project.find_by(name: project_identifier)
@@ -94,9 +97,9 @@ class Wiki < ApplicationRecord
   end
 
   def create_menu_item_for_start_page
-    wiki_menu_item = wiki_menu_items.find_or_initialize_by(title: start_page) { |item|
+    wiki_menu_item = wiki_menu_items.find_or_initialize_by(title: start_page) do |item|
       item.name = 'wiki'
-    }
+    end
     wiki_menu_item.new_wiki_page = true
     wiki_menu_item.index_page = true
 
@@ -110,12 +113,9 @@ class Wiki < ApplicationRecord
   # Tries to find a redirect for the given slug,
   # falls back to finding a redirect for the title
   def matching_redirect(title)
-    page = redirects.where(title: title.to_url).first
-
-    if page.nil?
-      page = redirects.where(title: title).first
-    end
-
-    page
+    redirects
+      .where(title: WikiPage.slug(title))
+      .or(redirects.where(title: title))
+      .first
   end
 end

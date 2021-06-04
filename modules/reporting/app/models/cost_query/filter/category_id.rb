@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -36,7 +36,9 @@ class CostQuery::Filter::CategoryId < Report::Filter::Base
   end
 
   def self.available_values(*)
-    categories = Category.where(project_id: Project.visible.map(&:id))
-    categories.map { |c| ["#{c.project.name} - #{c.name} ", c.id] }.sort_by { |a| a.first.to_s + a.second.to_s }
+    Category
+      .where(project_id: Project.visible.map(&:id))
+      .map { |c| ["#{c.project.name} - #{c.name} ", c.id] }
+      .sort_by { |a| a.first.to_s + a.second.to_s }
   end
 end

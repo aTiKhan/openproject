@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -19,7 +19,6 @@
 #Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #See docs/COPYRIGHT.rdoc for more details.
 #++
-#---
 zh-TW:
   activerecord:
     attributes:
@@ -37,22 +36,16 @@ zh-TW:
               can_only_contain_work_packages_of_current_sprint: "只可以在現在進度中包含工作項目的 IDs"
               must_block_at_least_one_work_package: "必須包含至少一個項目的 ID"
             parent_id:
+              parent_child_relationship_across_projects: "是不正確的，因為這個工作項目 '%{work_package_name}' 是一個待辦任務，它不可以擁有一個在目前的專案以外的上層項目"
               type_must_be_one_of_the_following: "類型必須是以下其中一種: %{type_names}"
-        sprint:
-          cannot_end_before_it_starts: "進度不可以在開始前結束"
-  activemodel:
-    errors:
-      models:
-        work_package:
-          attributes:
             version_id:
               task_version_must_be_the_same_as_story_version: "必須與\"父\"直屬故事的版本相同。"
-            parent_id:
-              parent_child_relationship_across_projects: "是不正確的，因為這個工作項目 '%{work_package_name}' 是一個待辦任務，它不可以擁有一個在目前的專案以外的上層項目"
+        sprint:
+          cannot_end_before_it_starts: "進度不可以在開始前結束"
   backlogs:
     add_new_story: "新增使用者需求"
     any: "任何"
-    backlog_settings: "Backlogs settings"
+    backlog_settings: "待辦事項設定"
     burndown_graph: "未完成圖"
     card_paper_size: "卡片印製大小"
     chart_options: "圖表選項"
@@ -106,6 +99,7 @@ zh-TW:
   backlogs_empty_title: "未定義要在積壓事項中使用的版本"
   backlogs_empty_action_text: "要開始積壓事項, 請創建一個新版本並將其分配給積壓事項列。"
   button_edit_wiki: "編輯 Wiki 頁面"
+  error_backlogs_task_cannot_be_story: "The settings are invalid. The selected task type can not also be a story type."
   error_intro_plural: "發生以下的錯誤:"
   error_intro_singular: "發生以下的錯誤:"
   error_outro: "請在再次送出前更正前面的錯誤。"

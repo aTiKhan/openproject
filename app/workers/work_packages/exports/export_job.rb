@@ -1,44 +1,74 @@
+require 'active_storage/filename'
+
 module WorkPackages
   module Exports
     class ExportJob < ::ApplicationJob
-      def perform(export:, mime_type:, query:, options:)
-        User.execute_as export.user do
+      def perform(export:, user:, mime_type:, query:, query_attributes:, options:)
+        User.execute_as user do
+          query = set_query_props(query || Query.new, query_attributes)
           export_work_packages(export, mime_type, query, options)
 
           schedule_cleanup
         end
       end
 
+      def status_reference
+        arguments.first[:export]
+      end
+
+      def updates_own_status?
+        true
+      end
+
+      protected
+
+      def title
+        I18n.t('export.your_work_packages_export')
+      end
+
       private
 
-      def export_work_packages(export, mime_type, query_props, options)
+      def export_work_packages(export, mime_type, query, options)
         exporter = WorkPackage::Exporter.for_list(mime_type)
-        exporter.list(query(query_props), options) do |export_result|
+        exporter.list(query, options) do |export_result|
           if export_result.error?
             raise export_result.message
           elsif export_result.content.is_a? File
             store_attachment(export, export_result.content)
+          elsif export_result.content.is_a? Tempfile
+            store_from_tempfile(export, export_result)
           else
             store_from_string(export, export_result)
           end
         end
       end
 
+      def store_from_tempfile(export, export_result)
+        renamed_file_path = target_file_name(export_result)
+        File.rename(export_result.content.path, renamed_file_path)
+        file = File.open(renamed_file_path)
+        store_attachment(export, file)
+        file.close
+      end
+
+      ##
+      # Create a target file name, replacing any invalid characters
+      def target_file_name(export_result)
+        target_name = ActiveStorage::Filename.new(export_result.title).sanitized
+        File.join(File.dirname(export_result.content.path), target_name)
+      end
+
       def schedule_cleanup
         ::WorkPackages::Exports::CleanupOutdatedJob.perform_after_grace
       end
 
-      def query(query_props)
-        if query_props.is_a?(Query)
-          query_props
-        else
-          filters = query_props.delete('filters')
-          filters = Queries::WorkPackages::FilterSerializer.load(filters)
+      def set_query_props(query, query_attributes)
+        filters = query_attributes.delete('filters')
+        filters = Queries::WorkPackages::FilterSerializer.load(filters)
 
-          Query.new(query_props).tap do |q|
-            q.filters = filters
-            q.set_context
-          end
+        query.tap do |q|
+          q.attributes = query_attributes
+          q.filters = filters
         end
       end
 
@@ -59,9 +89,15 @@ module WorkPackages
       end
 
       def store_attachment(storage, file)
-        Attachments::CreateService
-          .new(storage, author: storage.user)
+        attachment = Attachments::CreateService
+          .new(storage, author: User.current)
           .call(uploaded_file: file, description: '')
+
+        download_url = ::API::V3::Utilities::PathHelper::ApiV3Path.attachment_content(attachment.id)
+
+        upsert_status status: :success,
+                      message: I18n.t('export.succeeded'),
+                      payload: download_payload(download_url)
       end
     end
   end

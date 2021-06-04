@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -32,19 +32,20 @@ describe WorkPackage, type: :model do
   let(:user) { FactoryBot.create(:admin) }
   let(:role) { FactoryBot.create(:role) }
   let(:project) do
-    project = FactoryBot.create(:project_with_types)
-    project.add_member!(user, role)
-    project
+    FactoryBot.create(:project_with_types, members: { user => role })
   end
 
   let(:project2) { FactoryBot.create(:project_with_types, types: project.types) }
-  let(:work_package) {
+  let(:work_package) do
     FactoryBot.create(:work_package, project: project,
-                                      type: project.types.first,
-                                      author: user)
-  }
-  let!(:cost_entry) { FactoryBot.create(:cost_entry, work_package: work_package, project: project, units: 3, spent_on: Date.today, user: user, comments: 'test entry') }
-  let!(:cost_object) { FactoryBot.create(:cost_object, project: project) }
+                                     type: project.types.first,
+                                     author: user)
+  end
+  let!(:cost_entry) do
+    FactoryBot.create(:cost_entry, work_package: work_package, project: project, units: 3, spent_on: Date.today, user: user,
+                                   comments: 'test entry')
+  end
+  let!(:budget) { FactoryBot.create(:budget, project: project) }
 
   def move_to_project(work_package, project)
     service = WorkPackages::MoveService.new(work_package, user)
@@ -58,13 +59,13 @@ describe WorkPackage, type: :model do
     expect(cost_entry.reload.project_id).to eql project2.id
   end
 
-  it 'should allow to set cost_object to nil' do
-    work_package.cost_object = cost_object
+  it 'should allow to set budget to nil' do
+    work_package.budget = budget
     work_package.save!
-    expect(work_package.cost_object).to eql cost_object
+    expect(work_package.budget).to eql budget
 
     work_package.reload
-    work_package.cost_object = nil
+    work_package.budget = nil
     expect { work_package.save! }.not_to raise_error
   end
 end

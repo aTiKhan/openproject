@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,10 +24,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
-import {AfterViewInit, Component, ElementRef} from '@angular/core';
+//++
+import { AfterViewInit, Component, ElementRef } from '@angular/core';
 import * as moment from 'moment';
-import {WorkPackageTimelineTableController} from '../container/wp-timeline-container.directive';
+import { WorkPackageTimelineTableController } from '../container/wp-timeline-container.directive';
 import {
   calculatePositionValueForDayCount,
   getTimeSlicesForHeader,
@@ -36,7 +36,7 @@ import {
   TimelineViewParameters
 } from '../wp-timeline';
 import Moment = moment.Moment;
-import {TimelineZoomLevel} from 'core-app/modules/hal/resources/query-resource';
+import { TimelineZoomLevel } from 'core-app/modules/hal/resources/query-resource';
 
 function checkForWeekendHighlight(date:Moment, cell:HTMLElement) {
   const day = date.day();
@@ -80,16 +80,16 @@ export class WorkPackageTableTimelineGrid implements AfterViewInit {
     this.gridContainer.empty();
 
     switch (vp.settings.zoomLevel) {
-      case 'days':
-        return this.renderLabelsDays(vp);
-      case 'weeks':
-        return this.renderLabelsWeeks(vp);
-      case 'months':
-        return this.renderLabelsMonths(vp);
-      case 'quarters':
-        return this.renderLabelsQuarters(vp);
-      case 'years':
-        return this.renderLabelsYears(vp);
+    case 'days':
+      return this.renderLabelsDays(vp);
+    case 'weeks':
+      return this.renderLabelsWeeks(vp);
+    case 'months':
+      return this.renderLabelsMonths(vp);
+    case 'quarters':
+      return this.renderLabelsQuarters(vp);
+    case 'years':
+      return this.renderLabelsYears(vp);
     }
 
     this.activeZoomLevel = vp.settings.zoomLevel;
@@ -160,14 +160,14 @@ export class WorkPackageTableTimelineGrid implements AfterViewInit {
   }
 
   renderTimeSlices(vp:TimelineViewParameters,
-                   unit:moment.unitOfTime.DurationConstructor,
-                   startView:Moment,
-                   endView:Moment,
-                   cellCallback:(start:Moment, cell:HTMLElement) => void) {
+    unit:moment.unitOfTime.DurationConstructor,
+    startView:Moment,
+    endView:Moment,
+    cellCallback:(start:Moment, cell:HTMLElement) => void) {
 
-    const {inViewportAndBoundaries, rest} = getTimeSlicesForHeader(vp, unit, startView, endView);
+    const { inViewportAndBoundaries, rest } = getTimeSlicesForHeader(vp, unit, startView, endView);
 
-    for (let [start, end] of inViewportAndBoundaries) {
+    for (const [start, end] of inViewportAndBoundaries) {
       const cell = document.createElement('div');
       cell.classList.add(timelineElementCssClass, timelineGridElementCssClass);
       cell.style.left = calculatePositionValueForDayCount(vp, start.diff(startView, 'days'));
@@ -176,7 +176,7 @@ export class WorkPackageTableTimelineGrid implements AfterViewInit {
       cellCallback(start, cell);
     }
     setTimeout(() => {
-      for (let [start, end] of rest) {
+      for (const [start, end] of rest) {
         const cell = document.createElement('div');
         cell.classList.add(timelineElementCssClass, timelineGridElementCssClass);
         cell.style.left = calculatePositionValueForDayCount(vp, start.diff(startView, 'days'));

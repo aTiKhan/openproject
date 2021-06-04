@@ -1,12 +1,12 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
 //
 // OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-// Copyright (C) 2006-2017 Jean-Philippe Lang
+// Copyright (C) 2006-2013 Jean-Philippe Lang
 // Copyright (C) 2010-2013 the ChiliProject Team
 //
 // This program is free software; you can redistribute it and/or
@@ -26,9 +26,8 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {HideSectionService} from "./hide-section.service";
-import {Component, ElementRef, OnInit} from "@angular/core";
-import {DynamicBootstrapper} from "core-app/globals/dynamic-bootstrapper";
+import { HideSectionService } from "./hide-section.service";
+import { Component, ElementRef, OnInit } from "@angular/core";
 
 export const showSectionDropdownSelector = 'show-section-dropdown';
 
@@ -51,7 +50,7 @@ export class ShowSectionDropdownComponent implements OnInit {
 
     const target = jQuery(this.elementRef.nativeElement).prev();
     target.on('change', event => {
-      let selectedOption = jQuery("option:selected", event.target);
+      const selectedOption = jQuery("option:selected", event.target);
 
       if (selectedOption.val() !== this.optValue) {
         this.HideSectionService.hide(this.hideSecWithName);

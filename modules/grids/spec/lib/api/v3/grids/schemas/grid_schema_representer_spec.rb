@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -71,7 +71,7 @@ describe ::API::V3::Grids::Schemas::GridSchemaRepresenter do
   end
   let(:representer) do
     described_class.create(contract,
-                           self_link,
+                           self_link: self_link,
                            form_embedded: embedded,
                            current_user: current_user)
   end
@@ -148,6 +148,7 @@ describe ::API::V3::Grids::Schemas::GridSchemaRepresenter do
         let(:name) { Grids::Grid.human_attribute_name('widgets') }
         let(:required) { true }
         let(:writable) { true }
+        let(:location) { '_links' }
       end
 
       context 'when embedding' do
@@ -181,6 +182,7 @@ describe ::API::V3::Grids::Schemas::GridSchemaRepresenter do
           let(:name) { Grids::Grid.human_attribute_name('scope') }
           let(:required) { true }
           let(:writable) { true }
+          let(:location) { '_links' }
         end
 
         context 'when embedding' do
@@ -217,6 +219,7 @@ describe ::API::V3::Grids::Schemas::GridSchemaRepresenter do
           let(:name) { Grids::Grid.human_attribute_name('scope') }
           let(:required) { true }
           let(:writable) { false }
+          let(:location) { '_links' }
         end
 
         context 'when embedding' do

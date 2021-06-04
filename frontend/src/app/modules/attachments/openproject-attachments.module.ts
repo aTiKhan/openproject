@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,30 +24,40 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {NgModule} from '@angular/core';
+import { NgModule } from '@angular/core';
+import { CommonModule } from "@angular/common";
 
-import {OpenprojectCommonModule} from 'core-app/modules/common/openproject-common.module';
-import {AttachmentsComponent} from "core-app/modules/attachments/attachments.component";
-import {AttachmentListComponent} from "core-app/modules/attachments/attachment-list/attachment-list.component";
-import {AttachmentListItemComponent} from "core-app/modules/attachments/attachment-list/attachment-list-item.component";
-import {AttachmentsUploadComponent} from "core-app/modules/attachments/attachments-upload/attachments-upload.component";
+import { IconModule } from 'core-app/modules/icon/icon.module';
+import { OpenprojectAccessibilityModule } from 'core-app/modules/a11y/openproject-a11y.module';
+
+import { AttachmentsComponent } from "./attachments.component";
+import { AttachmentListComponent } from "./attachment-list/attachment-list.component";
+import { AttachmentListItemComponent } from "./attachment-list/attachment-list-item.component";
+import { AttachmentsUploadComponent } from "./attachments-upload/attachments-upload.component";
+import { AuthoringComponent } from './authoring/authoring.component';
 
 @NgModule({
   imports: [
-    OpenprojectCommonModule,
+    CommonModule,
+    IconModule,
+    OpenprojectAccessibilityModule,
   ],
   declarations: [
     AttachmentsComponent,
     AttachmentListComponent,
     AttachmentListItemComponent,
     AttachmentsUploadComponent,
+
+    AuthoringComponent,
   ],
   exports: [
     AttachmentsUploadComponent,
     AttachmentListComponent,
     AttachmentsComponent,
+
+    AuthoringComponent,
   ]
 })
 export class OpenprojectAttachmentsModule {

@@ -1,12 +1,12 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
 //
 // OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-// Copyright (C) 2006-2017 Jean-Philippe Lang
+// Copyright (C) 2006-2013 Jean-Philippe Lang
 // Copyright (C) 2010-2013 the ChiliProject Team
 //
 // This program is free software; you can redistribute it and/or
@@ -26,19 +26,27 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {performAnchorHijacking} from "./global-listeners/link-hijacking";
-import {augmentedDatePicker} from "./global-listeners/augmented-date-picker";
-import {refreshOnFormChanges} from 'core-app/globals/global-listeners/refresh-on-form-changes';
-import {registerRequestForConfirmation} from "core-app/globals/global-listeners/request-for-confirmation";
-import {DeviceService} from "core-app/modules/common/browser/device.service";
-import {scrollHeaderOnMobile} from "core-app/globals/global-listeners/top-menu-scroll";
+import { performAnchorHijacking } from "./global-listeners/link-hijacking";
+import { augmentedDatePicker } from "./global-listeners/augmented-date-picker";
+import { refreshOnFormChanges } from 'core-app/globals/global-listeners/refresh-on-form-changes';
+import { registerRequestForConfirmation } from "core-app/globals/global-listeners/request-for-confirmation";
+import { DeviceService } from "core-app/modules/common/browser/device.service";
+import { scrollHeaderOnMobile } from "core-app/globals/global-listeners/top-menu-scroll";
+import { setupToggableFieldsets } from "core-app/globals/global-listeners/toggable-fieldset";
+import { TopMenu } from "core-app/globals/global-listeners/top-menu";
+import { install_menu_logic } from "core-app/globals/global-listeners/action-menu";
+import { makeColorPreviews } from "core-app/globals/global-listeners/color-preview";
+import { dangerZoneValidation } from "core-app/globals/global-listeners/danger-zone-validation";
+import { setupServerResponse } from "core-app/globals/global-listeners/setup-server-response";
+import { listenToSettingChanges } from "core-app/globals/global-listeners/settings";
+import { detectOnboardingTour } from "core-app/globals/onboarding/onboarding_tour_trigger";
 
 /**
  * A set of listeners that are relevant on every page to set sensible defaults
  */
-(function($:JQueryStatic) {
+(function ($:JQueryStatic) {
 
-  $(function() {
+  $(function () {
     $(document.documentElement!)
       .on('click', (evt:any) => {
         const target = jQuery(evt.target) as JQuery;
@@ -69,13 +77,13 @@ import {scrollHeaderOnMobile} from "core-app/globals/global-listeners/top-menu-s
 
     // Global submitting hook,
     // necessary to avoid a data loss warning on beforeunload
-    $(document).on('submit','form',function(){
+    $(document).on('submit', 'form', function () {
       window.OpenProject.pageIsSubmitted = true;
     });
 
     // Add to content if warnings displayed
     if (document.querySelector('.warning-bar--item')) {
-      let content = document.querySelector('#content') as HTMLElement;
+      const content = document.querySelector('#content') as HTMLElement;
       if (content) {
         content.style.marginBottom = '100px';
       }
@@ -88,7 +96,7 @@ import {scrollHeaderOnMobile} from "core-app/globals/global-listeners/top-menu-s
         // Cancel the event
         event.preventDefault();
         // Chrome requires returnValue to be set
-        event.returnValue = '';
+        event.returnValue = I18n.t("js.work_packages.confirm_edit_cancel");
       }
     });
 
@@ -110,6 +118,37 @@ import {scrollHeaderOnMobile} from "core-app/globals/global-listeners/top-menu-s
     if (deviceService.isMobile) {
       scrollHeaderOnMobile();
     }
+
+    // Detect and trigger the onboarding tour
+    // through a lazy loaded script
+    detectOnboardingTour();
+
+    //
+    // Legacy scripts from app/assets that are not yet component based
+    //
+
+    // Toggable fieldsets
+    setupToggableFieldsets();
+
+    // Top menu click handling
+    new TopMenu(jQuery('.op-app-header'));
+
+    // Action menu logic
+    jQuery('.project-actions, .toolbar-items').each(function (idx:number, menu:HTMLElement) {
+      install_menu_logic(jQuery(menu));
+    });
+
+    // Legacy settings listener
+    listenToSettingChanges();
+
+    // Color patches preview the color
+    makeColorPreviews();
+
+    // Danger zone input validation
+    dangerZoneValidation();
+
+    // Bootstrap legacy app code
+    setupServerResponse();
   });
 
 }(jQuery));

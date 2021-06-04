@@ -8,7 +8,7 @@ describe 'Activity tab', js: true, selenium: true do
     work_package.update(attributes.merge(updated_at: at))
 
     note_journal = work_package.journals.last
-    note_journal.update(created_at: at, user: attributes[:user])
+    note_journal.update(created_at: at, user: user)
   end
 
   let(:project) { FactoryBot.create :project_with_types, public: true }
@@ -89,7 +89,7 @@ describe 'Activity tab', js: true, selenium: true do
         activity = page.find("#activity-#{idx + 1}")
 
         if journal.id != note_1.id
-          expect(activity).to have_selector('.user', text: journal.user.name)
+          expect(activity).to have_selector('.op-user-activity--user-line', text: journal.user.name)
           expect(activity).to have_selector('.user-comment > .message', text: journal.notes, visible: :all)
         end
 

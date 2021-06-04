@@ -15,13 +15,13 @@ Open a project via the Select a project drop-down menu and navigate to -> *Proje
 ![User-guide-open-project-settings](User-guide-open-project-settings.png)
 
 <div class="alert alert-info" role="alert">
-**Note**: You have to be a project admin in order to see and access to project settings.
+**Note**: You have to be a project admin in order to see and access the project settings.
 </div>
 
 
 ## Overview
 
-| Feature                                                | Documentation for                                            |
+| Topic                                                  | Content                                                      |
 | ------------------------------------------------------ | ------------------------------------------------------------ |
 | [Project information](project-information)             | Define project name, subproject, description, project status, and much more. |
 | [Modules](modules)                                     | Activate or deactivate modules in a project.                 |

@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -33,10 +33,10 @@ module OpenProject
   module FullTextSearch
     DISALLOWED_CHARACTERS = /['?\\:()&|!*<>]/
 
-    def self.tsv_where(table_name, column_name, value, options = { concatenation: :and, normalization: :text })
+    def self.tsv_where(table_name, column_name, value, concatenation: :and, normalization: :text)
       if OpenProject::Database.allows_tsv?
-        column = '"' + table_name.to_s + '"."' + column_name.to_s + '_tsv"'
-        query = tokenize(value, options[:concatenation], options[:normalization])
+        column = "\"#{table_name.to_s}\".\"#{column_name.to_s}_tsv\""
+        query = tokenize(value, concatenation, normalization)
         language = OpenProject::Configuration.main_content_language
 
         ActiveRecord::Base.send(
@@ -48,7 +48,7 @@ module OpenProject
     end
 
     def self.tokenize(text, concatenation = :and, normalization = :text)
-      terms = normalize(clean_terms(text), normalization).split(/[\s]+/).reject(&:blank?)
+      terms = normalize(clean_terms(text), normalization).split(/\s+/).reject(&:blank?)
 
       case concatenation
       when :and
@@ -56,7 +56,7 @@ module OpenProject
         terms.join ' & '
       when :and_not
         # all terms must not hit.
-        '! ' + terms.join(' & ! ')
+        "! #{terms.join(' & ! ')}"
       end
     end
 

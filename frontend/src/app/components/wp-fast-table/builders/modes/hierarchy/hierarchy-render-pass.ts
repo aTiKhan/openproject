@@ -1,29 +1,29 @@
-import {Injector} from '@angular/core';
-import {WorkPackageCacheService} from 'core-components/work-packages/work-package-cache.service';
-import {additionalHierarchyRowClassName, SingleHierarchyRowBuilder} from './single-hierarchy-row-builder';
-import {WorkPackageResource} from 'core-app/modules/hal/resources/work-package-resource';
-import {PrimaryRenderPass, RowRenderInfo} from "core-components/wp-fast-table/builders/primary-render-pass";
-import {States} from "core-components/states.service";
-import {WorkPackageTable} from "core-components/wp-fast-table/wp-fast-table";
-import {WorkPackageTableRow} from "core-components/wp-fast-table/wp-table.interfaces";
+import { Injector } from '@angular/core';
+import { additionalHierarchyRowClassName, SingleHierarchyRowBuilder } from './single-hierarchy-row-builder';
+import { WorkPackageResource } from 'core-app/modules/hal/resources/work-package-resource';
+import { PrimaryRenderPass, RowRenderInfo } from "core-components/wp-fast-table/builders/primary-render-pass";
+import { States } from "core-components/states.service";
+import { WorkPackageTable } from "core-components/wp-fast-table/wp-fast-table";
+import { WorkPackageTableRow } from "core-components/wp-fast-table/wp-table.interfaces";
 import {
   ancestorClassIdentifier,
   hierarchyGroupClass
 } from "core-components/wp-fast-table/helpers/wp-table-hierarchy-helpers";
-import {WorkPackageViewHierarchies} from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-table-hierarchies";
-import {IsolatedQuerySpace} from "core-app/modules/work_packages/query-space/isolated-query-space";
-import {WorkPackageViewHierarchiesService} from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-hierarchy.service";
-import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
+import { WorkPackageViewHierarchies } from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-table-hierarchies";
+import { IsolatedQuerySpace } from "core-app/modules/work_packages/query-space/isolated-query-space";
+import { WorkPackageViewHierarchiesService } from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-hierarchy.service";
+import { InjectField } from "core-app/helpers/angular/inject-field.decorator";
+import { APIV3Service } from "core-app/modules/apiv3/api-v3.service";
 
 export class HierarchyRenderPass extends PrimaryRenderPass {
 
   @InjectField() querySpace:IsolatedQuerySpace;
   @InjectField() states:States;
-  @InjectField() wpCacheService:WorkPackageCacheService;
+  @InjectField() apiV3Service:APIV3Service;
   @InjectField() wpTableHierarchies:WorkPackageViewHierarchiesService;
 
   // Remember which rows were already rendered
-  private rendered:{ [workPackageId:string]:boolean } = {};
+  readonly rendered:{ [workPackageId:string]:boolean } = {};
 
   // Remember additional parents inserted that are not part of the results table
   private additionalParents:{ [workPackageId:string]:WorkPackageResource } = {};
@@ -49,7 +49,7 @@ export class HierarchyRenderPass extends PrimaryRenderPass {
 
     this.hierarchies = this.wpTableHierarchies.current;
 
-    _.each(this.workPackageTable.originalRowIndex, (row,) => {
+    _.each(this.workPackageTable.originalRowIndex, (row, ) => {
       row.object.ancestors.forEach((ancestor:WorkPackageResource) => {
         this.parentsWithVisibleChildren[ancestor.id!] = true;
       });
@@ -76,7 +76,7 @@ export class HierarchyRenderPass extends PrimaryRenderPass {
         this.buildWithHierarchy(row);
       } else {
         // Render a work package root with no parents
-        let [tr, hidden] = this.rowBuilder.buildEmpty(workPackage);
+        const [tr, hidden] = this.rowBuilder.buildEmpty(workPackage);
         row.element = tr;
         this.tableBody.appendChild(tr);
         this.markRendered(tr, workPackage, hidden);
@@ -108,7 +108,7 @@ export class HierarchyRenderPass extends PrimaryRenderPass {
     // -> deferred[a ancestor] = parent
     // -> deferred[parent] = wp
     // 4. Any ancestor already rendered -> Render normally (don't defer)
-    let ancestorChain = ancestors.concat([workPackage]);
+    const ancestorChain = ancestors.concat([workPackage]);
     for (let i = ancestorChain.length - 2; i >= 0; --i) {
       const parent = ancestorChain[i];
 
@@ -126,7 +126,7 @@ export class HierarchyRenderPass extends PrimaryRenderPass {
         let elements = this.deferred[parent.id!] || [];
         // Append to them the child and all children below
         let newElements:WorkPackageResource[] = ancestorChain.slice(i + 1, ancestorChain.length);
-        newElements = newElements.map(child => this.wpCacheService.state(child.id!).value!);
+        newElements = newElements.map(child => this.apiV3Service.work_packages.cache.state(child.id!).value!);
         // Append all new elements
         elements = elements.concat(newElements);
         // Remove duplicates (Regression #29652)
@@ -152,7 +152,7 @@ export class HierarchyRenderPass extends PrimaryRenderPass {
     // If the work package has deferred children to render,
     // run them through the callback
     deferredChildren.forEach((child:WorkPackageResource) => {
-      this.insertUnderParent(this.getOrBuildRow(child), child.parent);
+      this.insertUnderParent(this.getOrBuildRow(child), child.parent || workPackage);
 
       // Descend into any children the child WP might have and callback
       this.renderAllDeferredChildren(child);
@@ -163,7 +163,7 @@ export class HierarchyRenderPass extends PrimaryRenderPass {
     let row:WorkPackageTableRow = this.workPackageTable.originalRowIndex[workPackage.id!];
 
     if (!row) {
-      row = {object: workPackage} as WorkPackageTableRow;
+      row = { object: workPackage } as WorkPackageTableRow;
     }
 
     return row;
@@ -181,7 +181,7 @@ export class HierarchyRenderPass extends PrimaryRenderPass {
       // If we see the parent the first time,
       // build it as an additional row and insert it into the ancestry
       if (!this.rendered[ancestor.id!]) {
-        let [ancestorRow, hidden] = this.rowBuilder.buildAncestorRow(ancestor, ancestorGroups, index);
+        const [ancestorRow, hidden] = this.rowBuilder.buildAncestorRow(ancestor, ancestorGroups, index);
         // Insert the ancestor row, either right here if it's a root node
         // Or below the appropriate parent
 
@@ -228,7 +228,7 @@ export class HierarchyRenderPass extends PrimaryRenderPass {
    * @param hidden
    * @param isAncestor
    */
-  private markRendered(row:HTMLTableRowElement, workPackage:WorkPackageResource, hidden:boolean = false, isAncestor:boolean = false) {
+  private markRendered(row:HTMLTableRowElement, workPackage:WorkPackageResource, hidden = false, isAncestor = false) {
     this.rendered[workPackage.id!] = true;
     this.renderedOrder.push(this.buildRenderInfo(row, workPackage, hidden, isAncestor));
   }
@@ -237,10 +237,10 @@ export class HierarchyRenderPass extends PrimaryRenderPass {
    * Append a row to the given parent hierarchy group.
    */
   private insertAtExistingHierarchy(workPackage:WorkPackageResource,
-                                    el:HTMLTableRowElement,
-                                    parent:WorkPackageResource,
-                                    hidden:boolean,
-                                    isAncestor:boolean) {
+    el:HTMLTableRowElement,
+    parent:WorkPackageResource,
+    hidden:boolean,
+    isAncestor:boolean) {
     // Either append to the hierarchy group root (= the parentID row itself)
     const hierarchyRoot = `.__hierarchy-root-${parent.id}`;
     // Or, if it has descendants, append to the LATEST of that set
@@ -257,7 +257,7 @@ export class HierarchyRenderPass extends PrimaryRenderPass {
   }
 
   private buildRenderInfo(row:HTMLTableRowElement, workPackage:WorkPackageResource, hidden:boolean, isAncestor:boolean):RowRenderInfo {
-    let info:RowRenderInfo = {
+    const info:RowRenderInfo = {
       element: row,
       classIdentifier: '',
       additionalClasses: [],
@@ -266,7 +266,7 @@ export class HierarchyRenderPass extends PrimaryRenderPass {
       hidden: hidden
     };
 
-    let [ancestorClasses, _] = this.rowBuilder.ancestorRowData(workPackage);
+    const [ancestorClasses, _] = this.rowBuilder.ancestorRowData(workPackage);
 
     if (isAncestor) {
       info.additionalClasses = [additionalHierarchyRowClassName].concat(ancestorClasses);

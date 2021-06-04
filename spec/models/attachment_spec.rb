@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -40,17 +40,17 @@ describe Attachment, type: :model do
   let(:attachment) do
     FactoryBot.build(
       :attachment,
-      author:       author,
-      container:    container,
+      author: author,
+      container: container,
       content_type: nil, # so that it is detected
-      file:         file
+      file: file
     )
   end
   let(:stubbed_attachment) do
     FactoryBot.build_stubbed(
       :attachment,
-      author:       stubbed_author,
-      container:    container
+      author: stubbed_author,
+      container: container
     )
   end
 
@@ -174,21 +174,6 @@ describe Attachment, type: :model do
       expect(attachment.digest)
         .to eql Digest::MD5.file(file.path).hexdigest
     end
-
-    it 'adds no cleanup job' do
-      expect(Attachments::CleanupUncontaineredJob).not_to receive(:perform_later)
-
-      attachment.save!
-    end
-
-    context 'with an unclaimed attachment' do
-      let(:container) { nil }
-
-      it 'adds a cleanup job' do
-        expect(Attachments::CleanupUncontaineredJob).to receive(:perform_later)
-        attachment.save!
-      end
-    end
   end
 
   describe 'two attachments with same file name' do
@@ -203,6 +188,64 @@ describe Attachment, type: :model do
 
       expect(a1.diskfile.path)
         .not_to eql a2.diskfile.path
+    end
+  end
+
+  describe '.create_pending_direct_upload' do
+    let(:file_size) { 6 }
+    let(:file_name) { 'document.png' }
+    let(:content_type) { "application/octet-stream" }
+
+    subject do
+      described_class.create_pending_direct_upload(file_name: file_name,
+                                                   author: author,
+                                                   container: container,
+                                                   content_type: content_type,
+                                                   file_size: file_size)
+    end
+
+    it 'returns the attachment' do
+      expect(subject)
+        .to be_a(Attachment)
+    end
+
+    it 'sets the content_type' do
+      expect(subject.content_type)
+        .to eql content_type
+    end
+
+    it 'sets the file_size' do
+      expect(subject.filesize)
+        .to eql file_size
+    end
+
+    it 'sets the file for carrierwave' do
+      expect(subject.file.file.path)
+        .to end_with "attachment/file/#{subject.id}/#{file_name}"
+    end
+
+    it 'sets the author' do
+      expect(subject.author)
+        .to eql author
+    end
+
+    it 'sets the digest to empty string' do
+      expect(subject.digest)
+        .to eql ""
+    end
+
+    it 'sets the download count to -1' do
+      expect(subject.downloads)
+        .to eql -1
+    end
+
+    context 'with a special character in the filename' do
+      let(:file_name) { "document=number 5.png" }
+
+      it 'sets the file for carrierwave' do
+        expect(subject.file.file.path)
+          .to end_with "attachment/file/#{subject.id}/document_number_5.png"
+      end
     end
   end
 
@@ -226,43 +269,22 @@ describe Attachment, type: :model do
     end
   end
 
-  describe "#external_url" do
+  # We just use with_direct_uploads here to make sure the
+  # FogAttachment class is defined and Fog is mocked.
+  describe "#external_url", with_direct_uploads: true do
     let(:author) { FactoryBot.create :user }
 
     let(:image_path) { Rails.root.join("spec/fixtures/files/image.png") }
     let(:text_path) { Rails.root.join("spec/fixtures/files/testfile.txt") }
     let(:binary_path) { Rails.root.join("spec/fixtures/files/textfile.txt.gz") }
 
-    let(:fog_attachment_class) do
-      class FogAttachment < Attachment
-        # Remounting the uploader overrides the original file setter taking care of setting,
-        # among other things, the content type. So we have to restore that original
-        # method this way.
-        # We do this in a new, separate class, as to not interfere with any other specs.
-        alias_method :set_file, :file=
-        mount_uploader :file, FogFileUploader
-        alias_method :file=, :set_file
-      end
-
-      FogAttachment
-    end
-
-    let(:image_attachment) { fog_attachment_class.new author: author, file: File.open(image_path) }
-    let(:text_attachment) { fog_attachment_class.new author: author, file: File.open(text_path) }
-    let(:binary_attachment) { fog_attachment_class.new author: author, file: File.open(binary_path) }
-
-    before do
-      Fog.mock!
-
-      connection = Fog::Storage.new provider: "AWS"
-      connection.directories.create key: "my-bucket"
-
-      CarrierWave::Configuration.configure_fog! credentials: {}, directory: "my-bucket", public: false
-    end
+    let(:image_attachment) { FogAttachment.new author: author, file: File.open(image_path) }
+    let(:text_attachment) { FogAttachment.new author: author, file: File.open(text_path) }
+    let(:binary_attachment) { FogAttachment.new author: author, file: File.open(binary_path) }
 
     shared_examples "it has a temporary download link" do
       let(:url_options) { {} }
-      let(:query) { attachment.external_url(url_options).to_s.split("?").last }
+      let(:query) { attachment.external_url(**url_options).to_s.split("?").last }
 
       it "should have a default expiry time" do
         expect(query).to include "X-Amz-Expires="
@@ -277,11 +299,11 @@ describe Attachment, type: :model do
         end
       end
 
-      context 'with expiry time exeeding maximum' do
+      context 'with expiry time exceeding maximum' do
         let(:url_options) { { expires_in: 1.year } }
 
         it "uses the allowed max" do
-          expect(query).to include "X-Amz-Expires=604799"
+          expect(query).to include "X-Amz-Expires=#{OpenProject::Configuration.fog_download_url_expires_in}"
         end
       end
     end

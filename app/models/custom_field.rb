@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -188,7 +188,7 @@ class CustomField < ApplicationRecord
       when 'string', 'text', 'list'
         casted = value
       when 'date'
-        casted = begin; value.to_date; rescue; nil end
+        casted = begin; value.to_date; rescue StandardError; nil end
       when 'bool'
         casted = ActiveRecord::Type::Boolean.new.cast(value)
       when 'int'
@@ -202,11 +202,11 @@ class CustomField < ApplicationRecord
     casted
   end
 
-  def <=>(field)
+  def <=>(other)
     if type == 'WorkPackageCustomField'
-      name.downcase <=> field.name.downcase
+      name.downcase <=> other.name.downcase
     else
-      position <=> field.position
+      position <=> other.position
     end
   end
 
@@ -214,7 +214,7 @@ class CustomField < ApplicationRecord
     name =~ /\A(.+)CustomField\z/
     begin
       $1.constantize
-    rescue
+    rescue StandardError
       nil
     end
   end
@@ -250,8 +250,21 @@ class CustomField < ApplicationRecord
     field_format == "list"
   end
 
+  def formattable?
+    field_format == "text"
+  end
+
+  def boolean?
+    field_format == "bool"
+  end
+
   def multi_value?
     multi_value
+  end
+
+  def multi_value_possible?
+    %w[user list].include?(field_format) &&
+      [ProjectCustomField, WorkPackageCustomField].include?(self.class)
   end
 
   ##
@@ -260,7 +273,7 @@ class CustomField < ApplicationRecord
   def cache_key
     tag = multi_value? ? "mv" : "sv"
 
-    super + '/' + tag
+    "#{super}/#{tag}"
   end
 
   private
@@ -277,8 +290,8 @@ class CustomField < ApplicationRecord
 
   def possible_user_values_options(obj)
     mapped_with_deduced_project(obj) do |project|
-      if project
-        project.users
+      if project&.persisted?
+        project.principals
       else
         Principal
           .in_visible_project_or_me(User.current)

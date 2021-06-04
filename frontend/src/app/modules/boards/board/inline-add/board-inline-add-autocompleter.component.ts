@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -36,21 +36,24 @@ import {
   ViewChild,
   ViewEncapsulation
 } from '@angular/core';
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
-import {WorkPackageResource} from 'core-app/modules/hal/resources/work-package-resource';
-import {Observable, of, Subject} from "rxjs";
-import {catchError, debounceTime, distinctUntilChanged, map, switchMap, tap} from "rxjs/operators";
-import {NgSelectComponent} from "@ng-select/ng-select";
-import {IsolatedQuerySpace} from "core-app/modules/work_packages/query-space/isolated-query-space";
-import {PathHelperService} from "core-app/modules/common/path-helper/path-helper.service";
-import {WorkPackageCollectionResource} from "core-app/modules/hal/resources/wp-collection-resource";
-import {CurrentProjectService} from "core-components/projects/current-project.service";
-import {ApiV3FilterBuilder} from "core-components/api/api-v3/api-v3-filter-builder";
-import {HalResourceService} from "core-app/modules/hal/services/hal-resource.service";
-import {SchemaCacheService} from "core-components/schemas/schema-cache.service";
-import {WorkPackageCardDragAndDropService} from "core-components/wp-card-view/services/wp-card-drag-and-drop.service";
-import {WorkPackageNotificationService} from "core-app/modules/work_packages/notifications/work-package-notification.service";
-import {UrlParamsHelperService} from "core-components/wp-query/url-params-helper";
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
+import { WorkPackageResource } from 'core-app/modules/hal/resources/work-package-resource';
+import { Observable, of, Subject } from "rxjs";
+import { catchError, debounceTime, distinctUntilChanged, map, switchMap, tap } from "rxjs/operators";
+import { NgSelectComponent } from "@ng-select/ng-select";
+import { IsolatedQuerySpace } from "core-app/modules/work_packages/query-space/isolated-query-space";
+import { PathHelperService } from "core-app/modules/common/path-helper/path-helper.service";
+import { WorkPackageCollectionResource } from "core-app/modules/hal/resources/wp-collection-resource";
+import { CurrentProjectService } from "core-components/projects/current-project.service";
+import { ApiV3FilterBuilder } from "core-components/api/api-v3/api-v3-filter-builder";
+import { HalResourceService } from "core-app/modules/hal/services/hal-resource.service";
+import { SchemaCacheService } from "core-components/schemas/schema-cache.service";
+import { WorkPackageCardDragAndDropService } from "core-components/wp-card-view/services/wp-card-drag-and-drop.service";
+import { WorkPackageNotificationService } from "core-app/modules/work_packages/notifications/work-package-notification.service";
+import { UrlParamsHelperService } from "core-components/wp-query/url-params-helper";
+import { APIV3Service } from "core-app/modules/apiv3/api-v3.service";
+import { OpAutocompleterComponent } from "core-app/modules/autocompleter/op-autocompleter/op-autocompleter.component";
+import { QueryFilterResource } from 'core-app/modules/hal/resources/query-filter-resource';
 
 @Component({
   selector: 'board-inline-add-autocompleter',
@@ -60,33 +63,70 @@ import {UrlParamsHelperService} from "core-components/wp-query/url-params-helper
   encapsulation: ViewEncapsulation.None,
   styleUrls: ['./board-inline-add-autocompleter.sass']
 })
+
 export class BoardInlineAddAutocompleterComponent implements AfterViewInit {
+
   readonly text = {
     placeholder: this.I18n.t('js.relations_autocomplete.placeholder')
   };
 
-  @Input() appendToContainer:string = '.board--container';
-  @ViewChild(NgSelectComponent) public ngSelectComponent:NgSelectComponent;
+  // Whether we're currently loading
+  public isLoading = false;
+
+  getAutocompleterData = (searchString:string):Observable<WorkPackageResource[]> =>
+  {
+    // Return when the search string is empty
+    if (searchString.length === 0) {
+      this.isLoading = false;
+      return of([]);
+    }
+
+    const filters:ApiV3FilterBuilder = new ApiV3FilterBuilder();
+    const results = this.querySpace.results.value;
+
+    filters.add('subjectOrId', '**', [searchString]);
+
+    if (results && results.elements.length > 0) {
+      filters.add('id', '!', results.elements.map((wp:WorkPackageResource) => wp.id!));
+    }
+    // Add the subproject filter, if any
+    const query = this.querySpace.query.value;
+    if (query?.filters) {
+      const currentFilters = this.urlParamsHelper.buildV3GetFilters(query.filters);
+      filters.merge(currentFilters, 'subprojectId');
+    }
+
+    return this
+      .apiV3Service
+      .withOptionalProject(this.CurrentProject.id)
+      .work_packages
+      .filtered(filters)
+      .get()
+      .pipe(
+        map(collection => collection.elements),
+        catchError((error:unknown) => {
+          this.notificationService.handleRawError(error);
+          return of([]);
+        }),
+        tap(() => this.isLoading = false)
+      );
+  }
+
+  public autocompleterOptions = {
+    resource:'work_packages',
+    getOptionsFn: this.getAutocompleterData
+  }
+
+  @Input() appendToContainer = 'body';
+  @ViewChild(OpAutocompleterComponent) public ngSelectComponent:OpAutocompleterComponent;
 
   @Output() onCancel = new EventEmitter<undefined>();
   @Output() onReferenced = new EventEmitter<WorkPackageResource>();
 
-  // Whether we're currently loading
-  public isLoading = false;
-
-  // Search input from ng-select
-  public searchInput$ = new Subject<string>();
-
-  // Search results mapped to input
-  public results$:Observable<WorkPackageResource[]> = this.searchInput$.pipe(
-    debounceTime(250),
-    distinctUntilChanged(),
-    tap(() => this.isLoading = true),
-    switchMap(queryString => this.autocompleteWorkPackages(queryString))
-  );
-
+  
   constructor(private readonly querySpace:IsolatedQuerySpace,
               private readonly pathHelper:PathHelperService,
+              private readonly apiV3Service:APIV3Service,
               private readonly urlParamsHelper:UrlParamsHelperService,
               private readonly notificationService:WorkPackageNotificationService,
               private readonly CurrentProject:CurrentProjectService,
@@ -98,15 +138,11 @@ export class BoardInlineAddAutocompleterComponent implements AfterViewInit {
   }
 
   ngAfterViewInit():void {
-    if (!this.ngSelectComponent) {
+    if (!this.ngSelectComponent.ngSelectInstance) {
       return;
     }
-    this.ngSelectComponent.open();
-
-    setTimeout(() => {
-      this.ngSelectComponent.focus();
-    }, 25);
-
+    this.ngSelectComponent.openSelect();
+    this.ngSelectComponent.focusSelect();
     this.wpCardDragDrop.removeReferenceWorkPackageForm();
   }
 
@@ -115,49 +151,15 @@ export class BoardInlineAddAutocompleterComponent implements AfterViewInit {
   }
 
   public addWorkPackageToQuery(workPackage?:WorkPackageResource) {
+    
     if (workPackage) {
       this.schemaCacheService
         .ensureLoaded(workPackage)
         .then(() => {
           this.onReferenced.emit(workPackage);
-          this.ngSelectComponent.close();
+          this.ngSelectComponent.closeSelect();
         });
     }
   }
 
-  private autocompleteWorkPackages(searchString:string):Observable<WorkPackageResource[]> {
-    // Return when the search string is empty
-    if (searchString.length === 0) {
-      this.isLoading = false;
-      return of([]);
-    }
-
-    const path = this.pathHelper.api.v3.withOptionalProject(this.CurrentProject.id).work_packages;
-    const filters:ApiV3FilterBuilder = new ApiV3FilterBuilder();
-    const results = this.querySpace.results.value;
-
-    filters.add('subjectOrId', '**', [searchString]);
-
-    if (results && results.elements.length > 0) {
-      filters.add('id', '!', results.elements.map((wp:WorkPackageResource) => wp.id!));
-    }
-
-    // Add the subproject filter, if any
-    const query = this.querySpace.query.value;
-    if (query?.filters) {
-      const currentFilters = this.urlParamsHelper.buildV3GetFilters(query.filters);
-      filters.merge(currentFilters, 'subprojectId');
-    }
-
-    return this.halResourceService
-      .get<WorkPackageCollectionResource>(path.filtered(filters))
-      .pipe(
-        map(collection => collection.elements),
-        catchError((error:unknown) => {
-          this.notificationService.handleRawError(error);
-          return of([]);
-        }),
-        tap(() => this.isLoading = false)
-      );
-  }
 }

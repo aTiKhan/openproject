@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -36,10 +37,9 @@ class Document < ApplicationRecord
   acts_as_journalized
   acts_as_event title: Proc.new { |o| "#{Document.model_name.human}: #{o.title}" },
                 url: Proc.new { |o| { controller: '/documents', action: 'show', id: o.id } },
-                datetime: :created_at,
-                author: ( Proc.new do |o|
-                            o.attachments.find(:first, order: "#{Attachment.table_name}.created_at ASC").try(:author)
-                          end)
+                author: Proc.new { |o|
+                          o.attachments.find(:first, order: "#{Attachment.table_name}.created_at ASC").try(:author)
+                        }
 
   acts_as_searchable columns: ['title', "#{table_name}.description"],
                      include: :project,
@@ -64,7 +64,7 @@ class Document < ApplicationRecord
   after_initialize :set_default_category
   after_create :notify_document_created
 
-  def visible?(user=User.current)
+  def visible?(user = User.current)
     !user.nil? && user.allowed_to?(:view_documents, project)
   end
 
@@ -72,15 +72,15 @@ class Document < ApplicationRecord
     self.category ||= DocumentCategory.default if new_record?
   end
 
-  def updated_on
-    unless @updated_on
-      # attachments has a default order that conflicts with `created_at DESC`
-      # #reorder removes that default order but rather than #unscoped keeps the
-      # scoping by this document
-      a = attachments.reorder(Arel.sql('created_at DESC')).first
-      @updated_on = (a && a.created_at) || created_at
-    end
-    @updated_on
+  # TODO: This should not be necessary as the Attachments::CreateService in combination
+  # with acts_as_journalized should touch the document after an attachment has been added.
+  def updated_at
+    @updated_at ||= [attachments.maximum(:updated_at), read_attribute(:updated_at)].compact.max
+  end
+
+  def reload(options = nil)
+    @updated_at = nil
+    super
   end
 
   private

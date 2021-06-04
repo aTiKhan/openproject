@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -33,10 +33,24 @@ es:
         single: "Seleccione \"%{name}\""
       remove: "Elimine \"%{name}\""
       active: "Activo %{label} %{name}"
+    backup:
+      attachments_disabled: Attachments may not be included since they exceed the maximum overall size allowed. You can change this via the configuration (requires a server restart).
+      info: >
+        You can trigger a backup here. The process can take some time depending on the amount of data (especially attachments) you have. You will receive an email once it's ready.
+      note: >
+        A new backup will override any previous one. Only a limited number of backups per day can be requested.
+      last_backup: Last backup
+      last_backup_from: Last backup from
+      title: Backup OpenProject
+      options: Opciones
+      include_attachments: Include attachments
+      download_backup: Download backup
+      request_backup: Request backup
     close_popup_title: "Cerrar ventana emergente"
     close_filter_title: "Cerrar filtro"
     close_form_title: "Cerrar formulario"
     button_add_watcher: "Añadir observador"
+    button_add: "Añadir"
     button_back: "Atrás"
     button_back_to_list_view: "Volver a la lista"
     button_cancel: "Cancelar"
@@ -54,6 +68,8 @@ es:
     button_duplicate: "Duplicar"
     button_edit: "Editar"
     button_filter: "Filtro"
+    button_collapse_all: "Colapsar todo"
+    button_expand_all: "Expandir todos"
     button_advanced_filter: "Filtro avanzado"
     button_list_view: "Vista de lista"
     button_show_view: "Vista de pantalla completa"
@@ -71,6 +87,7 @@ es:
     button_update: "Actualizar"
     button_export-pdf: "Descargar PDF"
     button_export-atom: "Descargar Atom"
+    button_create: "Crear"
     calendar:
       title: 'Calendario'
       too_many: 'Hay %{count} paquetes de trabajo en total, pero solo pueden mostrarse %{max}.'
@@ -83,7 +100,7 @@ es:
     caption_rate_history: "Historial de tasa"
     clipboard:
       browser_error: "Su navegador no soporta copiar al portapapeles. Por favor, copie el texto seleccionado manualmente."
-      copied_successful: "¡Copiado correctamente en el portapapeles!"
+      copied_successful: "Copiado correctamente en el Portapapeles"
     chart:
       type: 'Tipo de gráfico'
       axis_criteria: 'Criterios de eje'
@@ -115,6 +132,11 @@ es:
         manual: 'Cambiar a visualización de Markdown'
         wysiwyg: 'Cambiar a editor WYSIWYG'
       macro:
+        error: 'No se puede expandir la macro: %{message}'
+        attribute_reference:
+          macro_help_tooltip: 'Este segmento de texto se representa dinámicamente mediante una macro.'
+          not_found: 'No se encuentra el recurso solicitado'
+          invalid_attribute: "El atributo seleccionado («%{name}») no existe."
         child_pages:
           button: 'Vínculos a páginas secundarias'
           include_parent: 'Incluir principal'
@@ -166,7 +188,8 @@ es:
       enterprise:
         trial:
           confirmation: "Confirmación de dirección de correo electrónico"
-          confirmation_info: "Le hemos enviado un mensaje. Consulte su correo electrónico y haga clic en el enlace de confirmación proporcionado para iniciar su prueba de 14 días."
+          confirmation_info: >
+            Le hemos enviado un correo electrónico a %{email} el %{date}. Por favor, compruebe su bandeja de entrada y haga clic en el enlace de confirmación que le hemos enviado para comenzar con su prueba gratuita de 14 días.
           form:
             general_consent: >
               Estoy de acuerdo con los <a target="_blank" href="%{link_terms}">Términos del servicio</a> y la <a target="_blank" href="%{link_privacy}">Política de privacidad</a>.
@@ -181,9 +204,10 @@ es:
             label_starts_at: "Empieza el"
             label_expires_at: "Caduca el"
             receive_newsletter: Quiero recibir el <a target="_blank" href="%{link}">boletín</a> de OpenProject.
+            taken_domain: Solo puede existir una prueba activa por dominio.
+            taken_email: Cada usuario solo puede crear una prueba.
           email_not_received: "¿No ha recibido el correo electrónico? Para volver a enviarlo, use el enlace de la derecha."
           try_another_email: "O bien pruebe con otra dirección."
-          try_another_email_hint: "Si usa otra dirección de correo electrónico, la anterior dejará de ser válida."
           next_steps: "Pasos siguientes"
           resend_link: "Reenviar"
           resend_success: "Hemos vuelto a enviarle el mensaje. Consulte su correo electrónico y haga clic en el enlace de confirmación proporcionado."
@@ -197,7 +221,7 @@ es:
         upsale:
           become_hero: "¡Conviértete en héroe!"
           benefits:
-            description: "¿Cuáles son los beneficios?"
+            description: "What are the benefits of the Enterprise on-premises Edition?"
             high_security: "Características de seguridad"
             high_security_text: "Inicio de sesión único (SAML, OpenID Connect, CAS), autenticación en dos fases y sincronización automática de grupos de LDAP."
             installation: "Ayuda para la instalación"
@@ -248,7 +272,6 @@ es:
     general_text_yes: "sí"
     general_text_No: "No"
     general_text_Yes: "Sí"
-    global_roles: Roles globales
     hal:
       error:
         update_conflict_refresh: "Haga clic aquí para actualizar el recurso y cambiar a la versión más reciente."
@@ -262,13 +285,13 @@ es:
           text_new_features: "Obtenga información sobre nuevas características y actualizaciones de productos."
           learn_about: "Más información sobre las nuevas características"
           standard:
-            learn_about_link: https://www.openproject.org/openproject-10-4
+            learn_about_link: https://www.openproject.org/openproject-11-3-release
             current_new_feature_html: >
-              Esta versión contiene nuevas características y mejoras: <br><br> <ul> <li><b>Plantillas de diseño</b> predeterminadas para seleccionar un tema claro u oscuro (característica de pago).</li> <li>Nuevo <b>widget de seguimiento del tiempo</b> para <i>Mi página</i>, donde se muestra el tiempo invertido en un gráfico de barras.</li> <li><b>Exportación a XLS de informes de costes</b> y texto con formato al exportar a PDF paquetes de trabajo.</li> <li><b>Mejoras de diseño y usabilidad</b> (como pestañas y más) en la configuración del proyecto y en el área de administración.</li> </ul>
+              The release contains various new features and improvements: <br> <ul class="%{list_styling_class}"> <li>New button in header navigation to create projects, users and work packages.</li> <li>A new invite modal for users, groups and placeholder users allows to easily add or invite new users and assign them to work packages.</li> <li>GitHub integration into OpenProject.</li> <li>API v3 extensions for groups and more, i.e. create, read, update and delete groups and group members through the API.</li> <li>Multi-selection for project custom fields of type list.</li> <li>Creation of backup from the web interface.</li> </ul>
           bim:
-            learn_about_link: https://www.openproject.org/openproject-bim-10-4
+            learn_about_link: https://www.openproject.org/openproject-11-3-release
             current_new_feature_html: >
-              OpenProject tiene un <b>nuevo módulo IFC para integrar modelos 3D</b> en su aplicación de gestión de proyectos y trabajar de forma colaborativa en esos archivos con los miembros de su equipo, sin tener que instalar costosos programas adicionales ni usar más licencias. <br><br> <ul> <li><b>Importe archivos IFC</b> de modelos de edificios en su aplicación de OpenProject.</li> <li><b>Abra modelos 3D y visualice modelos de edificios</b> en el navegador.</li> <li> <b>Trabaje en varios archivos IFC</b> fácilmente con su equipo directamente en OpenProject, sin tener que instalar costosos programas adicionales. </li> </ul>
+              The release contains various new features and improvements: <br> <ul class="%{list_styling_class}"> <li>BIM: Improved performance of the IFC model viewer.</li> <li>BIM: The IFC viewer now supports double precision models, which is great for large construction sites such as bridges, roads etc.</li> <li>BIM: Toggle button for switching between perspective and orthogonal mode.</li> <li>BIM: A menu for editing, deleting or flipping section planes.</li> <li>New button in header navigation to create projects, users and work packages.</li> <li>A new invite modal for users, groups and placeholder users allows to easily add or invite new users and assign them to work packages.</li> <li>API v3 extensions for groups and more, i.e. create, read, update and delete groups and group members through the API.</li> <li>Multi-selection for project custom fields of type list.</li> <li>Creation of backup from the web interface.</li> </ul>
     label_activate: "Activar"
     label_add_column_after: "Añadir columna a la derecha"
     label_add_column_before: "Añadir columna a la izquierda"
@@ -279,7 +302,7 @@ es:
     label_add_row_before: "Añadir fila encima"
     label_add_selected_columns: "Agregar columnas seleccionadas"
     label_added_by: "agregado por"
-    label_added_time_by: "Agregado por %{author} %{age}"
+    label_added_time_by: "Añadido por <a href=%{authorLink}>%{author}</a> a las %{age}"
     label_ago: "días antes"
     label_all: "todos"
     label_all_work_packages: "todos los paquetes de trabajo"
@@ -320,9 +343,11 @@ es:
     label_expand_all: "Expandir todos"
     label_expand_project_menu: "Expandir menú de proyecto"
     label_export: "Exportar"
+    label_export_preparing: "La exportación se está preparando y se descargará en breve."
     label_filename: "Archivo"
     label_filesize: "Tamaño"
     label_general: "General"
+    label_global_roles: "Roles globales"
     label_greater_or_equal: ">="
     label_group: 'Grupo'
     label_group_by: "Agrupar por"
@@ -352,7 +377,7 @@ es:
     label_next: "Siguiente"
     label_no_color: "Sin color"
     label_no_data: "No hay datos disponibles"
-    label_no_due_date: "no hay fecha de finalización"
+    label_no_due_date: "sin fecha límite "
     label_no_start_date: "sin fecha de inicio"
     label_no_value: "Sin valor"
     label_none: "ninguno"
@@ -371,6 +396,7 @@ es:
     label_quote_comment: "Citar este comentario"
     label_recent: "Recientes"
     label_reset: "Reiniciar"
+    label_remove: "Eliminar"
     label_remove_column: "Eliminar columna"
     label_remove_columns: "Eliminar columnas seleccionadas"
     label_remove_row: "Eliminar fila"
@@ -392,9 +418,10 @@ es:
     label_public_query: "Público"
     label_sum: "Suma"
     label_sum_for: "Suma para"
+    label_total_sum: "Suma total"
     label_subject: "Asunto"
     label_this_week: "esta semana"
-    label_today: "hoy"
+    label_today: "Hoy"
     label_time_entry_plural: "Tiempo empleado"
     label_up: "Arriba"
     label_user_plural: "Usuarios"
@@ -404,8 +431,10 @@ es:
     label_total_amount: "Total: %{amount}"
     label_updated_on: "actualizado el"
     label_value_derived_from_children: "(valor derivado del elemento secundario)"
+    label_children_derived_duration: "Duración derivada de los elementos secundarios del paquete de trabajo"
     label_warning: "Alerta"
     label_work_package: "Paquete de trabajo"
+    label_work_package_parent: "Paquete de trabajo principal"
     label_work_package_plural: "Paquetes de trabajo"
     label_watch: "Controlar"
     label_watch_work_package: "Ver paquetes de trabajo"
@@ -452,6 +481,7 @@ es:
         help_menu: 'En el menú <b>Ayuda</b>, encontrará una guía del usuario y recursos de ayuda adicionales. <br> ¡Disfrute de su trabajo con OpenProject!'
         members: 'Invite a nuevos <b>Miembros</b> a unirse al proyecto.'
         project_selection: 'Por favor, haga clic en uno de los proyectos con datos de demostración útiles para empezar. <br> El <b>proyecto Demo </b> se adapta mejor a la gestión clásica del proyecto, mientras que el <b>} proyecto Scrum </b> es mejor para la gestión del proyecto Agile.'
+        quick_add_button: 'Create a new project or invite coworkers.'
         sidebar_arrow: "Con la flecha, puede volver al <b>Menú principal</b> del proyecto."
         welcome: 'Realice un paseo de introducción de tres minutos para conocer las <b>características más importantes</b>. <br> Le recomendamos que complete todos los pasos. Puede volver a iniciar el paseo en cualquier momento.'
         wiki: 'En la <b>Wiki</b>, puede elaborar documentos y compartir conocimientos con su equipo.'
@@ -467,7 +497,7 @@ es:
           drag: 'Arrastra y suelta tus cartas dentro de una lista para volver a ordenar, o para otra lista. Un doble clic abrirá la vista de detalles.'
         wp:
           toggler: "Ahora, veamos la sección <b>Paquete de trabajo</b>, que ofrece una vista más detallada de su trabajo."
-          list: 'Esta es la lista <b>Paquete de trabajo</b>, donde se muestra una lista del trabajo importante en el proyecto, como tareas, características, hitos, errores de código y más. <br> Puede crear o editar un paquete de trabajo directamente con esta lista. Para ver los detalles, haga doble clic en una fila.'
+          list: 'Esta es la lista del <b>Paquete de trabajo</b> con el trabajo importante del proyecto, como tareas, hitos, fases y más. <br> Puede crear o editar un paquete de trabajo directamente en esta lista. Para ver los datos, haga doble clic en una fila.'
           full_view: 'En los <b>Detalles del paquete de trabajo</b>, se muestra toda la información relevante, como la descripción, el estado y la prioridad, actividades, dependencias o comentarios.'
           back_button: 'Con la flecha, puede volver a la lista de paquetes de trabajo.'
           create_button: 'Use el botón <b>Crear</b> para agregar un nuevo paquete de trabajo al proyecto.'
@@ -492,6 +522,11 @@ es:
       context: 'Contexto de proyecto'
       work_package_belongs_to: 'Este paquete de trabajo pertenece al proyecto %{projectname}.'
       click_to_switch_context: 'Abra este paquete de trabajo en ese proyecto.'
+      confirm_template_load: 'Al cambiar la plantilla, se actualizará la página y perderá todos los datos introducidos en el formulario. ¿Quiere continuar?'
+      use_template: "Usar plantilla"
+      no_template_selected: "(None)"
+      copy:
+        copy_options: "Copy options"
       autocompleter:
         label: 'Contexto | Solicitar contexto'
     text_are_you_sure: "¿Estás seguro?"
@@ -502,7 +537,7 @@ es:
         reset_title: "Restablecer la configuración del formulario"
         confirm_reset: >
           Advertencia: ¿Está seguro de que quiere restablecer la configuración del formulario? Se restablecerán los atributos al grupo predeterminado y se deshabilitarán TODOS los campos personalizados.
-        upgrade_to_ee: "Actualizar hasta versión corporativa"
+        upgrade_to_ee: "Upgrade to Enterprise on-premises Edition"
         upgrade_to_ee_text: "¡Vaya! Si necesita está opción, entonces ¡es un usuario experto! ¿Le importaría apoyar a los desarrolladores de OpenSource convirtiéndose en un cliente de la versión corporativa?"
         more_information: "Más información"
         nevermind: "No importa"
@@ -519,7 +554,7 @@ es:
       duration: 'Duración'
       spent_on: 'Fecha'
       hours: 'Horas'
-      label: 'Entrada de tiempo'
+      title: 'Registro de tiempo'
     two_factor_authentication:
       label_two_factor_authentication: 'Autenticación de dos factores'
     watchers:
@@ -575,11 +610,18 @@ es:
     relations_autocomplete:
       placeholder: "Escriba para buscar"
       parent_placeholder: "Elija un nuevo padre ó presione escape para cancelar."
+    autocompleter:
+      placeholder: "Escriba para buscar"
+      notFoundText: "No items found"
+      typeToSearchText: "Escriba para buscar"
     repositories:
       select_tag: 'Seleccionar etiqueta'
       select_branch: 'Seleccione Sucursal'
     field_value_enter_prompt: "Introduzca un valor para '%{field}'"
     project_menu_details: "Detalles"
+    scheduling:
+      manual: 'Programación manual'
+      automatic: 'Programación automática'
     sort:
       sorted_asc: 'Orden ascendiente aplicado '
       sorted_dsc: 'Orden descendiente aplicado '
@@ -745,6 +787,7 @@ es:
         startDate: "Fecha de inicio"
         status: "Estado"
         subject: "Asunto"
+        subproject: "Subproyecto"
         title: "Título"
         type: "Tipo"
         updatedAt: "Actualizada el"
@@ -790,6 +833,9 @@ es:
           not_found: "No existe la vista"
           duplicate_query_title: "El nombre de la vista ya existe. ¿Quiere cambiarlo de todos modos?"
         text_no_results: "No se encontraron vistas que coincidan."
+      scheduling:
+        is_parent: "Las fechas de este paquete de trabajo son deducidas automáticamente de sus hijos. Active 'Programación manual' para establecer las fechas."
+        is_switched_from_manual_to_automatic: "Las fechas de este paquete de trabajo pueden necesitar ser recalculadas después de pasar de programación manual a programación automática debido a las relaciones con otros paquetes de trabajo."
       table:
         configure_button: 'Configurar tabla de paquetes de trabajo'
         summary: "Tabla con filas de paquetes de trabajo y columnas con sus atributos."
@@ -823,7 +869,7 @@ es:
           automatic: 'Automático'
           manually: 'Manual'
           warning: 'Al activar el modo de ordenación automática, se perderá la ordenación actual.'
-        columns_help_text: "Use los datos anteriores para añadir columnas a la vista de tabla. Puede arrastrar y colocar las columnas para cambiar el orden."
+        columns_help_text: "Use el campo de entrada anterior para añadir columnas a la vista de tabla. Puede arrastrar y colocar las columnas para cambiar el orden."
         upsale:
           attribute_highlighting: '¿Necesita que algunos paquetes de trabajo destaquen del resto?'
           relation_columns: '¿Necesita ver las relaciones en la lista del paquete de trabajo?'
@@ -878,10 +924,14 @@ es:
         has_children: "El paquete de trabajo tiene %{childUnits}:"
         confirm_deletion_children: "Reconozco que TODOS los descendientes de los paquetes de trabajo enumerados se eliminarán recursivamente."
         deletes_children: "También se eliminarán de forma recursiva todos los paquetes de trabajo secundarios y sus descendientes."
+      destroy_time_entry:
+        title: "Confirmar la eliminación de la entrada de tiempo"
+        text: "¿Realmente quiere eliminar la siguiente entrada de tiempo?"
     notice_no_results_to_display: "No se pueden mostrar resultados visibles."
     notice_successful_create: "Creación exitosa."
     notice_successful_delete: "Eliminado con éxito."
     notice_successful_update: "Actualización correcta."
+    notice_job_started: "job started."
     notice_bad_request: "Petición incorrecta."
     relations:
       empty: No existen relaciones
@@ -915,9 +965,9 @@ es:
         one: "un paquete de trabajo secundario"
         other: "%{count} paquetes de trabajo secundarios"
       hour:
-        zero: "0 h"
         one: "1 h"
         other: "%{count} h"
+        zero: "0 h"
     zen_mode:
       button_activate: 'Activar modo «zen»'
       button_deactivate: 'Desactivar modo «zen»'
@@ -935,3 +985,78 @@ es:
       card: 'Tarjetas'
       list: 'Tabla'
       timeline: 'Gantt'
+    invite_user_modal:
+      back: 'Atrás'
+      invite: 'Invite'
+      title:
+        invite: 'Invitar usuario'
+        invite_to_project: 'Invite %{type} to %{project}'
+        User: 'user'
+        Group: 'group'
+        PlaceholderUser: 'placeholder user'
+        invite_principal_to_project: 'Invite %{principal} to %{project}'
+      project:
+        label: 'Proyecto'
+        required: 'Please select a project'
+        lacking_permission: 'Please select a different project since you lack permissions to assign users to the currently selected.'
+        lacking_permission_info: 'You lack the permission to assign users to the project you are currently in. You need to select a different one.'
+        next_button: 'Siguiente'
+        no_results: 'No projects were found'
+        no_invite_rights: 'You are not allowed to invite members to this project'
+      type:
+        required: 'Please select the type to be invited'
+        user:
+          title: 'Usuario'
+          description: 'Permissions based on the assigned role in the selected project'
+        group:
+          title: 'Grupo'
+          description: 'Permissions based on the assigned role in the selected project'
+        placeholder:
+          title: 'Usuario de marcador de posición'
+          title_no_ee: 'Placeholder user (Enterprise Edition only feature)'
+          description: 'Has no access to the project and no emails are sent out.'
+          description_no_ee: 'Has no access to the project and no emails are sent out. <br>Check out the <a href="%{eeHref}" target="_blank">Enterprise Edition</a>'
+      principal:
+        label:
+          name_or_email: 'Name or email address'
+          name: 'Nombre'
+        already_member_message: 'Already a member of %{project}'
+        no_results_user: 'No users were found'
+        invite_user: 'Invite:'
+        change_user_selection: 'Change e-mail-address or select an existing user'
+        no_results_placeholder: 'No placeholders were found'
+        change_placeholder_selection: 'Change name or select an existing placeholder'
+        create_new_placeholder: 'Create new placeholder:'
+        no_results_group: 'No groups were found'
+        change_group_selection: 'Change name or select an existing group'
+        next_button: 'Siguiente'
+        required:
+          user: 'Please select a user'
+          placeholder: 'Please select a placeholder'
+          group: 'Please select a group'
+      role:
+        label: 'Role in %{project}'
+        no_roles_found: 'No roles were found'
+        description: 'This is the role that %{principal} will receive when they join your project. The role defines which actions they are allowed to take and which information they are allowed to see. <a href="https://docs.openproject.org/system-admin-guide/users-permissions/roles-permissions/#roles-and-permissions" target="_blank"> Learn more about roles and permissions. </a>'
+        required: 'Please select a role'
+        next_button: 'Siguiente'
+      message:
+        label: 'Invitation message'
+        description: 'We will send an email to %{principal}, to which you can add a personal message here. An explanation for the invitation could be useful, or perhaps a bit of information regarding the project to help them get started.'
+        next_button: 'Review invitation'
+      summary:
+        next_button: 'Enviar invitación'
+      success:
+        title: '%{principal} was invited!'
+        description:
+          user: 'The user can now log in to access %{project}. Meanwhile you can already plan with that user and assign work packages for instance.'
+          placeholder: 'The placeholder can now be used in %{project}. Meanwhile you can already plan with that user and assign work packages for instance.'
+          group: 'The group is now a part of %{project}. Meanwhile you can already plan with that group and assign work packages for instance.'
+        next_button: 'Continuar'
+    forms:
+      submit_success_message: 'The form was successfully submitted'
+      load_error_message: 'There was an error loading the form'
+      validation_error_message: 'Please fix the errors present in the form'
+      advanced_settings: 'Ajustes avanzados'
+
+

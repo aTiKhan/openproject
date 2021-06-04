@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -19,13 +19,12 @@
 #Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #See docs/COPYRIGHT.rdoc for more details.
 #++
-#---
 el:
   activerecord:
     attributes:
       work_package:
         position: "Θέση"
-        remaining_hours: "Υπολειπόμενες Ώρες"
+        remaining_hours: "Υπολειπόμενες ώρες"
         remaining_time: "Υπολειπόμενες ώρες"
         story_points: "Πόντοι Ιστορίας"
         backlogs_work_package_type: "Τύπος backlog"
@@ -37,18 +36,12 @@ el:
               can_only_contain_work_packages_of_current_sprint: "μπορεί να περιέχει μόνο ταυτότητες πακέτων εργασία του τρέχοντος sprint."
               must_block_at_least_one_work_package: "πρέπει να περιέχει την ταυτότητα από τουλάχιστον ένα ticket."
             parent_id:
+              parent_child_relationship_across_projects: "δεν είναι έγκυρο επειδή το πακέτο εργασίας '%{work_package_name}' είναι μια εργασία backlog επομένως δεν μπορεί να έχει γονέα εκτός του τρέχοντος έργου."
               type_must_be_one_of_the_following: "Ο τύπος πρέπει να είναι ένας από τους παρακάτω: %{type_names}."
-        sprint:
-          cannot_end_before_it_starts: "Το sprint δεν μπορεί να λήξει πριν αρχίσει."
-  activemodel:
-    errors:
-      models:
-        work_package:
-          attributes:
             version_id:
               task_version_must_be_the_same_as_story_version: "πρέπει να είναι το ίδιο με την έκδοση ιστορίας του γονέα."
-            parent_id:
-              parent_child_relationship_across_projects: "δεν είναι έγκυρο επειδή το πακέτο εργασίας '%{work_package_name}' είναι μια εργασία backlog επομένως δεν μπορεί να έχει γονέα εκτός του τρέχοντος έργου."
+        sprint:
+          cannot_end_before_it_starts: "Το sprint δεν μπορεί να λήξει πριν αρχίσει."
   backlogs:
     add_new_story: "Νέα Ιστορία"
     any: "οποιoδήποτε"
@@ -106,6 +99,7 @@ el:
   backlogs_empty_title: "Δεν έχουν οριστεί εκδόσεις που μπορούν να χρησιμοποιηθούν σε backlogs"
   backlogs_empty_action_text: "Για να ξεκινήσετε με τα backlogs, δημιουργήστε μια καινούργια έκδοση και αναθέστε την σε μια στήλη backlog."
   button_edit_wiki: "Επεξεργασία σελίδας wiki"
+  error_backlogs_task_cannot_be_story: "Οι ρυθμίσεις δεν είναι έγκυρες. Ο επιλεγμένος τύπος εργασίας δεν μπορεί να είναι επίσης ένας τύπος ιστορίας."
   error_intro_plural: "Παρουσιάστηκαν τα ακόλουθα σφάλματα:"
   error_intro_singular: "Συναντήθηκε το ακόλουθο σφάλμα:"
   error_outro: "Παρακαλούμε διορθώστε τα παραπάνω σφάλματα πριν το ξαναυποβάλλετε."

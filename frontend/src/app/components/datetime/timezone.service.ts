@@ -1,12 +1,12 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
 //
 // OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-// Copyright (C) 2006-2017 Jean-Philippe Lang
+// Copyright (C) 2006-2013 Jean-Philippe Lang
 // Copyright (C) 2010-2013 the ChiliProject Team
 //
 // This program is free software; you can redistribute it and/or
@@ -26,11 +26,11 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {Injectable} from '@angular/core';
-import {ConfigurationService} from 'core-app/modules/common/config/configuration.service';
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
+import { Injectable } from '@angular/core';
+import { ConfigurationService } from 'core-app/modules/common/config/configuration.service';
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
 import * as moment from 'moment-timezone';
-import {Moment} from 'moment';
+import { Moment } from 'moment';
 
 @Injectable({ providedIn: 'root' })
 export class TimezoneService {
@@ -58,7 +58,7 @@ export class TimezoneService {
     return d;
   }
 
-  public parseDate(date:string, format?:string) {
+  public parseDate(date:Date|string, format?:string) {
     return moment(date, format);
   }
 
@@ -149,7 +149,7 @@ export class TimezoneService {
   }
 
   public formattedDuration(durationString:string) {
-    return this.I18n.t('js.units.hour', {count: this.toHours(durationString)});
+    return this.I18n.t('js.units.hour', { count: this.toHours(durationString) });
   }
 
   public formattedISODate(date:any) {

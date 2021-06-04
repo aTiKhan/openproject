@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -47,9 +47,9 @@ describe 'menu permissions', type: :feature, js: true do
     end
 
     it 'I can see all menu entries' do
-      expect(page).to have_selector('#menu-sidebar .menu-item--title', text: 'Versions')
-      expect(page).to have_selector('#menu-sidebar .menu-item--title', text: 'Information')
-      expect(page).to have_selector('#menu-sidebar .menu-item--title', text: 'Modules')
+      expect(page).to have_selector('#menu-sidebar .op-menu--item-title', text: 'Versions')
+      expect(page).to have_selector('#menu-sidebar .op-menu--item-title', text: 'Information')
+      expect(page).to have_selector('#menu-sidebar .op-menu--item-title', text: 'Modules')
     end
 
     it 'the parent node directs to the generic settings page' do
@@ -58,7 +58,7 @@ describe 'menu permissions', type: :feature, js: true do
 
       # Clicking the menu parent item leads to the version page
       find('.main-menu--parent-node', text: 'Project settings').click
-      expect(page).to have_current_path(settings_generic_project_path(project))
+      expect(page).to have_current_path "/projects/#{project.identifier}/settings/generic/"
     end
   end
 
@@ -71,9 +71,9 @@ describe 'menu permissions', type: :feature, js: true do
     end
 
     it 'I can only see the version settings page' do
-      expect(page).to have_selector('#menu-sidebar .menu-item--title', text: 'Versions')
-      expect(page).not_to have_selector('#menu-sidebar .menu-item--title', text: 'Information')
-      expect(page).not_to have_selector('#menu-sidebar .menu-item--title', text: 'Modules')
+      expect(page).to have_selector('#menu-sidebar .op-menu--item-title', text: 'Versions')
+      expect(page).not_to have_selector('#menu-sidebar .op-menu--item-title', text: 'Information')
+      expect(page).not_to have_selector('#menu-sidebar .op-menu--item-title', text: 'Modules')
     end
 
     it 'the parent node directs to the only visible children page' do

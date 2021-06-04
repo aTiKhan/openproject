@@ -15,19 +15,18 @@ sl:
       file_invalid: "BCF datoteka ni veljavna"
     x_bcf_issues:
       zero: 'Ni BCF napak'
-      one: "%{count} BCF napaka\n"
-      two: '%{count} BCF napaki'
-      few: '%{count} BCF napak'
-      other: '%{count} BCF napak'
+      one: 'Ena BCF napaka'
+      other: '%{count} BCF napake'
     bcf_xml:
       xml_file: 'BCF XML datoteka'
-      import_title: 'Import'
+      import_title: 'Uvozi'
       export: 'Izvozi'
       import_update_comment: '(Posodobljeno v uvozu BCF)'
       import_failed: 'BCF datoteke ni mogoče uvoziti: %{error}'
+      import_failed_unsupported_bcf_version: 'Datoteke BCF ni bilo mogoče prebrati: Različica BCF ni podprta. Prepričajte se, da je različica vsaj %{minimal_version} ali višja.'
       import_successful: 'Uvožene %{count} težave BCF'
       import_canceled: "BCF-XML uvoz preklican\n"
-      type_not_active: "Vrsta težave za ta projekt ni aktivirana"
+      type_not_active: "Vrsta zahtevka za ta projekt ni aktivirana"
       import:
         num_issues_found: '%{x_bcf_issues} vsebujejo datoteko BCF-XML, njihove podrobnosti so navedene spodaj.'
         button_prepare: 'Pripravi uvoz'
@@ -43,7 +42,7 @@ sl:
         invalid_priorities_found: 'Najdena so neveljavna imena prioritet'
         invalid_emails_found: 'Najdeni so neveljavni e-poštni naslovi'
         unknown_emails_found: 'Najdeni so neznani e-poštni naslovi'
-        unknown_property: 'Neznana lastnina'
+        unknown_property: 'Neznana lastnost'
         non_members_found: 'Ni najdenih članov projekta'
         import_types_as: 'Nastavite vse te vrste na'
         import_statuses_as: 'Nastavite vsa ta stanja na'
@@ -56,7 +55,7 @@ sl:
         perform_description: "Ali želite uvoziti ali posodobiti zgoraj navedene težave?"
         replace_with_system_user: 'Zamenjajte jih z "Sistem" uporabnikom '
         import_as_system_user: 'Uvozite jih kot "sistem" uporabnika.'
-        what_to_do: "What do you want to do?"
+        what_to_do: "Kaj želite storiti?"
         work_package_has_newer_changes: "Zastarelo! Ta tema ni bila posodobljena, saj so bile zadnje spremembe na strežniku novejše od \"Datum spremembe\" uvožene teme. Pripombe k temi pa so bile uvožene."
         bcf_file_not_found: "Datoteke BCF ni bilo mogoče najti. Znova zaženite postopek nalaganja."
   export:
@@ -68,6 +67,7 @@ sl:
   project_module_bim: "BCF"
   permission_view_linked_issues: "Prikaži BCF težave"
   permission_manage_bcf: "Uvozite in upravljajte BCF težave"
+  permission_delete_bcf: "Izbriši BCF probleme"
   oauth:
     scopes:
       bcf_v2_1: "Popoln dostop do BCF v2.1 API"
@@ -100,6 +100,8 @@ sl:
           snapshot_type_unsupported: "snapshot_type mora biti ali 'png' ali 'jpg'."
           snapshot_data_blank: "navesti je treba snapshot_data."
           unsupported_key: "Vključena je nepodprta lastnost json."
+        bim/bcf/issue:
+          uuid_already_taken: "Te izdaje BCF ni mogoče uvoziti, saj je že ena z istim GUID-om. Ali je bil morda ta BCF problem že uvožen v drug projekt?"
   ifc_models:
     label_ifc_models: 'model IFC'
     label_new_ifc_model: 'Nov IFC model'
@@ -112,7 +114,7 @@ sl:
       check_2: 'Preverite, ali je vsaj en model IFC nastavljen na "Privzeto".'
     no_results: "V tem projektu ni bil naložen noben model IFC."
     processing_state:
-      label: 'Obdelujem?'
+      label: 'Obdelovanje?'
       in_progress: 'V teku'
       completed: 'Zaključeno'
     processing_notice:

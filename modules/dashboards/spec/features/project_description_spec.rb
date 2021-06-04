@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -113,6 +113,40 @@ describe 'Project description widget on dashboard', type: :feature, js: true do
         expect(page).to have_content('A completely new description which is super cool.')
         expect(page).to have_selector(field.selector)
         expect(page).not_to have_selector(field.input_selector)
+      end
+    end
+  end
+
+  context 'with editing and wp add permissions' do
+    let!(:type) { FactoryBot.create :type_task, name: 'Task' }
+    let!(:project) do
+      FactoryBot.create :project, types: [type]
+    end
+
+    let(:current_user) do
+      FactoryBot.create(:user, member_in_project: project, member_with_permissions: editing_permissions + %i[add_work_packages])
+    end
+    let(:editor) { ::Components::WysiwygEditor.new 'body' }
+
+    it 'can create a button macro for work packages' do
+      # As the user lacks the manage_public_queries and save_queries permission, no other widget is present
+      description_widget = Components::Grids::GridArea.new('.grid--area.-widgeted:nth-of-type(1)')
+
+      field = TextEditorField.new dashboard_page, 'description'
+      field.activate!
+
+      editor.insert_macro 'Insert create work package button'
+
+      expect(page).to have_selector('.op-modal')
+      select 'Task', from: 'selected-type'
+      find('.op-modal--submit-button').click
+
+      field.save!
+
+      dashboard_page.expect_and_dismiss_notification message: I18n.t('js.notice_successful_update')
+
+      within('#content') do
+        expect(page).to have_selector("a[href=\"/projects/#{project.identifier}/work_packages/new?type=#{type.id}\"]")
       end
     end
   end

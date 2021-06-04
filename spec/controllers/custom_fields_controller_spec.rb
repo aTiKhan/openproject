@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -29,12 +29,12 @@
 require 'spec_helper'
 
 describe CustomFieldsController, type: :controller do
+  shared_let(:admin) { FactoryBot.create :admin }
+
   let(:custom_field) { FactoryBot.build_stubbed(:custom_field) }
 
   before do
-    allow(@controller).to receive(:authorize)
-    allow(@controller).to receive(:check_if_login_required)
-    allow(@controller).to receive(:require_admin)
+    login_as admin
   end
 
   describe 'POST edit' do
@@ -99,8 +99,8 @@ describe CustomFieldsController, type: :controller do
       end
 
       it 'responds ok' do
-        expect(response.status).to eq(302)
-        expect(assigns(:custom_field).name).to eq('field')
+        expect(response).to be_redirect
+        expect(CustomField.last.name).to eq 'field'
       end
     end
   end

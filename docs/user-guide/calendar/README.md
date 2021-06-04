@@ -9,19 +9,19 @@ keywords: calendar
 
 # Calendar
 
-The calendar shows all of the project’s work packages in calendar form. 
+The calendar shows all of the project's work packages in calendar form.
 
-| Feature                                                      | Documentation for                                     |
+| Topic                                                        | Content                                               |
 | ------------------------------------------------------------ | ----------------------------------------------------- |
 | [Calendar overview](#calendar-overview)                      | How to use the calendar in OpenProject.               |
 | [Filters in calendar](#filters-in-calendar)                  | How to filter in the calendar view.                   |
 | [Zen mode](#zen-mode)                                        | How to work distraction free in a calendar view.      |
 | [Project overarching calendar](#project-orverarching-calendar) | How to display more than one project in the calendar. |
-| [FAQ](#frequently-asked-questions-(faq))                     | Frequently asked questions                            |
+
 
 ## Calendar overview
 
-To display the calendar in a project, the module **Calendar** needs to be activated in the [project settings](../projects/#activate-modules).
+To display the calendar in a project, the module **calendar** needs to be activated in the [project settings](../projects/#activate-modules).
 
 When you open the calendar, all work packages within the current project are displayed on the calendar, displaying the title of the work package. The colors represent the different [work package types](../../system-admin-guide/#work-package-types).
 
@@ -68,23 +68,3 @@ Choose the sub-projects which you also want to display in the calendar view.
 ![subproject-calendar](subproject-calendar.png)
 
 It is not possible to add work packages from projects which are not in a project hierarchy.
-
-
-
-## Frequently asked questions (FAQ)
-
-### What information can be displayed in the calendar?
-
-The calendar automatically displays the start and end dates of work  packages in the current project. Additionally, the start and end dates of versions are shown in the calendar.
-
-### Where can I embed / activate the calendar?
-
-To use the calendar in a project, you need to [activate the “Calendar” module in the project settings](../projects/#activate-modules). Afterwards you can access the calendar in the project menu, as well as add it in the [project overview](#project-overview). You can also enable the calendar in your [“My page” view](#my-page).
-
-### Is there an option to export or sync the calendar?
-
-It is currently not possible to export or sync the calendar. You can however [export meetings as iCalendar file](#meetings) and import them to your external calendar. If you would like Microsoft Outlook to automatically import calendar invites, please check your Outlook settings and make sure to give permission from that side.
-
-### Are holidays considered in the calendar?
-
-Currently, the calendar does not consider weekends or holidays as non-working days, i.e. the end date for a task could e.g. be set on a Sunday. This is important for businesses that are working on weekends or holidays. Please note that we are currntly working on a feature for holidays and weekends that can be adjusted as needed. 

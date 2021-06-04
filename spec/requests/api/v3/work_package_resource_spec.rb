@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -51,7 +51,7 @@ describe 'API v3 Work package resource',
   let(:current_user) do
     user = FactoryBot.create(:user, member_in_project: project, member_through_role: role)
 
-    FactoryBot.create(:user_preference, user: user, others: {no_self_notified: false})
+    FactoryBot.create(:user_preference, user: user, others: { no_self_notified: false })
 
     user
   end
@@ -226,7 +226,7 @@ describe 'API v3 Work package resource',
 
     context 'when acting as a user with permission to view work package' do
       before(:each) do
-        allow(User).to receive(:current).and_return current_user
+        login_as(current_user)
         get get_path
       end
 
@@ -235,15 +235,20 @@ describe 'API v3 Work package resource',
       end
 
       describe 'response body' do
-        subject(:parsed_response) { JSON.parse(last_response.body) }
+        subject { last_response.body }
         let!(:other_wp) do
-          FactoryBot.create(:work_package, project_id: project.id,
+          FactoryBot.create(:work_package,
+                            project_id: project.id,
                             status: closed_status)
         end
         let(:work_package) do
-          FactoryBot.create(:work_package, project_id: project.id,
-                            description: description)
+          FactoryBot.create(:work_package,
+                            project_id: project.id,
+                            description: description).tap do |wp|
+            wp.children << children
+          end
         end
+        let(:children) { [] }
         let(:description) do
           <<~DESCRIPTION
             <macro class="toc"><macro>
@@ -266,27 +271,73 @@ describe 'API v3 Work package resource',
           DESCRIPTION
         end
 
-        it 'should respond with work package in HAL+JSON format' do
-          expect(parsed_response['id']).to eq(work_package.id)
+        it 'responds with work package in HAL+JSON format' do
+          expect(subject)
+            .to be_json_eql(work_package.id.to_json)
+            .at_path('id')
         end
 
-        describe "['description']" do
-          subject { super()['description'] }
-          it { is_expected.to have_selector('h1') }
+        describe "description" do
+          subject { JSON.parse(last_response.body)['description'] }
+
+          it 'renders to html' do
+            is_expected.to have_selector('h1')
+            is_expected.to have_selector('h2')
+
+            # resolves links
+            expect(subject['html'])
+              .to have_selector("macro.macro--wp-quickinfo[data-id='#{other_wp.id}']")
+            # resolves macros, e.g. toc
+            expect(subject['html'])
+              .to have_selector('.op-uc-toc--list-item', text: "OpenProject Masterplan for 2015")
+          end
         end
 
-        describe "['description']" do
-          subject { super()['description'] }
-          it { is_expected.to have_selector('h2') }
+        describe 'derived dates' do
+          let(:children) do
+            # This will be in another project but the user is still allowed to see the dates
+            [FactoryBot.create(:work_package,
+                               start_date: Date.today,
+                               due_date: Date.today + 5.days)]
+          end
+
+          it 'has derived dates' do
+            is_expected
+              .to be_json_eql(Date.today.to_json)
+              .at_path('derivedStartDate')
+
+            is_expected
+              .to be_json_eql((Date.today + 5.days).to_json)
+              .at_path('derivedDueDate')
+          end
         end
 
-        it 'should resolve links' do
-          expect(parsed_response['description']['html'])
-            .to have_selector("a[href='/work_packages/#{other_wp.id}']")
-        end
+        describe 'relations' do
+          let(:directly_related_wp) do
+            FactoryBot.create(:work_package, project_id: project.id)
+          end
+          let(:transitively_related_wp) do
+            FactoryBot.create(:work_package, project_id: project.id)
+          end
 
-        it 'should resolve simple macros' do
-          expect(parsed_response['description']).to have_text('Table of contents')
+          let(:work_package) do
+            FactoryBot.create(:work_package,
+                              project_id: project.id,
+                              description: 'lorem ipsum').tap do |wp|
+              FactoryBot.create(:relation, relates: 1, from: wp, to: directly_related_wp)
+              FactoryBot.create(:relation, relates: 1, from: directly_related_wp, to: transitively_related_wp)
+            end
+          end
+
+          it 'embeds all direct relations' do
+            expect(subject)
+              .to be_json_eql(1.to_json)
+              .at_path('_embedded/relations/total')
+
+            expect(subject)
+              .to be_json_eql(api_v3_paths.work_package(directly_related_wp.id).to_json)
+              .at_path('_embedded/relations/_embedded/elements/0/_links/to/href')
+          end
         end
       end
 
@@ -297,7 +348,7 @@ describe 'API v3 Work package resource',
       end
     end
 
-    context 'when acting as an user without permission to view work package' do
+    context 'when acting as a user without permission to view work package' do
       before(:each) do
         allow(User).to receive(:current).and_return unauthorize_user
         get get_path
@@ -382,7 +433,7 @@ describe 'API v3 Work package resource',
         context 'not set' do
           let(:params) { update_params }
 
-          it { expect(EnqueueWorkPackageNotificationJob).to have_been_enqueued.at_least(1) }
+          it { expect(Notifications::JournalCompletedJob).to have_been_enqueued.at_least(1) }
         end
 
         context 'disabled' do
@@ -390,7 +441,7 @@ describe 'API v3 Work package resource',
           let(:params) { update_params }
 
           it do
-            expect(EnqueueWorkPackageNotificationJob)
+            expect(Notifications::JournalCompletedJob)
               .to have_been_enqueued
               .at_least(1)
           end
@@ -401,7 +452,7 @@ describe 'API v3 Work package resource',
           let(:params) { update_params }
 
           it do
-            expect(EnqueueWorkPackageNotificationJob)
+            expect(Notifications::JournalCompletedJob)
               .to have_been_enqueued
               .at_least(1)
           end
@@ -450,7 +501,7 @@ describe 'API v3 Work package resource',
         context 'w/o value (empty)' do
           let(:raw) { nil }
           let(:html) { '' }
-          let(:params) { valid_params.merge(description: {raw: nil}) }
+          let(:params) { valid_params.merge(description: { raw: nil }) }
 
           include_context 'patch request'
 
@@ -462,15 +513,28 @@ describe 'API v3 Work package resource',
         context 'with value' do
           let(:raw) { '**Some text** *describing* **something**...' }
           let(:html) do
-            '<p><strong>Some text</strong> <em>describing</em> <strong>something</strong>...</p>'
+            '<p class="op-uc-p"><strong>Some text</strong> <em>describing</em> <strong>something</strong>...</p>'
           end
-          let(:params) { valid_params.merge(description: {raw: raw}) }
+          let(:params) { valid_params.merge(description: { raw: raw }) }
 
           include_context 'patch request'
 
           it { expect(response.status).to eq(200) }
 
           it_behaves_like 'description updated'
+        end
+      end
+
+      context 'schedule manually' do
+        let(:schedule_manually) { true }
+        let(:params) { valid_params.merge(scheduleManually: schedule_manually) }
+
+        include_context 'patch request'
+
+        it { expect(response.status).to eq(200) }
+
+        it 'should update the scheduling mode' do
+          expect(subject.body).to be_json_eql(schedule_manually.to_json).at_path('scheduleManually')
         end
       end
 
@@ -507,7 +571,7 @@ describe 'API v3 Work package resource',
       context 'status' do
         let(:target_status) { FactoryBot.create(:status) }
         let(:status_link) { api_v3_paths.status target_status.id }
-        let(:status_parameter) { {_links: {status: {href: status_link}}} }
+        let(:status_parameter) { { _links: { status: { href: status_link } } } }
         let(:params) { valid_params.merge(status_parameter) }
 
         before { allow(User).to receive(:current).and_return current_user }
@@ -563,7 +627,7 @@ describe 'API v3 Work package resource',
       context 'type' do
         let(:target_type) { FactoryBot.create(:type) }
         let(:type_link) { api_v3_paths.type target_type.id }
-        let(:type_parameter) { {_links: {type: {href: type_link}}} }
+        let(:type_parameter) { { _links: { type: { href: type_link } } } }
         let(:params) { valid_params.merge(type_parameter) }
 
         before { allow(User).to receive(:current).and_return current_user }
@@ -587,7 +651,7 @@ describe 'API v3 Work package resource',
 
         context 'valid type changing custom fields' do
           let(:custom_field) { FactoryBot.create(:work_package_custom_field) }
-          let(:custom_field_parameter) { {:"customField#{custom_field.id}" => true} }
+          let(:custom_field_parameter) { { "customField#{custom_field.id}": true } }
           let(:params) { valid_params.merge(type_parameter).merge(custom_field_parameter) }
 
           before do
@@ -634,7 +698,7 @@ describe 'API v3 Work package resource',
           FactoryBot.create(:project, public: false)
         end
         let(:project_link) { api_v3_paths.project target_project.id }
-        let(:project_parameter) { {_links: {project: {href: project_link}}} }
+        let(:project_parameter) { { _links: { project: { href: project_link } } } }
         let(:params) { valid_params.merge(project_parameter) }
 
         before do
@@ -666,7 +730,7 @@ describe 'API v3 Work package resource',
 
         context 'with a custom field defined on the target project' do
           let(:custom_field) { FactoryBot.create(:work_package_custom_field) }
-          let(:custom_field_parameter) { {:"customField#{custom_field.id}" => true} }
+          let(:custom_field_parameter) { { "customField#{custom_field.id}": true } }
           let(:params) { valid_params.merge(project_parameter).merge(custom_field_parameter) }
 
           before do
@@ -694,27 +758,27 @@ describe 'API v3 Work package resource',
                             responsible: current_user)
         end
 
-        before { allow(User).to receive(:current).and_return current_user }
+        before { login_as current_user }
 
-        shared_context 'setup group membership' do |group_assignment|
+        shared_context 'setup group membership' do
           let(:group) { FactoryBot.create(:group) }
           let(:group_role) { FactoryBot.create(:role) }
-          let(:group_member) do
+          let!(:group_member) do
             FactoryBot.create(:member,
                               principal: group,
                               project: project,
                               roles: [group_role])
           end
+        end
 
-          before do
-            allow(Setting).to receive(:work_package_group_assignment?).and_return(group_assignment)
-
-            group_member
-          end
+        let(:placeholder_user) do
+          FactoryBot.create(:placeholder_user,
+                            member_in_project: project,
+                            member_through_role: role)
         end
 
         shared_examples_for 'handling people' do |property|
-          let(:user_parameter) { {_links: {property => {href: user_href}}} }
+          let(:user_parameter) { { _links: { property => { href: user_href } } } }
           let(:href_path) { "_links/#{property}/href" }
 
           describe 'nil' do
@@ -731,13 +795,14 @@ describe 'API v3 Work package resource',
 
           describe 'valid' do
             shared_examples_for 'valid user assignment' do
-              let(:title) { "#{assigned_user.name}".to_json }
+              let(:title) { assigned_user.name.to_s.to_json }
 
               it { expect(response.status).to eq(200) }
 
               it {
-                expect(response.body).to be_json_eql(title)
-                                           .at_path("_links/#{property}/title")
+                expect(response.body)
+                  .to be_json_eql(title)
+                  .at_path("_links/#{property}/title")
               }
 
               it_behaves_like 'lock version updated'
@@ -761,6 +826,16 @@ describe 'API v3 Work package resource',
 
               it_behaves_like 'valid user assignment' do
                 let(:assigned_user) { group }
+              end
+            end
+
+            context 'placeholder user' do
+              let(:user_href) { api_v3_paths.placeholder_user placeholder_user.id }
+
+              include_context 'patch request'
+
+              it_behaves_like 'valid user assignment' do
+                let(:assigned_user) { placeholder_user }
               end
             end
           end
@@ -801,22 +876,8 @@ describe 'API v3 Work package resource',
                 let(:message) do
                   I18n.t('api_v3.errors.invalid_resource',
                          property: property,
-                         expected: "/api/v3/groups/:id' or '/api/v3/users/:id",
+                         expected: "/api/v3/groups/:id' or '/api/v3/users/:id' or '/api/v3/placeholder_users/:id",
                          actual: user_href)
-                end
-              end
-            end
-
-            context 'group assignment disabled' do
-              let(:user_href) { api_v3_paths.user group.id }
-
-              include_context 'setup group membership', false
-              include_context 'patch request'
-
-              it_behaves_like 'constraint violation' do
-                let(:message) do
-                  I18n.t('api_v3.errors.validation.invalid_user_assigned_to_work_package',
-                         property: WorkPackage.human_attribute_name(property))
                 end
               end
             end
@@ -835,7 +896,7 @@ describe 'API v3 Work package resource',
       context 'version' do
         let(:target_version) { FactoryBot.create(:version, project: project) }
         let(:version_link) { api_v3_paths.version target_version.id }
-        let(:version_parameter) { {_links: {version: {href: version_link}}} }
+        let(:version_parameter) { { _links: { version: { href: version_link } } } }
         let(:params) { valid_params.merge(version_parameter) }
 
         before { allow(User).to receive(:current).and_return current_user }
@@ -872,7 +933,7 @@ describe 'API v3 Work package resource',
       context 'category' do
         let(:target_category) { FactoryBot.create(:category, project: project) }
         let(:category_link) { api_v3_paths.category target_category.id }
-        let(:category_parameter) { {_links: {category: {href: category_link}}} }
+        let(:category_parameter) { { _links: { category: { href: category_link } } } }
         let(:params) { valid_params.merge(category_parameter) }
 
         before { allow(User).to receive(:current).and_return current_user }
@@ -895,7 +956,7 @@ describe 'API v3 Work package resource',
       context 'priority' do
         let(:target_priority) { FactoryBot.create(:priority) }
         let(:priority_link) { api_v3_paths.priority target_priority.id }
-        let(:priority_parameter) { {_links: {priority: {href: priority_link}}} }
+        let(:priority_parameter) { { _links: { priority: { href: priority_link } } } }
         let(:params) { valid_params.merge(priority_parameter) }
 
         before { allow(User).to receive(:current).and_return current_user }
@@ -915,6 +976,37 @@ describe 'API v3 Work package resource',
         end
       end
 
+      context 'budget' do
+        let(:target_budget) { FactoryBot.create(:budget, project: project) }
+        let(:budget_link) { api_v3_paths.budget target_budget.id }
+        let(:budget_parameter) { { _links: { budget: { href: budget_link } } } }
+        let(:params) { valid_params.merge(budget_parameter) }
+        let(:permissions) { %i[view_work_packages edit_work_packages view_budgets] }
+
+        before { login_as(current_user) }
+
+        context 'valid' do
+          include_context 'patch request'
+
+          it { expect(response.status).to eq(200) }
+
+          it 'should respond with the work package and its new budget' do
+            expect(subject.body).to be_json_eql(target_budget.subject.to_json)
+                                      .at_path('_embedded/budget/subject')
+          end
+        end
+
+        context 'not valid' do
+          let(:target_budget) { FactoryBot.create(:budget) }
+
+          include_context 'patch request'
+
+          it_behaves_like 'constraint violation' do
+            let(:message) { I18n.t('activerecord.errors.messages.inclusion') }
+          end
+        end
+      end
+
       context 'list custom field' do
         let(:custom_field) do
           FactoryBot.create(:list_wp_custom_field)
@@ -927,7 +1019,7 @@ describe 'API v3 Work package resource',
         end
 
         let(:value_parameter) do
-          {_links: {custom_field.accessor_name.camelize(:lower) => {href: value_link}}}
+          { _links: { custom_field.accessor_name.camelize(:lower) => { href: value_link } } }
         end
         let(:params) { valid_params.merge(value_parameter) }
 
@@ -1155,7 +1247,7 @@ describe 'API v3 Work package resource',
       status.save!
       priority.save!
 
-      FactoryBot.create(:user_preference, user: current_user, others: {no_self_notified: false})
+      FactoryBot.create(:user_preference, user: current_user, others: { no_self_notified: false })
       post path, parameters.to_json, 'CONTENT_TYPE' => 'application/json'
       perform_enqueued_jobs
     end
@@ -1164,7 +1256,7 @@ describe 'API v3 Work package resource',
       let(:permissions) { %i[add_work_packages view_project view_work_packages] }
 
       it 'sends a mail by default' do
-        expect(DeliverWorkPackageNotificationJob)
+        expect(Mails::WorkPackageJob)
           .to have_been_enqueued
           .at_least(1)
       end
@@ -1173,7 +1265,7 @@ describe 'API v3 Work package resource',
         let(:path) { "#{api_v3_paths.work_packages}?notify=false" }
 
         it 'should not send a mail' do
-          expect(DeliverWorkPackageNotificationJob).not_to have_been_enqueued
+          expect(Mails::WorkPackageJob).not_to have_been_enqueued
         end
       end
 
@@ -1181,7 +1273,7 @@ describe 'API v3 Work package resource',
         let(:path) { "#{api_v3_paths.work_packages}?notify=true" }
 
         it 'should send a mail' do
-          expect(DeliverWorkPackageNotificationJob)
+          expect(Mails::WorkPackageJob)
             .to have_been_enqueued
             .at_least(1)
         end
@@ -1257,6 +1349,33 @@ describe 'API v3 Work package resource',
 
       it 'should not create a work package' do
         expect(WorkPackage.all.count).to eq(0)
+      end
+    end
+
+    context 'schedule manually' do
+      let(:work_package) { WorkPackage.first }
+
+      context 'with true' do
+        # mind the () for the super call, those are required in rspec's super
+        let(:parameters) { super().merge(scheduleManually: true) }
+
+        it 'should set the scheduling mode to true' do
+          expect(work_package.schedule_manually).to eq true
+        end
+      end
+
+      context 'with false' do
+        let(:parameters) { super().merge(scheduleManually: false) }
+
+        it 'should set the scheduling mode to false' do
+          expect(work_package.schedule_manually).to eq false
+        end
+      end
+
+      context 'with scheduleManually absent' do
+        it 'should set the scheduling mode to false (default)' do
+          expect(work_package.schedule_manually).to eq false
+        end
       end
     end
 

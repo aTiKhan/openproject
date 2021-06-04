@@ -1,15 +1,12 @@
-// -- copyright
-// OpenProject Documents Plugin
-//
-// Former OpenProject Core functionality extracted into a plugin.
-//
-// Copyright (C) 2009-2014 the OpenProject Foundation (OPF)
+//-- copyright
+// OpenProject is an open source project management software.
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
 //
 // OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-//   # Copyright (C) 2006-2013 Jean-Philippe Lang
+// Copyright (C) 2006-2013 Jean-Philippe Lang
 // Copyright (C) 2010-2013 the ChiliProject Team
 //
 // This program is free software; you can redistribute it and/or
@@ -27,12 +24,12 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
 // This resource exists solely for the purpose of uploading attachments via the
 // WYSIWYIG editor.
-import {HalResource} from 'core-app/modules/hal/resources/hal-resource';
-import {Attachable} from 'core-app/modules/hal/resources/mixins/attachable-mixin';
+import { HalResource } from 'core-app/modules/hal/resources/hal-resource';
+import { Attachable } from 'core-app/modules/hal/resources/mixins/attachable-mixin';
 
 export interface DocumentResourceLinks {
     addAttachment(attachment:HalResource):Promise<any>;
@@ -46,5 +43,4 @@ class DocumentBaseResource extends HalResource {
 
 export const DocumentResource = Attachable(DocumentBaseResource);
 
-export interface DocumentResource extends DocumentBaseResource {
-}
+export type DocumentResource = DocumentBaseResource;

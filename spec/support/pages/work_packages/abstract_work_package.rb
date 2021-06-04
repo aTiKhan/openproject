@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -42,11 +42,11 @@ module Pages
     end
 
     def switch_to_tab(tab:)
-      find('.tabrow li a', text: tab.upcase).click
+      find('.op-tab-row--link', text: tab.upcase).click
     end
 
     def expect_tab(tab)
-      expect(page).to have_selector('.tabrow li.selected', text: tab.to_s.upcase)
+      expect(page).to have_selector('.op-tab-row--link_selected', text: tab.to_s.upcase)
     end
 
     def edit_field(attribute)
@@ -93,7 +93,7 @@ module Pages
 
     def ensure_page_loaded
       expect_angular_frontend_initialized
-      expect(page).to have_selector('.work-package-details-activities-activity-contents .user',
+      expect(page).to have_selector('.op-user-activity--user-name',
                                     text: work_package.journals.last.user.name,
                                     minimum: 1,
                                     wait: 10)
@@ -130,7 +130,7 @@ module Pages
       container = '#work-package-activites-container'
       container += " #activity-#{number}" if number
 
-      expect(page).to have_selector(container + ' .user', text: user.name)
+      expect(page).to have_selector(container + ' .op-user-activity--user-line', text: user.name)
     end
 
     def expect_activity_message(message)
@@ -147,13 +147,13 @@ module Pages
     def expect_zen_mode
       expect(page).to have_selector('.zen-mode')
       expect(page).to have_selector('#main-menu', visible: false)
-      expect(page).to have_selector('#top-menu', visible: false)
+      expect(page).to have_selector('.op-app-header', visible: false)
     end
 
     def expect_no_zen_mode
       expect(page).not_to have_selector('.zen-mode')
       expect(page).to have_selector('#main-menu', visible: true)
-      expect(page).to have_selector('#top-menu', visible: true)
+      expect(page).to have_selector('.op-app-header', visible: true)
     end
 
     def expect_custom_action(name)
@@ -189,18 +189,25 @@ module Pages
     end
 
     def work_package_field(key)
-      if key =~ /customField(\d+)$/
-        cf = CustomField.find $1
-
-        if cf.field_format == 'text'
-          TextEditorField.new container, key
-        else
-          EditField.new container, key
-        end
-      elsif key == :description
+      case key
+      when /customField(\d+)$/
+        work_package_custom_field(key, $1)
+      when :date, :startDate, :dueDate, :combinedDate
+        DateEditField.new container, key, is_milestone: work_package&.milestone?
+      when :description
         TextEditorField.new container, key
-      elsif key == :status
+      when :status
         WorkPackageStatusField.new container
+      else
+        EditField.new container, key
+      end
+    end
+
+    def work_package_custom_field(key, id)
+      cf = CustomField.find id
+
+      if cf.field_format == 'text'
+        TextEditorField.new container, key
       else
         EditField.new container, key
       end
@@ -238,7 +245,7 @@ module Pages
     end
 
     def trigger_edit_comment
-      add_comment_container.find('.inplace-editing--trigger-link').click
+      add_comment_container.find('.work-package-comment').click
     end
 
     def update_comment(comment)
@@ -248,7 +255,7 @@ module Pages
 
     def save_comment
       label = 'Comment: Save'
-      add_comment_container.find(:xpath, "//a[@title='#{label}']").click
+      add_comment_container.find(:xpath, "//button[@title='#{label}']").click
     end
 
     def save!

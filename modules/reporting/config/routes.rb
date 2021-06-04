@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -30,7 +30,7 @@ OpenProject::Application.routes.draw do
   scope 'projects/:project_id' do
     resources :cost_reports, except: :create do
       collection do
-        match :index, via: [:get, :post]
+        match :index, via: %i[get post]
       end
 
       member do
@@ -40,16 +40,12 @@ OpenProject::Application.routes.draw do
     end
   end
 
-  scope 'work_packages/:work_package_id', as: 'work_packages' do
-    resources :cost_entries, controller: 'work_package_costlog', only: %[index]
-  end
-
   resources :cost_reports, except: :create do
     collection do
-      match :index, via: [:get, :post]
+      match :index, via: %i[get post]
       post :save_as, action: :create
       get :drill_down
-      match :available_values, via: [:get, :post]
+      match :available_values, via: %i[get post]
       get :display_report_list
     end
 

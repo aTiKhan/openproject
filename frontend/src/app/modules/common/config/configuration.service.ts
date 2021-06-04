@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,13 +24,13 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {Injectable} from '@angular/core';
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
-import {ConfigurationDmService} from "core-app/modules/hal/dm-services/configuration-dm.service";
-import {ConfigurationResource} from "core-app/modules/hal/resources/configuration-resource";
+import { Injectable } from '@angular/core';
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
+import { ConfigurationResource } from "core-app/modules/hal/resources/configuration-resource";
 import * as moment from "moment";
+import { APIV3Service } from "core-app/modules/apiv3/api-v3.service";
 
 @Injectable({ providedIn: 'root' })
 export class ConfigurationService {
@@ -38,10 +38,10 @@ export class ConfigurationService {
   // TODO: this currently saves the request between page reloads,
   // but could easily be stored in localStorage
   private configuration:ConfigurationResource;
-  public initialized:Promise<Boolean>;
+  public initialized:Promise<boolean>;
 
   public constructor(readonly I18n:I18nService,
-                     readonly configurationDm:ConfigurationDmService) {
+                     readonly apiV3Service:APIV3Service) {
     this.initialized = this.loadConfiguration().then(() => true).catch(() => false);
   }
 
@@ -57,12 +57,20 @@ export class ConfigurationService {
     return this.userPreference('autoHidePopups');
   }
 
-  public isTimezoneSet()  {
+  public isTimezoneSet() {
     return !!this.timezone();
   }
 
-  public timezone()  {
+  public timezone() {
     return this.userPreference('timeZone');
+  }
+
+  public isDirectUploads() {
+    return !!this.prepareAttachmentURL;
+  }
+
+  public get prepareAttachmentURL() {
+    return _.get(this.configuration, ['prepareAttachment', 'href']);
   }
 
   public get maximumAttachmentFileSize() {
@@ -73,27 +81,27 @@ export class ConfigurationService {
     return this.systemPreference('perPageOptions');
   }
 
-  public dateFormatPresent()  {
+  public dateFormatPresent() {
     return !!this.systemPreference('dateFormat');
   }
 
-  public dateFormat()  {
+  public dateFormat() {
     return this.systemPreference('dateFormat');
   }
 
-  public timeFormatPresent()  {
+  public timeFormatPresent() {
     return !!this.systemPreference('timeFormat');
   }
 
-  public timeFormat()  {
+  public timeFormat() {
     return this.systemPreference('timeFormat');
   }
 
-  public startOfWeekPresent()  {
+  public startOfWeekPresent() {
     return !!this.systemPreference('startOfWeek');
   }
 
-  public startOfWeek()  {
+  public startOfWeek() {
     if (this.startOfWeekPresent()) {
       return this.systemPreference('startOfWeek');
     } else {
@@ -102,9 +110,14 @@ export class ConfigurationService {
   }
 
   private loadConfiguration() {
-    return this.configurationDm.load().toPromise().then((configuration) => {
-      this.configuration = configuration;
-    });
+    return this
+      .apiV3Service
+      .configuration
+      .get()
+      .toPromise()
+      .then((configuration) => {
+        this.configuration = configuration;
+      });
   }
 
   private userPreference(pref:string) {

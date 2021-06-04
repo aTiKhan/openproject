@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -27,6 +27,8 @@
 #++
 
 class AttributeHelpText < ApplicationRecord
+  acts_as_attachable viewable_by_all_users: true
+
   def self.available_types
     subclasses.map { |child| child.name.demodulize }
   end
@@ -60,7 +62,7 @@ class AttributeHelpText < ApplicationRecord
   end
 
   def attribute_scope
-    raise NotImplementedError
+    self.class.to_s.demodulize
   end
 
   def type_caption
@@ -77,3 +79,4 @@ class AttributeHelpText < ApplicationRecord
 end
 
 require_dependency 'attribute_help_text/work_package'
+require_dependency 'attribute_help_text/project'

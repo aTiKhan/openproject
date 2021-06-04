@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -19,7 +19,6 @@
 #Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #See docs/COPYRIGHT.rdoc for more details.
 #++
-#---
 pl:
   activerecord:
     attributes:
@@ -37,18 +36,12 @@ pl:
               can_only_contain_work_packages_of_current_sprint: "może zawierać tylko identyfikatory pakietów pracy w bieżącym sprincie."
               must_block_at_least_one_work_package: "musi zawierać ID co najmniej dla jednego biletu."
             parent_id:
+              parent_child_relationship_across_projects: "jest nieprawidłowy, ponieważ paczka prac '%{work_package_name}' jest zadaniem backlogu, a więc nie może mieć rodziciela poza bieżącym projektem."
               type_must_be_one_of_the_following: "Musi być jeden z następujących typów: %{type_names}."
-        sprint:
-          cannot_end_before_it_starts: "Sprint nie może się skończyć przed swoim rozpoczęciem."
-  activemodel:
-    errors:
-      models:
-        work_package:
-          attributes:
             version_id:
               task_version_must_be_the_same_as_story_version: "musi być taka sama jak wersja story nadrzędnej."
-            parent_id:
-              parent_child_relationship_across_projects: "jest nieprawidłowy, ponieważ paczka prac '%{work_package_name}' jest zadaniem backlogu, a więc nie może mieć rodziciela poza bieżącym projektem."
+        sprint:
+          cannot_end_before_it_starts: "Sprint nie może się skończyć przed swoim rozpoczęciem."
   backlogs:
     add_new_story: "Nowe Story"
     any: "którekolwiek"
@@ -106,6 +99,7 @@ pl:
   backlogs_empty_title: "Nie ma wersji zdefiniowanej do użycia w zaległościach"
   backlogs_empty_action_text: "Aby rozpocząć pracę z zaległościami, utworzyć nową wersję i przypisać ją do kolumna w zaległości."
   button_edit_wiki: "Edytuj stronę wiki"
+  error_backlogs_task_cannot_be_story: "Ustawienia są nieprawidłowe. Wybrany typ zadania nie może być również typem historii."
   error_intro_plural: "Wystąpiły następujące błędy:"
   error_intro_singular: "Wystąpił następujący błąd:"
   error_outro: "Popraw błędy powyżej przed ponownym złożeniem."

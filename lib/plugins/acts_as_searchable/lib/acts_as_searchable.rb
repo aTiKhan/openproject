@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -37,8 +37,8 @@ module Redmine
         # Options:
         # * :columns - a column or an array of columns to search
         # * :project_key - project foreign key (default to project_id)
-        # * :date_column - name of the datetime column (default to created_on)
-        # * :sort_order - name of the column used to sort results (default to :date_column or created_on)
+        # * :date_column - name of the datetime column (default to created_at)
+        # * :order_column - name of the column used to sort results (default to :date_column or created_at)
         # * :permission - permission required to search the model (default to :view_"objects")
         def acts_as_searchable(options = {})
           return if included_modules.include?(Redmine::Acts::Searchable::InstanceMethods)
@@ -55,11 +55,14 @@ module Redmine
           searchable_options[:tsv_columns] ||= []
 
           searchable_options[:project_key] ||= "#{table_name}.project_id"
-          searchable_options[:date_column] ||= "#{table_name}.created_on"
+          searchable_options[:date_column] ||= "#{table_name}.created_at"
           searchable_options[:order_column] ||= searchable_options[:date_column]
 
           # Permission needed to search this model
-          searchable_options[:permission] = "view_#{name.underscore.pluralize}".to_sym unless searchable_options.has_key?(:permission)
+          unless searchable_options.has_key?(:permission)
+            searchable_options[:permission] =
+              "view_#{name.underscore.pluralize}".to_sym
+          end
 
           # Should we search custom fields on this model ?
           searchable_options[:search_custom_fields] = !reflect_on_association(:custom_values).nil?
@@ -96,7 +99,6 @@ module Redmine
                 OpenProject::FullTextSearch.tsv_where(tsv_column[:table_name],
                                                       tsv_column[:column_name],
                                                       tokens.join(' '),
-                                                      concatenation: :and,
                                                       normalization: tsv_column[:normalization_type])
               end
             end

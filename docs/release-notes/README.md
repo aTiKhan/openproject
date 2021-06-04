@@ -4,13 +4,220 @@
 
 # Release Notes
 
-We never stop improving OpenProject. Every year there are several major stable releases offering new OpenProject features.
+We never stop improving OpenProject. Every year there are several stable releases offering new OpenProject features.
 
 Stay up to date and get an overview of the new features included in the releases.
 
 
 <!--- New release notes are generated below. Do not remove comment. -->
 <!--- RELEASE MARKER -->
+
+## 11.3.0
+
+Release date: 2021-06-03
+
+[Release Notes](11-3-0/)
+
+
+## 11.2.4
+
+Release date: 2021-05-10
+
+[Release Notes](11-2-4/)
+
+
+## 11.2.3
+
+Release date: 2021-04-23
+
+[Release Notes](11-2-3/)
+
+
+## 11.2.2
+
+Release date: 2021-03-24
+
+[Release Notes](11-2-2/)
+
+
+## 11.2.1
+
+Release date: 2021-03-23
+
+[Release Notes](11-2-1/)
+
+
+## 11.2.0
+
+Release date: 2021-03-09
+
+#### Community features:
+
+* Extended filter options by parent and ID
+* Distribution of user administration
+* Harmonized navigation for the time and costs module
+* Adapted background colors of sum rows and group rows in the work package list
+* Introducing a group show page
+
+#### Premium features:
+
+* Introducing placeholder users
+
+[Release Notes](11-2-0/)
+
+## 11.1.4
+
+Release date: 2021-02-15
+
+[Release Notes](11-1-4/)
+
+## 11.1.3
+
+Release date: 2021-02-11
+
+[Release Notes](11-1-3/)
+
+
+## 11.1.2
+
+Release date: 2021-01-21
+
+[Release Notes](11-1-2/)
+
+
+## 11.1.1
+
+Release date: 2021-01-06
+
+[Release Notes](11-1-1/)
+
+
+## 11.1.0
+
+Release date: 2020-12-17
+
+#### Community features:
+
+- Improved styling of the WYSIWYG text editor
+
+- Direct display of user name for @notifications
+
+- Display project milestones aggregated for projects in a single row in Gantt chart
+
+- Collapse all button for groups in the work packages list
+- Extended authentication profile with an OpenID Connect provider
+
+- Improvements for printing, e.g. for wiki pages, via the browser print function
+
+#### Enterprise cloud:
+
+- Signing Data Processing Agreement (DPA) documents in Enterprise cloud
+
+[Read more](11-1-0/)
+
+## 11.0.4
+
+Release date: 2020-12-03
+
+[Release Notes](11-0-4/)
+
+
+## 11.0.3
+
+Release date: 2020-11-16
+
+[Release Notes](11-0-3/)
+
+
+## 11.0.2
+
+Release date: 2020-11-06
+
+[Release Notes](11-0-2/)
+
+
+## 11.0.1
+
+Release date: 2020-10-28
+
+[Release Notes](11-0-1/)
+
+
+## 11.0.0
+
+Release date: 2020-10-07
+
+#### Community features:
+
+- Top-down scheduling with manual planning mode
+- Project templates
+- Improved project portfolio management
+- Harmonization of time and cost reporting
+- Improved WYSIWYG text editor, incl. macros and resize of images
+
+#### Premium features:
+
+- Agile boards for work breakdown structure (parent-child-elements)
+- Agile boards for subprojects
+- New boards creation screen
+- Boards split-screen view
+- Help texts for projects
+
+[Read more](11-0-0/)
+
+## 10.6.5
+
+Release date: 2020-07-21
+
+[Release notes](10-6-5/)
+
+
+## 10.6.4
+
+Release date: 2020-06-30
+
+[Release Notes](10-6-4/)
+
+
+## 10.6.3
+
+Release date: 2020-06-29
+
+[Release Notes](10-6-3/)
+
+
+## 10.6.2
+
+Release date: 2020-06-23
+
+[Release Notes](10-6-2/)
+
+
+## 10.6.1
+
+Release date: 2020-06-08
+
+[Release Notes](10-6-1/)
+
+
+## 10.6.0
+
+Release date: 2020-06-02
+
+[Release Notes](10-6-0/)
+
+## 10.5.1
+
+Release date: 2020-05-06
+
+[Release Notes](10-5-1/)
+
+
+## 10.5.0
+
+Release date: 2020-04-23
+
+[Release Notes](10-5-0/)
 
 ## 10.4.1
 

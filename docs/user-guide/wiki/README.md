@@ -4,16 +4,16 @@ sidebar_navigation:
   priority: 800
 description: Create and manage a wiki in OpenProject.
 robots: index, follow
-keywords: wiki
+keywords: wiki, documentation
 ---
 
 # Wiki
 
 In a project wiki you can collaboratively create and document information with your team, such as project documentation, specifications, guidelines, or any other important project information.
 
-<div class="glossary">**Wiki** is defined as a module that allows to use textile-based wiki pages. In order to use the wiki module, it has to be activated in the project settings. 
+<div class="glossary">**Wiki** is defined as a module that allows to use textile-based wiki pages. In order to use the wiki module, it has to be activated in the project settings.</div>
 
-| Feature                                                      | Documentation for                                            |
+| Topic                                                        | Content                                                      |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | [General wiki information](#general-wiki-information)        | How to format a wiki page.                                   |
 | [Image handling](#image-handling)                            | How in insert images in the wiki.                            |
@@ -40,7 +40,7 @@ Instead of creating a new paragraph with Enter, you can also press SHIFT+Enter t
 
 ### Links
 
-Create hyperlinks by pressing the toolbar (optionally with some selected text), or by pressing CTRL+k to open a popup to enter the link href.
+Create hyperlinks by pressing the link icon in the toolbar (optionally with some selected text), or by pressing CTRL+k to open a popup to enter the link href.
 
 ### Widgets and Newlines
 
@@ -61,7 +61,7 @@ The GFM extension of the CommonMark specs adds a definition for table syntax whi
 CKEditor5 allows certain CommonMark-like autoformatting keyboard strokes:
 
     Create bold or italic styles by typing **will become bold**, _will become italic_,
-    Create heading of different indentation with #, ##, ###, …
+    Create headings of different indentation with #, ##, ###, …
     Create a bulleted list by starting the line with * or - and a space
     Create a numbered list by starting the line with 1. or 1) and a space
 
@@ -113,8 +113,6 @@ As with the textile formatting syntax, you can link to other resources within Op
     wiki page with separate link name: [[Wiki page|The text of the link]]
     wiki page in the Sandbox project: [[Sandbox:Wiki page]]
     work package with ID12: #12
-    work package with ID 12 with subject and dates: ##12
-    work package with ID 12 with subject, assignee, description, and dates: ###12
     version by ID or name: version#3, version:"Release 1.0.0"
     project by ID/name: project#12 , project:"My project name"
     attachment by filename: attachment:filename.zip
@@ -126,6 +124,6 @@ As with the textile formatting syntax, you can link to other resources within Op
 
 To avoid processing these items, precede them with a bang ! character such as !#12 will prevent linking to a work package with ID 12.
 
-### Autocompletion for work packages and users
+### Autocompletion for work packages
 
-For work packages and users, typing # or @ will open an autocompleter for visible work packages and users, respectively.
+For work packages, typing # will open an autocompleter for visible work packages. This means when you type e.g. #3 or #Market, a list of work packages matching the description will be shown. Then you can either continue typing or choose a work package from the list.

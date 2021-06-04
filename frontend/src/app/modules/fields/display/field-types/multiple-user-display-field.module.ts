@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,21 +24,16 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
 import {ResourcesDisplayField} from "./resources-display-field.module";
-import {cssClassCustomOption} from "core-app/modules/fields/display/display-field.module";
-import {PortalCleanupService} from "core-app/modules/fields/display/display-portal/portal-cleanup.service";
-import {UserFieldPortalService} from "core-app/modules/fields/display/display-portal/display-user-field-portal/user-field-portal-service";
-import {DomPortalOutlet} from "@angular/cdk/portal";
 import {UserResource} from "core-app/modules/hal/resources/user-resource";
 import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
+import {PrincipalRendererService} from "core-app/modules/principal/principal-renderer.service";
+import {cssClassCustomOption} from "core-app/modules/fields/display/display-field.module";
 
 export class MultipleUserFieldModule extends ResourcesDisplayField {
-  @InjectField() userDisplayPortal:UserFieldPortalService;
-  @InjectField() portalCleanup:PortalCleanupService;
-
-  public outlet:DomPortalOutlet;
+  @InjectField() principalRenderer:PrincipalRendererService;
 
   public render(element:HTMLElement, displayText:string):void {
     const names = this.value;
@@ -58,13 +53,16 @@ export class MultipleUserFieldModule extends ResourcesDisplayField {
    */
   protected renderValues(values:UserResource[], element:HTMLElement) {
     const content = document.createDocumentFragment();
+    const divContainer = document.createElement('div');
+    divContainer.classList.add(cssClassCustomOption);
+    content.appendChild(divContainer);
 
-    this.renderAbridgedValues(element, values);
+    this.renderAbridgedValues(divContainer, values);
 
     if (values.length > 2) {
       const dots = document.createElement('span');
       dots.innerHTML = '... ';
-      content.appendChild(dots);
+      divContainer.appendChild(dots);
 
       const badge = this.optionDiv(values.length.toString(), 'badge', '-secondary');
       content.appendChild(badge);
@@ -76,8 +74,12 @@ export class MultipleUserFieldModule extends ResourcesDisplayField {
 
   public renderAbridgedValues(element:HTMLElement, values:UserResource[]) {
     const valueForDisplay = _.take(values, 2);
-
-    this.outlet = this.userDisplayPortal.create(element, valueForDisplay);
-    this.portalCleanup.add(() => this.outlet.dispose());
+    this.principalRenderer.renderMultiple(
+      element,
+      valueForDisplay,
+      { hide: false, link: false },
+      { hide: false, size: 'medium' },
+      false,
+    );
   }
 }

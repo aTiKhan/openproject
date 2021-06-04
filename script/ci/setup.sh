@@ -45,13 +45,15 @@ run() {
 
 run "bash $(dirname $0)/db_setup.sh"
 
-# run migrations for mysql or postgres
+# run migrations for postgres
+# setup binstubs
 if [ $1 != 'npm' ]; then
+  run "bundle binstubs parallel_tests"
   run "bundle exec rake db:migrate"
 fi
 
 if [ $1 = 'npm' ]; then
-  run "for i in {1..3}; do npm install && break || sleep 15; done"
+  run "for i in {1..3}; do (cd frontend; npm install && break || sleep 15;) done"
   echo "No asset compilation required"
 fi
 

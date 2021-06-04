@@ -1,6 +1,6 @@
-// -- copyright
-// OpenProject is a project management system.
-// Copyright (C) 2012-2015 the OpenProject Foundation (OPF)
+//-- copyright
+// OpenProject is an open source project management software.
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -23,63 +23,58 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// See doc/COPYRIGHT.rdoc for more details.
-// ++
+// See docs/COPYRIGHT.rdoc for more details.
+//++
 
 import {
   Component,
-  OnDestroy,
-  Input,
   ElementRef,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy, ChangeDetectorRef,
 } from '@angular/core';
-import {DynamicBootstrapper} from "core-app/globals/dynamic-bootstrapper";
-import {GonService} from "core-app/modules/common/gon/gon.service";
-import {StateService} from '@uirouter/core';
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
-import {ScrollableTabsComponent} from "core-app/modules/common/tabs/scrollable-tabs/scrollable-tabs.component";
+import { GonService } from "core-app/modules/common/gon/gon.service";
+import { StateService } from '@uirouter/core';
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
+import { ScrollableTabsComponent } from "core-app/modules/common/tabs/scrollable-tabs/scrollable-tabs.component";
+import { TabDefinition } from "core-app/modules/common/tabs/tab.interface";
 
 
 export const contentTabsSelector = 'content-tabs';
 
-interface GonTab {
-  name:string;
+interface GonTab extends TabDefinition {
   partial:string;
-  path:string;
   label:string;
 }
 
 @Component({
-  selector: 'content-tabs',
-  templateUrl: '/app/modules/common/tabs/scrollable-tabs/scrollable-tabs.component.html',
+  selector: 'op-content-tabs',
+  templateUrl: '../scrollable-tabs/scrollable-tabs.component.html',
+  styleUrls: ['./content-tabs.component.sass'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 export class ContentTabsComponent extends ScrollableTabsComponent {
-  public gonTabs:GonTab[];
-  public currentTab:GonTab;
-
   public classes:string[] = ['content--tabs', 'scrollable-tabs'];
 
   constructor(readonly elementRef:ElementRef,
               readonly $state:StateService,
               readonly gon:GonService,
+              cdRef:ChangeDetectorRef,
               readonly I18n:I18nService) {
-    super();
+    super(cdRef);
 
-    this.gonTabs = JSON.parse((this.gon.get('contentTabs') as any).tabs);
-    this.currentTab = JSON.parse((this.gon.get('contentTabs') as any).selected);
+    const gonTabs = JSON.parse((this.gon.get('contentTabs') as any).tabs);
+    const currentTab = JSON.parse((this.gon.get('contentTabs') as any).selected);
 
     // parse tabs from backend and map them to scrollable tabs structure
-    this.tabs = this.gonTabs.map((tab:GonTab) => {
+    this.tabs = gonTabs.map((tab:GonTab) => {
       return {
         id: tab.name,
-        name: this.I18n.t('js.' + tab.label),
+        name: this.I18n.t('js.' + tab.label, { defaultValue: tab.label }),
         path: tab.path
       };
     });
 
     // highlight current tab
-    this.currentTabId = this.currentTab.name;
+    this.currentTabId = currentTab.name;
   }
 }

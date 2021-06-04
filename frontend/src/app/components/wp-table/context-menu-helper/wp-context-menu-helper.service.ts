@@ -1,12 +1,12 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
 //
 // OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-// Copyright (C) 2006-2017 Jean-Philippe Lang
+// Copyright (C) 2006-2013 Jean-Philippe Lang
 // Copyright (C) 2010-2013 the ChiliProject Team
 //
 // This program is free software; you can redistribute it and/or
@@ -25,16 +25,14 @@
 //
 // See docs/COPYRIGHT.rdoc for more details.
 //++
-import {WorkPackageResource} from 'core-app/modules/hal/resources/work-package-resource';
-import {Injectable} from "@angular/core";
-import {PathHelperService} from "core-app/modules/common/path-helper/path-helper.service";
-import {UrlParamsHelperService} from 'core-components/wp-query/url-params-helper';
-import {HookService} from "core-app/modules/plugins/hook-service";
-import {WorkPackageViewTimelineService} from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-timeline.service";
-import {WorkPackageViewHierarchiesService} from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-hierarchy.service";
-import {IsolatedQuerySpace} from "core-app/modules/work_packages/query-space/isolated-query-space";
-import {WorkPackageViewHierarchyIdentationService} from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-hierarchy-indentation.service";
-import {WorkPackageViewDisplayRepresentationService} from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-display-representation.service";
+import { WorkPackageResource } from 'core-app/modules/hal/resources/work-package-resource';
+import { Injectable } from "@angular/core";
+import { PathHelperService } from "core-app/modules/common/path-helper/path-helper.service";
+import { UrlParamsHelperService } from 'core-components/wp-query/url-params-helper';
+import { HookService } from "core-app/modules/plugins/hook-service";
+import { WorkPackageViewTimelineService } from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-timeline.service";
+import { WorkPackageViewHierarchyIdentationService } from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-hierarchy-indentation.service";
+import { WorkPackageViewDisplayRepresentationService } from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-display-representation.service";
 
 export type WorkPackageAction = {
   text:string;
@@ -84,7 +82,7 @@ export class WorkPackageContextMenuHelperService {
   }
 
   public getPermittedActionLinks(workPackage:WorkPackageResource, permittedActionConstants:any, allowSplitScreenActions:boolean):WorkPackageAction[] {
-    let singularPermittedActions:any[] = [];
+    const singularPermittedActions:any[] = [];
 
     let allowedActions = this.getAllowedActions(workPackage, permittedActionConstants);
 
@@ -105,9 +103,9 @@ export class WorkPackageContextMenuHelperService {
   }
 
   public getIntersectOfPermittedActions(workPackages:any) {
-    let bulkPermittedActions:any = [];
+    const bulkPermittedActions:any = [];
 
-    let permittedActions = _.filter(this.BULK_ACTIONS, (action:any) => {
+    const permittedActions = _.filter(this.BULK_ACTIONS, (action:any) => {
       return _.every(workPackages, (workPackage:WorkPackageResource) => {
         return this.getAllowedActions(workPackage, [action]).length >= 1;
       });
@@ -125,22 +123,22 @@ export class WorkPackageContextMenuHelperService {
   }
 
   public getBulkActionLink(action:any, workPackages:any) {
-    let workPackageIdParams = {
+    const workPackageIdParams = {
       'ids[]': workPackages.map(function(wp:any) {
         return wp.id;
       })
     };
-    let serializedIdParams = this.UrlParamsHelper.buildQueryString(workPackageIdParams);
+    const serializedIdParams = this.UrlParamsHelper.buildQueryString(workPackageIdParams);
 
-    let linkAndQueryString = action.href.split('?');
-    let link = linkAndQueryString.shift();
-    let queryParts = linkAndQueryString.concat(new Array(serializedIdParams));
+    const linkAndQueryString = action.href.split('?');
+    const link = linkAndQueryString.shift();
+    const queryParts = linkAndQueryString.concat(new Array(serializedIdParams));
 
     return link + '?' + queryParts.join('&');
   }
 
   private getAllowedActions(workPackage:WorkPackageResource, actions:WorkPackageAction[]):WorkPackageAction[] {
-    let allowedActions:WorkPackageAction[] = [];
+    const allowedActions:WorkPackageAction[] = [];
 
     _.each(actions, (action) => {
       if (action.link && workPackage.hasOwnProperty(action.link)) {
@@ -151,7 +149,7 @@ export class WorkPackageContextMenuHelperService {
 
     _.each(this.HookService.call('workPackageTableContextMenu'), (action) => {
       if (workPackage.hasOwnProperty(action.link)) {
-        let index = action.indexBy ? action.indexBy(allowedActions) : allowedActions.length;
+        const index = action.indexBy ? action.indexBy(allowedActions) : allowedActions.length;
         allowedActions.splice(index, 0, action);
       }
     });
@@ -160,7 +158,7 @@ export class WorkPackageContextMenuHelperService {
   }
 
   private getAllowedParentActions(workPackage:WorkPackageResource) {
-    let actions:WorkPackageAction[] = [];
+    const actions:WorkPackageAction[] = [];
 
     // Do not add these actions unless we're in the table
     if (!this.wpViewRepresentation.isList) {
@@ -189,9 +187,9 @@ export class WorkPackageContextMenuHelperService {
   }
 
   private getAllowedRelationActions(workPackage:WorkPackageResource, allowSplitScreenActions:boolean) {
-    let allowedActions:WorkPackageAction[] = [];
+    const allowedActions:WorkPackageAction[] = [];
 
-    if (workPackage.addRelation && this.wpViewTimeline.isVisible) {
+    if (!!workPackage.addRelation && this.wpViewTimeline.isVisible) {
       allowedActions.push({
         key: "relation-precedes",
         text: I18n.t("js.relation_buttons.add_predecessor"),

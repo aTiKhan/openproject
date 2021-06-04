@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,7 +24,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
 import {
   AfterViewInit,
@@ -34,30 +34,31 @@ import {
   HostListener,
   Injector,
   Input,
-  OnInit
+  EventEmitter,
+  OnInit, Output
 } from '@angular/core';
-import {AuthorisationService} from 'core-app/modules/common/model-auth/model-auth.service';
-import {WorkPackageViewFocusService} from 'core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-focus.service';
-import {filter} from 'rxjs/operators';
-import {WorkPackageResource} from 'core-app/modules/hal/resources/work-package-resource';
-import {onClickOrEnter} from '../wp-fast-table/handlers/click-or-enter-handler';
-import {WorkPackageTable} from '../wp-fast-table/wp-fast-table';
-import {WorkPackageCreateService} from '../wp-new/wp-create.service';
+import { AuthorisationService } from 'core-app/modules/common/model-auth/model-auth.service';
+import { WorkPackageViewFocusService } from 'core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-focus.service';
+import { filter } from 'rxjs/operators';
+import { WorkPackageResource } from 'core-app/modules/hal/resources/work-package-resource';
+import { onClickOrEnter } from '../wp-fast-table/handlers/click-or-enter-handler';
+import { WorkPackageTable } from '../wp-fast-table/wp-fast-table';
+import { WorkPackageCreateService } from '../wp-new/wp-create.service';
 import {
   inlineCreateCancelClassName,
   InlineCreateRowBuilder,
   inlineCreateRowClassName
 } from './inline-create-row-builder';
-import {IsolatedQuerySpace} from "core-app/modules/work_packages/query-space/isolated-query-space";
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
-import {FocusHelperService} from 'core-app/modules/common/focus/focus-helper';
-import {WorkPackageInlineCreateService} from "core-components/wp-inline-create/wp-inline-create.service";
-import {Subscription} from 'rxjs';
-import {WorkPackageViewColumnsService} from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-columns.service";
-import {WorkPackageChangeset} from "core-components/wp-edit/work-package-changeset";
-import {EditForm} from "core-app/modules/fields/edit/edit-form/edit-form";
-import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
-import {componentDestroyed} from "@w11k/ngx-componentdestroyed";
+import { IsolatedQuerySpace } from "core-app/modules/work_packages/query-space/isolated-query-space";
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
+import { WorkPackageInlineCreateService } from "core-components/wp-inline-create/wp-inline-create.service";
+import { Subscription } from 'rxjs';
+import { WorkPackageViewColumnsService } from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-columns.service";
+import { WorkPackageChangeset } from "core-components/wp-edit/work-package-changeset";
+import { EditForm } from "core-app/modules/fields/edit/edit-form/edit-form";
+import { UntilDestroyedMixin } from "core-app/helpers/angular/until-destroyed.mixin";
+import { componentDestroyed } from "@w11k/ngx-componentdestroyed";
+import { SchemaCacheService } from "core-components/schemas/schema-cache.service";
 
 @Component({
   selector: '[wpInlineCreate]',
@@ -68,14 +69,16 @@ export class WorkPackageInlineCreateComponent extends UntilDestroyedMixin implem
   @Input('wp-inline-create--table') table:WorkPackageTable;
   @Input('wp-inline-create--project-identifier') projectIdentifier:string;
 
+  @Output('wp-inline-create--showing') showing = new EventEmitter<boolean>();
+
   // inner state
-  public canAdd:boolean = false;
-  public canReference:boolean = false;
+  public canAdd = false;
+  public canReference = false;
 
   // Inline create / reference row is active
   public mode:'inactive'|'create'|'reference' = 'inactive';
 
-  public focus:boolean = false;
+  public focus = false;
 
   public text = this.wpInlineCreate.buttonTexts;
 
@@ -87,9 +90,13 @@ export class WorkPackageInlineCreateComponent extends UntilDestroyedMixin implem
 
   private $element:JQuery;
 
+  get isActive():boolean {
+    return this.mode !== 'inactive';
+  }
+
   constructor(public readonly injector:Injector,
               protected readonly elementRef:ElementRef,
-              protected readonly FocusHelper:FocusHelperService,
+              protected readonly schemaCache:SchemaCacheService,
               protected readonly I18n:I18nService,
               protected readonly querySpace:IsolatedQuerySpace,
               protected readonly cdRef:ChangeDetectorRef,
@@ -103,24 +110,18 @@ export class WorkPackageInlineCreateComponent extends UntilDestroyedMixin implem
 
   ngOnInit() {
     this.$element = jQuery(this.elementRef.nativeElement);
+  }
 
+  ngAfterViewInit() {
     this.authorisationService
       .observeUntil(componentDestroyed(this))
       .subscribe(() => {
         this.canReference = this.hasReferenceClass && this.wpInlineCreate.canReference;
         this.canAdd = this.wpInlineCreate.canAdd;
         this.cdRef.detectChanges();
+
+        this.showing.emit(this.canAdd || this.canReference);
       });
-  }
-
-  get isActive():boolean {
-    return this.mode !== 'inactive';
-  }
-
-  ngAfterViewInit() {
-    // Mirror the row height in timeline
-    const container = jQuery(this.table.timelineBody);
-    container.addClass('-inline-create-mirror');
 
     // Register callback on newly created work packages
     this.registerCreationCallback();
@@ -228,7 +229,7 @@ export class WorkPackageInlineCreateComponent extends UntilDestroyedMixin implem
             if (!this.isActive) {
               this.insertRow(wp);
             } else {
-              this.currentWorkPackage!.overriddenSchema = form!.schema;
+              this.schemaCache.update(this.currentWorkPackage!, form!.schema);
               this.refreshRow();
             }
           });

@@ -1,30 +1,39 @@
-import {AfterViewInit, Component, ElementRef, Input, OnInit, SecurityContext, ViewChild} from "@angular/core";
-import {FullCalendarComponent} from '@fullcalendar/angular';
-import {States} from "core-components/states.service";
-import {IsolatedQuerySpace} from "core-app/modules/work_packages/query-space/isolated-query-space";
-import {WorkPackageResource} from "core-app/modules/hal/resources/work-package-resource";
-import {WorkPackageCollectionResource} from "core-app/modules/hal/resources/wp-collection-resource";
-import {WorkPackageViewFiltersService} from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-filters.service";
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  Input,
+  OnInit,
+  SecurityContext,
+  ViewChild
+} from "@angular/core";
+import { FullCalendarComponent } from '@fullcalendar/angular';
+import { States } from "core-components/states.service";
+import { IsolatedQuerySpace } from "core-app/modules/work_packages/query-space/isolated-query-space";
+import { WorkPackageResource } from "core-app/modules/hal/resources/work-package-resource";
+import { WorkPackageCollectionResource } from "core-app/modules/hal/resources/wp-collection-resource";
+import { WorkPackageViewFiltersService } from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-filters.service";
 import * as moment from "moment";
-import {WorkPackagesListService} from "core-components/wp-list/wp-list.service";
-import {StateService} from "@uirouter/core";
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
-import {NotificationsService} from "core-app/modules/common/notifications/notifications.service";
-import {DomSanitizer} from "@angular/platform-browser";
-import {WorkPackagesListChecksumService} from "core-components/wp-list/wp-list-checksum.service";
-import {OpTitleService} from "core-components/html/op-title.service";
+import { WorkPackagesListService } from "core-components/wp-list/wp-list.service";
+import { StateService } from "@uirouter/core";
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
+import { NotificationsService } from "core-app/modules/common/notifications/notifications.service";
+import { DomSanitizer } from "@angular/platform-browser";
+import { WorkPackagesListChecksumService } from "core-components/wp-list/wp-list-checksum.service";
+import { OpTitleService } from "core-components/html/op-title.service";
 import dayGridPlugin from '@fullcalendar/daygrid';
-import {EventApi, EventInput} from '@fullcalendar/core';
-import {EventSourceError} from '@fullcalendar/core/structs/event-source';
-import {take} from 'rxjs/operators';
-import {ToolbarInput} from '@fullcalendar/core/types/input-types';
-import {ConfigurationService} from "core-app/modules/common/config/configuration.service";
-import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
+import { CalendarOptions, EventApi, EventInput } from '@fullcalendar/core';
+import { Subject } from "rxjs";
+import { take, debounceTime } from 'rxjs/operators';
+import { ToolbarInput } from '@fullcalendar/common';
+import { ConfigurationService } from "core-app/modules/common/config/configuration.service";
+import { UntilDestroyedMixin } from "core-app/helpers/angular/until-destroyed.mixin";
+import { SchemaCacheService } from "core-components/schemas/schema-cache.service";
 
 interface CalendarViewEvent {
   el:HTMLElement;
   event:EventApi;
-  jsEvent:MouseEvent;
 }
 
 @Component({
@@ -32,20 +41,52 @@ interface CalendarViewEvent {
   styleUrls: ['./wp-calendar.sass'],
   selector: 'wp-calendar',
 })
-export class WorkPackagesCalendarController extends UntilDestroyedMixin implements OnInit, AfterViewInit {
-  @ViewChild(FullCalendarComponent) ucCalendar:FullCalendarComponent;
+export class WorkPackagesCalendarController extends UntilDestroyedMixin implements OnInit {
+  private resizeObserver:ResizeObserver;
+  private resizeSubject = new Subject<any>();
+  private ucCalendar:FullCalendarComponent;
+  @ViewChild(FullCalendarComponent)
+  set container(v:FullCalendarComponent|undefined) {
+    // ViewChild reference may be undefined initially
+    // due to ngIf
+    if (!v) {
+      return;
+    }
+
+    this.ucCalendar = v;
+
+    // The full-calendar component's outputs do not seem to work
+    // see: https://github.com/fullcalendar/fullcalendar-angular/issues/228#issuecomment-523505044
+    // Therefore, setting the outputs via the underlying API
+    this.ucCalendar.getApi().setOption('eventDidMount', (event:CalendarViewEvent) => {
+      this.addTooltip(event);
+    });
+    this.ucCalendar.getApi().setOption('eventClick', (event:CalendarViewEvent) => {
+      this.toWPFullView(event);
+    });
+  }
+  @ViewChild('ucCalendar', { read: ElementRef })
+  set ucCalendarElement(v:ElementRef|undefined) {
+    if (!v) {
+      return;
+    }
+
+    if (!this.resizeObserver) {
+      this.resizeObserver = new ResizeObserver(() => this.resizeSubject.next());
+    }
+
+    this.resizeObserver.observe(v.nativeElement);
+  }
+
   @Input() projectIdentifier:string;
-  @Input() static:boolean = false;
+  @Input() static = false;
   static MAX_DISPLAYED = 100;
 
   public tooManyResultsText:string|null;
 
-  public calendarPlugins = [dayGridPlugin];
-  public calendarHeight:Function;
-  public calendarEvents:Function;
-  public calendarHeader:ToolbarInput|boolean;
-
   private alreadyLoaded = false;
+
+  calendarOptions:CalendarOptions|undefined;
 
   constructor(readonly states:States,
               readonly $state:StateService,
@@ -53,6 +94,7 @@ export class WorkPackagesCalendarController extends UntilDestroyedMixin implemen
               readonly wpListService:WorkPackagesListService,
               readonly querySpace:IsolatedQuerySpace,
               readonly wpListChecksumService:WorkPackagesListChecksumService,
+              readonly schemaCache:SchemaCacheService,
               readonly titleService:OpTitleService,
               private element:ElementRef,
               readonly i18n:I18nService,
@@ -63,38 +105,34 @@ export class WorkPackagesCalendarController extends UntilDestroyedMixin implemen
   }
 
   ngOnInit() {
+    this.resizeSubject
+      .pipe(
+        this.untilDestroyed(),
+        debounceTime(50)
+      )
+      .subscribe(() => {
+        this.ucCalendar.getApi().updateSize();
+      });
+
     // Clear any old subscribers
     this.querySpace.stopAllSubscriptions.next();
 
     this.setupWorkPackagesListener();
-
     this.initializeCalendar();
   }
 
-  ngAfterViewInit() {
-    // The full-calendar component's outputs do not seem to work
-    // see: https://github.com/fullcalendar/fullcalendar-angular/issues/228#issuecomment-523505044
-    // Therefore, setting the outputs via the underlying API
-    this.ucCalendar.getApi().setOption('eventRender', (event:CalendarViewEvent) => {
-      this.addTooltip(event);
-    });
-    this.ucCalendar.getApi().setOption('eventClick', (event:CalendarViewEvent) => {
-      this.toWPFullView(event);
-    });
-  }
-
   public calendarEventsFunction(fetchInfo:{ start:Date, end:Date, timeZone:string },
-                                successCallback:(events:EventInput[]) => void,
-                                failureCallback:(error:EventSourceError) => void):void|PromiseLike<EventInput[]> {
+    successCallback:(events:EventInput[]) => void,
+    failureCallback:(error:any) => void):void|PromiseLike<EventInput[]> {
     if (this.alreadyLoaded) {
       this.alreadyLoaded = false;
-      let events = this.updateResults(this.querySpace.results.value!);
+      const events = this.updateResults(this.querySpace.results.value!);
       successCallback(events);
     } else {
       this.querySpace.results.values$().pipe(
         take(1)
       ).subscribe((collection:WorkPackageCollectionResource) => {
-        let events = this.updateResults((collection));
+        const events = this.updateResults((collection));
         successCallback(events);
       });
     }
@@ -104,21 +142,38 @@ export class WorkPackagesCalendarController extends UntilDestroyedMixin implemen
   }
 
   private initializeCalendar() {
-    this.calendarEvents = this.calendarEventsFunction.bind(this);
-    this.setCalendarHeight();
-    this.setCalendarHeader();
+    this.configuration.initialized
+      .then(() => {
+        this.calendarOptions = {
+          editable: false,
+          locale: this.i18n.locale,
+          fixedWeekCount: false,
+          firstDay: this.configuration.startOfWeek(),
+          events: this.calendarEventsFunction.bind(this),
+          plugins: [dayGridPlugin],
+          initialView: (() => {
+            if (this.static) {
+              return 'dayGridWeek';
+            } else {
+              return undefined;
+            }
+          })(),
+          height: this.calendarHeight(),
+          headerToolbar: this.buildHeader()
+        };
+      });
   }
 
   public updateTimeframe(fetchInfo:{ start:Date, end:Date, timeZone:string }) {
-    let filtersEmpty = this.wpTableFilters.isEmpty;
+    const filtersEmpty = this.wpTableFilters.isEmpty;
 
     if (filtersEmpty && this.querySpace.query.value) {
       // nothing to do
       return;
     }
 
-    let startDate = moment(fetchInfo.start).format('YYYY-MM-DD');
-    let endDate = moment(fetchInfo.end).format('YYYY-MM-DD');
+    const startDate = moment(fetchInfo.start).format('YYYY-MM-DD');
+    const endDate = moment(fetchInfo.end).format('YYYY-MM-DD');
 
     if (filtersEmpty) {
       let queryProps = this.defaultQueryProps(startDate, endDate);
@@ -129,7 +184,7 @@ export class WorkPackagesCalendarController extends UntilDestroyedMixin implemen
 
       this.wpListService.fromQueryParams({ query_props: queryProps }, this.projectIdentifier).toPromise();
     } else {
-      let params = this.$state.params;
+      const params = this.$state.params;
 
       this.wpTableFilters.modify('datesInterval', (datesIntervalFilter) => {
         datesIntervalFilter.values[0] = startDate;
@@ -150,7 +205,7 @@ export class WorkPackagesCalendarController extends UntilDestroyedMixin implemen
   }
 
   public toWPFullView(event:CalendarViewEvent) {
-    let workPackage = event.event.extendedProps.workPackage;
+    const workPackage = event.event.extendedProps.workPackage;
 
     if (event.el) {
       // do not display the tooltip on the wp show page
@@ -168,66 +223,33 @@ export class WorkPackagesCalendarController extends UntilDestroyedMixin implemen
       { workPackageId: workPackage.id },
       { inherit: false });
   }
-
-  public get calendarEditable() {
-    return false;
-  }
-
-  public get calendarEventLimit() {
-    return false;
-  }
-
-  public get calendarLocale() {
-    return this.i18n.locale;
-  }
-
-  public get calendarFixedWeekCount() {
-    return false;
-  }
-
-  public get calendarDefaultView() {
-    if (this.static) {
-      return 'dayGridWeek';
-    } else {
-      return null;
-    }
-  }
-
-  public get calendarFirstDay() {
-    return this.configuration.startOfWeek();
-  }
-
   private get calendarElement() {
-    return jQuery(this.element.nativeElement).find('.fc-view-container');
+    return jQuery(this.element.nativeElement).find('.wp-calendar--container');
   }
 
-  private setCalendarHeight() {
+  private calendarHeight():number {
     if (this.static) {
-      this.calendarHeight = () => {
-        let heightElement = jQuery(this.element.nativeElement);
+      let heightElement = jQuery(this.element.nativeElement);
 
-        while (!heightElement.height() && heightElement.parent()) {
-          heightElement = heightElement.parent();
-        }
+      while (!heightElement.height() && heightElement.parent()) {
+        heightElement = heightElement.parent();
+      }
 
-        let topOfCalendar = jQuery(this.element.nativeElement).position().top;
-        let topOfHeightElement = heightElement.position().top;
+      const topOfCalendar = jQuery(this.element.nativeElement).position().top;
+      const topOfHeightElement = heightElement.position().top;
 
-        return heightElement.height()! - (topOfCalendar - topOfHeightElement);
-      };
+      return heightElement.height()! - (topOfCalendar - topOfHeightElement);
     } else {
-      this.calendarHeight = () => {
-        // -12 for the bottom padding
-        return jQuery(window).height()! - this.calendarElement.offset()!.top - 12;
-      };
+      // -12 for the bottom padding
+      return jQuery(window).height()! - this.calendarElement.offset()!.top - 12;
     }
   }
 
-  public setCalendarHeader() {
+  public buildHeader() {
     if (this.static) {
-      this.calendarHeader = false;
+      return false;
     } else {
-      this.calendarHeader = {
+      return {
         right: 'dayGridMonth,dayGridWeek',
         center: 'title',
         left: 'prev,next today'
@@ -241,15 +263,15 @@ export class WorkPackagesCalendarController extends UntilDestroyedMixin implemen
       return;
     }
 
-    let datesIntervalFilter = _.find(query.filters || [], { 'id': 'datesInterval' }) as any;
+    const datesIntervalFilter = _.find(query.filters || [], { 'id': 'datesInterval' }) as any;
 
     let calendarDate:any = null;
     let calendarUnit = 'dayGridMonth';
 
     if (datesIntervalFilter) {
-      let lower = moment(datesIntervalFilter.values[0] as string);
-      let upper = moment(datesIntervalFilter.values[1] as string);
-      let diff = upper.diff(lower, 'days');
+      const lower = moment(datesIntervalFilter.values[0] as string);
+      const upper = moment(datesIntervalFilter.values[1] as string);
+      const diff = upper.diff(lower, 'days');
 
       calendarDate = lower.add(diff / 2, 'days');
 
@@ -283,11 +305,11 @@ export class WorkPackagesCalendarController extends UntilDestroyedMixin implemen
   }
 
   private mapToCalendarEvents(workPackages:WorkPackageResource[]) {
-    let events = workPackages.map((workPackage:WorkPackageResource) => {
-      let startDate = this.eventDate(workPackage, 'start');
-      let endDate = this.eventDate(workPackage, 'due');
+    const events = workPackages.map((workPackage:WorkPackageResource) => {
+      const startDate = this.eventDate(workPackage, 'start');
+      const endDate = this.eventDate(workPackage, 'due');
 
-      let exclusiveEnd = moment(endDate).add(1, 'days').format('YYYY-MM-DD');
+      const exclusiveEnd = moment(endDate).add(1, 'days').format('YYYY-MM-DD');
 
       return {
         title: workPackage.subject,
@@ -319,7 +341,7 @@ export class WorkPackagesCalendarController extends UntilDestroyedMixin implemen
   }
 
   private defaultQueryProps(startDate:string, endDate:string) {
-    let props = {
+    const props = {
       "c": ["id"],
       "t":
         "id:asc",
@@ -332,7 +354,7 @@ export class WorkPackagesCalendarController extends UntilDestroyedMixin implemen
   }
 
   private eventDate(workPackage:WorkPackageResource, type:'start'|'due') {
-    if (workPackage.isMilestone) {
+    if (this.schemaCache.of(workPackage).isMilestone) {
       return workPackage.date;
     } else {
       return workPackage[`${type}Date`];

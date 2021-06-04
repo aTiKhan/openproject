@@ -9,7 +9,7 @@ module OpenProject::LdapGroups
              bundled: true,
              settings: {
                default: {
-                 group_base: nil
+                 name_attribute: 'cn'
                }
              } do
       menu :admin_menu,
@@ -22,6 +22,6 @@ module OpenProject::LdapGroups
 
     add_cron_jobs { LdapGroups::SynchronizationJob }
 
-    patches %i[AuthSource Group]
+    patches %i[AuthSource Group User]
   end
 end

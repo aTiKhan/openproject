@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,11 +24,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {ApplicationRef, ChangeDetectorRef, Component, ElementRef, OnInit} from '@angular/core';
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
-import {DynamicBootstrapper} from 'core-app/globals/dynamic-bootstrapper';
+import { ApplicationRef, ChangeDetectorRef, Component, ElementRef, OnInit } from '@angular/core';
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
 
 
 export const customDateActionAdminSelector = 'custom-date-action-admin';
@@ -49,8 +48,8 @@ export class CustomDateActionAdminComponent implements OnInit {
   private currentFieldValue = '%CURRENT_DATE%';
 
   public operators = [
-    {key: this.onKey, label: this.I18n.t('js.custom_actions.date.specific')},
-    {key: this.currentKey, label: this.I18n.t('js.custom_actions.date.current_date')}
+    { key: this.onKey, label: this.I18n.t('js.custom_actions.date.specific') },
+    { key: this.currentKey, label: this.I18n.t('js.custom_actions.date.current_date') }
   ];
 
   constructor(private elementRef:ElementRef,
@@ -94,9 +93,9 @@ export class CustomDateActionAdminComponent implements OnInit {
     // replace all square brackets by underscore
     // to match the label's for value
     return this.fieldName
-               .replace(/\[|\]/g, '_')
-               .replace('__', '_')
-               .replace(/_$/, '');
+      .replace(/\[|\]/g, '_')
+      .replace('__', '_')
+      .replace(/_$/, '');
   }
 
   updateField(val:string) {

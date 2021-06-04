@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,7 +24,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
 import {
   ChangeDetectorRef,
@@ -36,11 +36,12 @@ import {
   OnDestroy,
   OnInit
 } from "@angular/core";
-import {EditFieldHandler} from "core-app/modules/fields/edit/editing-portal/edit-field-handler";
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
-import {Field, IFieldSchema} from "core-app/modules/fields/field.base";
-import {ResourceChangeset} from "core-app/modules/fields/changeset/resource-changeset";
-import {HalResource} from "core-app/modules/hal/resources/hal-resource";
+import { EditFieldHandler } from "core-app/modules/fields/edit/editing-portal/edit-field-handler";
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
+import { Field, IFieldSchema } from "core-app/modules/fields/field.base";
+import { ResourceChangeset } from "core-app/modules/fields/changeset/resource-changeset";
+import { HalResource } from "core-app/modules/hal/resources/hal-resource";
+import { CurrentProjectService } from 'core-components/projects/current-project.service';
 
 export const OpEditingPortalSchemaToken = new InjectionToken('editing-portal--schema');
 export const OpEditingPortalHandlerToken = new InjectionToken('editing-portal--handler');
@@ -67,7 +68,8 @@ export abstract class EditFieldComponent extends Field implements OnInit, OnDest
               readonly cdRef:ChangeDetectorRef,
               readonly injector:Injector) {
     super();
-    this.schema = this.schema || this.change.schema[this.name];
+
+    this.updateFromChangeset(change);
 
     if (this.change.state) {
       this.change.state
@@ -76,14 +78,13 @@ export abstract class EditFieldComponent extends Field implements OnInit, OnDest
           this.untilDestroyed()
         )
         .subscribe((change) => {
-          const fieldSchema = change.schema[this.name];
+          const fieldSchema = change.schema.ofProperty(this.name);
 
           if (!fieldSchema) {
             return handler.deactivate(false);
           }
 
-          this.change = change;
-          this.schema = change.schema[this.name];
+          this.updateFromChangeset(change);
           this.initialize();
           this.cdRef.markForCheck();
         });
@@ -113,12 +114,6 @@ export abstract class EditFieldComponent extends Field implements OnInit, OnDest
     return this.resource[this.name];
   }
 
-  public get name() {
-    // Get the mapped schema name, as this is not always the attribute
-    // e.g., startDate in table for milestone => date attribute
-    return this.change.getSchemaName(this.handler.fieldName);
-  }
-
   public set value(value:any) {
     this.resource[this.name] = this.parseValue(value);
   }
@@ -131,14 +126,23 @@ export abstract class EditFieldComponent extends Field implements OnInit, OnDest
     return '';
   }
 
-  public get resource() {
-    return this.change.projectedResource;
-  }
-
   /**
    * Initialize the field after constructor was called.
    */
   protected initialize() {
+  }
+
+  /**
+   * Update resource and properties from changeset
+   */
+  private updateFromChangeset(change:ResourceChangeset) {
+    this.change = change;
+    this.resource = this.change.projectedResource;
+    this.schema = this.change.schema.ofProperty(this.handler.fieldName) || this.schema;
+
+    // Get the mapped schema name, as this is not always the attribute
+    // e.g., startDate in table for milestone => date attribute
+    this.name = this.change.schema.mappedName(this.handler.fieldName);
   }
 
   /**

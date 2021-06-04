@@ -30,6 +30,7 @@
 module DemoData
   class GroupSeeder < Seeder
     attr_accessor :user
+
     include ::DemoData::References
 
     def initialize
@@ -37,11 +38,13 @@ module DemoData
     end
 
     def seed_data!
-      print '    ↳ Creating groups'
+      print_status '    ↳ Creating groups' do
+        seed_groups
+      end
+    end
 
-      seed_groups
-
-      puts
+    def applicable?
+      Group.count.zero?
     end
 
     def add_projects_to_groups
@@ -71,7 +74,7 @@ module DemoData
       groups = demo_data_for('groups')
       if groups.present?
         groups.each do |group_attr|
-          print '.'
+          print_status '.'
           create_group group_attr[:name]
         end
       end

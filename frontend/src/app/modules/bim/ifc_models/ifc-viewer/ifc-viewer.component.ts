@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,7 +24,7 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
 import {
   ChangeDetectionStrategy,
@@ -35,9 +35,11 @@ import {
   OnInit,
   ViewChild
 } from '@angular/core';
-import {IFCViewerService} from "core-app/modules/bim/ifc_models/ifc-viewer/ifc-viewer.service";
-import {IfcModelsDataService} from "core-app/modules/bim/ifc_models/pages/viewer/ifc-models-data.service";
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
+import { IFCViewerService } from "core-app/modules/bim/ifc_models/ifc-viewer/ifc-viewer.service";
+import { IfcModelsDataService } from "core-app/modules/bim/ifc_models/pages/viewer/ifc-models-data.service";
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
+import { CurrentUserService } from "core-app/modules/current-user/current-user.service";
+import { CurrentProjectService } from "core-app/components/projects/current-project.service";
 
 @Component({
   selector: 'ifc-viewer',
@@ -47,9 +49,7 @@ import {I18nService} from "core-app/modules/common/i18n/i18n.service";
 })
 export class IFCViewerComponent implements OnInit, OnDestroy {
   private viewerUI:any;
-
-  modelCount = this.ifcData.models.length;
-
+  modelCount:number;
   canManage = this.ifcData.allowed('manage_ifc_models');
 
   text = {
@@ -65,27 +65,43 @@ export class IFCViewerComponent implements OnInit, OnDestroy {
 
   constructor(private I18n:I18nService,
               private elementRef:ElementRef,
-              private ifcData:IfcModelsDataService,
-              private ifcViewer:IFCViewerService) {
+              public ifcData:IfcModelsDataService,
+              private ifcViewer:IFCViewerService,
+              private currentUserService:CurrentUserService,
+              private currentProjectService:CurrentProjectService) {
   }
 
   ngOnInit():void {
+    this.modelCount = this.ifcData.models.length;
+
     if (this.modelCount === 0) {
       return;
     }
 
     const element = jQuery(this.elementRef.nativeElement as HTMLElement);
 
-    this.ifcViewer.newViewer(
-      {
-        canvasElement: element.find(".ifc-model-viewer--model-canvas")[0], // WebGL canvas
-        explorerElement: jQuery(".ifc-model-viewer--tree-panel")[0], // Left panel
-        toolbarElement: element.find(".ifc-model-viewer--toolbar-container")[0], // Toolbar
-        navCubeCanvasElement: element.find(".ifc-model-viewer--nav-cube-canvas")[0],
-        busyModelBackdropElement: element.find(".xeokit-busy-modal-backdrop")[0]
-      },
-      this.ifcData.projects
-    );
+    this.currentUserService
+      .hasCapabilities$(
+        [
+          'ifc_models/create',
+          'ifc_models/update',
+          'ifc_models/destroy'
+        ],
+        this.currentProjectService.id as string
+      ).subscribe((manageIfcModelsAllowed) => {
+        this.ifcViewer.newViewer(
+          {
+            canvasElement: element.find(".ifc-model-viewer--model-canvas")[0], // WebGL canvas
+            explorerElement: jQuery(".ifc-model-viewer--tree-panel")[0], // Left panel
+            toolbarElement: element.find(".ifc-model-viewer--toolbar-container")[0], // Toolbar
+            navCubeCanvasElement: element.find(".ifc-model-viewer--nav-cube-canvas")[0],
+            busyModelBackdropElement: element.find(".xeokit-busy-modal-backdrop")[0],
+            enableEditModels: manageIfcModelsAllowed
+          },
+          this.ifcData.projects
+        )
+      });
+
   }
 
   ngOnDestroy():void {
@@ -94,13 +110,15 @@ export class IFCViewerComponent implements OnInit, OnDestroy {
 
   @HostListener('mousedown')
   enableKeyBoard() {
-    this.keyboardEnabled = true;
-    this.ifcViewer.setKeyboardEnabled(true);
+    if (this.modelCount) {
+      this.keyboardEnabled = true;
+      this.ifcViewer.setKeyboardEnabled(true);
+    }
   }
 
   @HostListener('window:mousedown', ['$event.target'])
   disableKeyboard(target:Element) {
-    if (!this.outerContainer.nativeElement!.contains(target)) {
+    if (this.modelCount && !this.outerContainer.nativeElement!.contains(target)) {
       this.keyboardEnabled = false;
       this.ifcViewer.setKeyboardEnabled(false);
     }

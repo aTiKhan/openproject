@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -25,15 +25,14 @@
 //
 // See docs/COPYRIGHT.rdoc for more details.
 //++
-import {IAutocompleteItem} from 'core-components/wp-query-select/wp-query-select-dropdown.component';
-import {QueryResource} from 'core-app/modules/hal/resources/query-resource';
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
-import {Injectable} from '@angular/core';
-import {PathHelperService} from "core-app/modules/common/path-helper/path-helper.service";
-import {CurrentProjectService} from "core-components/projects/current-project.service";
-import {StateService} from "@uirouter/core";
-import {CurrentUserService} from "core-components/user/current-user.service";
-import {BcfDetectorService} from "core-app/modules/bim/bcf/helper/bcf-detector.service";
+import { IAutocompleteItem } from 'core-components/wp-query-select/wp-query-select-dropdown.component';
+import { QueryResource } from 'core-app/modules/hal/resources/query-resource';
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
+import { Injectable } from '@angular/core';
+import { PathHelperService } from "core-app/modules/common/path-helper/path-helper.service";
+import { CurrentProjectService } from "core-components/projects/current-project.service";
+import { StateService } from "@uirouter/core";
+import { CurrentUserService } from "core-app/modules/current-user/current-user.service";
 
 @Injectable()
 export class WorkPackageStaticQueriesService {
@@ -78,7 +77,7 @@ export class WorkPackageStaticQueriesService {
       {
         identifier: 'gantt',
         label: this.text.gantt,
-        query_props: '{"c":["id","subject","startDate","dueDate"],"tv":true,"tzl":"years","hi":true,"g":"","t":"id:asc","t":"startDate:asc","f":[{"n":"status","o":"o","v":[]}]}'
+        query_props: `{"c":["id","type","subject","status","startDate","dueDate"],"tv":true,"tzl":"auto","tll":"{\\"left\\":\\"startDate\\",\\"right\\":\\"dueDate\\",\\"farRight\\":\\"subject\\"}","hi":true,"g":"","t":"startDate:asc","f":[{"n":"status","o":"o","v":[]}]}`
       },
       {
         identifier: 'recently_created',
@@ -116,12 +115,13 @@ export class WorkPackageStaticQueriesService {
 
   public getStaticName(query:QueryResource) {
     if (this.$state.params.query_props) {
-      let queryProps = JSON.parse(this.$state.params.query_props);
+      const queryProps = JSON.parse(this.$state.params.query_props);
       delete queryProps.pp;
       delete queryProps.pa;
+      const queryPropsString = JSON.stringify(queryProps);
 
-      const matched = _.find(this.all, item =>
-        item.query_props && item.query_props === JSON.stringify(queryProps)
+      const matched = this.all.find( item =>
+        item.query_props && item.query_props === queryPropsString
       );
 
       if (matched) {

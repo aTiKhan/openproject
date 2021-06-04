@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -122,6 +122,34 @@ describe ::Bim::Bcf::IssuesController, type: :controller do
         expect { action }.to change { Attachment.count }.by(1)
         expect(response).to redirect_to '/projects/bim_project/issues/upload'
       end
+    end
+  end
+
+  describe '#configure_import' do
+    let(:action) do
+      post :configure_import, params: { project_id: project.identifier.to_s }
+    end
+
+    context 'with valid BCF file' do
+      let(:filename) { 'MaximumInformation.bcf' }
+      let(:file) do
+        Rack::Test::UploadedFile.new(
+          File.join(Rails.root, "modules/bim/spec/fixtures/files/#{filename}"),
+          'application/octet-stream'
+        )
+      end
+
+      before do
+        allow_any_instance_of(Attachment).to receive(:diskfile).and_return(file)
+        allow(Attachment).to receive(:find_by).and_return(Attachment.new)
+      end
+
+      it 'should be successful' do
+        expect { action }.to change { Attachment.count }.by(0)
+        expect(response).to be_successful
+      end
+
+      it_behaves_like "check permissions"
     end
   end
 

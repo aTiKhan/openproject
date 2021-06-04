@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -29,8 +29,8 @@
 #++
 
 class ::Query::Results
-  include ::Query::GroupBy
-  include ::Query::Sums
+  include ::Query::Results::GroupBy
+  include ::Query::Results::Sums
   include Redmine::I18n
 
   attr_accessor :query
@@ -51,6 +51,7 @@ class ::Query::Results
     raise ::Query::StatementInvalid.new(e.message)
   end
 
+  # Returns the work packages adhering to the filters and ordered by the provided criteria (grouping and sorting)
   def work_packages
     work_package_scope
       .where(query.statement)
@@ -58,22 +59,15 @@ class ::Query::Results
       .joins(all_joins)
       .order(order_option)
       .references(:projects)
-  end
-
-  # Same as :work_packages, but returns a result sorted by the sort_criteria defined in the query.
-  # Note: It escapes me, why this is not the default behaviour.
-  # If there is a reason: This is a somewhat DRY way of using the sort criteria.
-  # If there is no reason: The :work_package method can die over time and be replaced by this one.
-  def sorted_work_packages
-    work_packages.order(sort_criteria_array)
+      .order(sort_criteria_array)
   end
 
   def versions
     scope = Version
             .visible
 
-    if query.project
-      scope.where(query.project_limiting_filter.where)
+    if query.project && (limiting_filter = query.project_limiting_filter)
+      scope.where(limiting_filter.where)
     end
 
     scope

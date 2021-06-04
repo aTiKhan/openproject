@@ -7,16 +7,17 @@ robots: index, follow
 keywords: work package types
 ---
 
-# Manage Work Package Types
+# Manage work package types
 
 You can have as many work package types in the system as needed, e.g. Tasks, Bugs, Ideas, Risks, Features.
 
-In the -> Administration -> Work packages -> Types you can add or edit the work package types.
+In the *-> Administration -> Work packages -> Types* you can add or edit the work package types.
 
 You will see a list of all work package types in the system.
 
 1. Click the work package type name to **edit an existing work package type**.
-2. Click the arrows (up or down) to change the order how work package types should be displayed, e.g. in the list when creating new work packages or when changing the type.
+2. Click the arrows (up or down) to change the order how work package types should be displayed, e.g. in the list when creating new work packages or when changing the type. 
+   The work package type you moved to the top of the list is the current default type and will be selected when you create a new work package.
 3. Delete work package types.
 
 ![System-admin-work-packages-types](System-admin-work-packages-types.png)
@@ -27,7 +28,7 @@ Click the green **+ Type** button to add a new work package type in the system, 
 
 1. Give the new work package type a **name** that easily identifies what kind of work should be tracked.
 2. Choose whether the type should be displayed in the [roadmap](../../../user-guide/roadmap/) by default.
-3. Choose a **color** from the drow-down list which should be used for this work package type in the Gantt chart. You can configure new colors [here](../../colors).
+3. Choose a **color** from the drop-down list which should be used for this work package type in the Gantt chart. You can configure new colors [here](../../colors).
 4. Select if the work package type should be **active in new projects by default**. This way work package types will not need to be [activated in the project settings](../../../user-guide/projects/project-settings/work-package-types/) but will be available for every project.
 5. Choose whether the type should be a **milestone**, e.g. displayed as a milestone in the Gantt chart with the same start and finish date.
 6. You can **copy a [workflow](../work-package-workflows)** from an existing type.
@@ -38,7 +39,7 @@ Click the green **+ Type** button to add a new work package type in the system, 
 
 ## Work package form configuration
 
-You can freely **configure the attributes shown** for each work package type to decide which attributes are shown in the from and how they are grouped.
+You can freely **configure the attributes shown** for each work package type to decide which attributes are shown in the form and how they are grouped.
 
 To configure a type, first select the type from the list of types (see above) and select the tab ***Form configuration*** *(1)*.
 
@@ -60,6 +61,10 @@ If you then create a new work package of this type, the input form will have exa
 In this case, all attributes in the blue area on the left are displayed under the corresponding attribute group.
 
 ![work package form configuration](image-20200116150227458.png)
+
+Watch the following video to see how you can customize your work packages with custom fields and configure the work package forms:
+
+<video src="https://www.openproject.org/wp-content/uploads/2020/12/OpenProject-Forms-and-Custom-Fields-1.mp4" type="video/mp4" controls="" style="width:100%"></video>
 
 ## Add table of related work packages to a work package form
 

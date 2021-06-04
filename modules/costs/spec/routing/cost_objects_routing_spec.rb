@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -28,52 +28,52 @@
 
 require 'spec_helper'
 
-describe CostObjectsController, type: :routing do
+describe BudgetsController, type: :routing do
   describe 'routing' do
     it {
-      expect(get('/projects/blubs/cost_objects/new')).to route_to(controller: 'cost_objects',
-                                                                  action: 'new',
-                                                                  project_id: 'blubs')
+      expect(get('/projects/blubs/budgets/new')).to route_to(controller: 'budgets',
+                                                             action: 'new',
+                                                             project_id: 'blubs')
     }
     it {
-      expect(post('/projects/blubs/cost_objects')).to route_to(controller: 'cost_objects',
-                                                               action: 'create',
-                                                               project_id: 'blubs')
+      expect(post('/projects/blubs/budgets')).to route_to(controller: 'budgets',
+                                                          action: 'create',
+                                                          project_id: 'blubs')
     }
     it {
-      expect(get('/projects/blubs/cost_objects')).to route_to(controller: 'cost_objects',
-                                                              action: 'index',
-                                                              project_id: 'blubs')
+      expect(get('/projects/blubs/budgets')).to route_to(controller: 'budgets',
+                                                         action: 'index',
+                                                         project_id: 'blubs')
     }
     it {
-      expect(get('/cost_objects/5')).to route_to(controller: 'cost_objects',
-                                                 action: 'show',
+      expect(get('/budgets/5')).to route_to(controller: 'budgets',
+                                            action: 'show',
+                                            id: '5')
+    }
+    it {
+      expect(put('/budgets/5')).to route_to(controller: 'budgets',
+                                            action: 'update',
+                                            id: '5')
+    }
+    it {
+      expect(delete('/budgets/5')).to route_to(controller: 'budgets',
+                                               action: 'destroy',
+                                               id: '5')
+    }
+    it {
+      expect(post('/projects/42/budgets/update_material_budget_item')).to route_to(controller: 'budgets',
+                                                                                   action: 'update_material_budget_item',
+                                                                                   project_id: '42')
+    }
+    it {
+      expect(post('/projects/42/budgets/update_labor_budget_item')).to route_to(controller: 'budgets',
+                                                                                action: 'update_labor_budget_item',
+                                                                                project_id: '42')
+    }
+    it {
+      expect(get('/budgets/5/copy')).to route_to(controller: 'budgets',
+                                                 action: 'copy',
                                                  id: '5')
-    }
-    it {
-      expect(put('/cost_objects/5')).to route_to(controller: 'cost_objects',
-                                                 action: 'update',
-                                                 id: '5')
-    }
-    it {
-      expect(delete('/cost_objects/5')).to route_to(controller: 'cost_objects',
-                                                    action: 'destroy',
-                                                    id: '5')
-    }
-    it {
-      expect(post('/projects/42/cost_objects/update_material_budget_item')).to route_to(controller: 'cost_objects',
-                                                                                        action: 'update_material_budget_item',
-                                                                                        project_id: '42')
-    }
-    it {
-      expect(post('/projects/42/cost_objects/update_labor_budget_item')).to route_to(controller: 'cost_objects',
-                                                                                     action: 'update_labor_budget_item',
-                                                                                     project_id: '42')
-    }
-    it {
-      expect(get('/cost_objects/5/copy')).to route_to(controller: 'cost_objects',
-                                                      action: 'copy',
-                                                      id: '5')
     }
   end
 end

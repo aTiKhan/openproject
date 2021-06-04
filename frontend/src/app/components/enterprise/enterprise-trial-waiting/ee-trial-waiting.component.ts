@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,23 +24,30 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {Component, ElementRef} from "@angular/core";
-import {I18nService} from "app/modules/common/i18n/i18n.service";
-import {EnterpriseTrialService} from "app/components/enterprise/enterprise-trial.service";
-import {HttpClient} from "@angular/common/http";
-import {NotificationsService} from "core-app/modules/common/notifications/notifications.service";
-
+import { Component, ElementRef, OnInit } from "@angular/core";
+import { I18nService } from "app/modules/common/i18n/i18n.service";
+import { EnterpriseTrialService } from "app/components/enterprise/enterprise-trial.service";
+import { HttpClient } from "@angular/common/http";
+import { NotificationsService } from "core-app/modules/common/notifications/notifications.service";
+import { distinctUntilChanged } from "rxjs/operators";
+import { TimezoneService } from "core-components/datetime/timezone.service";
 
 @Component({
   selector: 'enterprise-trial-waiting',
   templateUrl: './ee-trial-waiting.component.html',
   styleUrls: ['./ee-trial-waiting.component.sass']
 })
-export class EETrialWaitingComponent {
+export class EETrialWaitingComponent implements OnInit {
+  created = this.timezoneService.formattedDate(new Date().toString());
+  email = '';
+
   public text = {
-    confirmation_info: this.I18n.t('js.admin.enterprise.trial.confirmation_info'),
+    confirmation_info: (date:string, email:string) => this.I18n.t('js.admin.enterprise.trial.confirmation_info',{
+      date: date,
+      email: email
+    }),
     resend: this.I18n.t('js.admin.enterprise.trial.resend_link'),
     resend_success: this.I18n.t('js.admin.enterprise.trial.resend_success'),
     resend_warning: this.I18n.t('js.admin.enterprise.trial.resend_warning'),
@@ -54,7 +61,25 @@ export class EETrialWaitingComponent {
               readonly I18n:I18nService,
               protected http:HttpClient,
               protected notificationsService:NotificationsService,
-              public eeTrialService:EnterpriseTrialService) {
+              public eeTrialService:EnterpriseTrialService,
+              readonly timezoneService:TimezoneService) {
+  }
+
+  ngOnInit() {
+    const eeTrialKey = (window as any).gon.ee_trial_key;
+    if (eeTrialKey) {
+      const savedDateStr = eeTrialKey.created.split(' ')[0];
+      this.created = this.timezoneService.formattedDate(savedDateStr);
+    }
+
+    this.eeTrialService.userData$
+      .values$()
+      .pipe(
+        distinctUntilChanged(),
+      )
+      .subscribe(userForm => {
+        this.email = userForm.email;
+      });
   }
 
   // resend mail if resend link has been clicked

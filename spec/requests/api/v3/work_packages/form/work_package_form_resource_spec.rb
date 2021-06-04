@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -34,7 +34,7 @@ describe 'API v3 Work package form resource', type: :request, with_mail: false d
   include Capybara::RSpecMatchers
   include API::V3::Utilities::PathHelper
 
-  shared_let(:all_allowed_permissions) { %i[view_work_packages edit_work_packages assign_versions] }
+  shared_let(:all_allowed_permissions) { %i[view_work_packages edit_work_packages assign_versions view_budgets] }
   shared_let(:assign_permissions) { %i[view_work_packages assign_versions] }
   shared_let(:project) { FactoryBot.create(:project, public: false) }
   shared_let(:work_package) do
@@ -111,7 +111,7 @@ describe 'API v3 Work package form resource', type: :request, with_mail: false d
             let(:format) { 'markdown' }
             let(:raw) { defined?(raw_value) ? raw_value : work_package.description.to_s }
             let(:html) do
-              defined?(html_value) ? html_value : ('<p>' + work_package.description.to_s + '</p>')
+              defined?(html_value) ? html_value : ('<p class="op-uc-p">' + work_package.description.to_s + '</p>')
             end
           end
         end
@@ -185,7 +185,7 @@ describe 'API v3 Work package form resource', type: :request, with_mail: false d
               end
 
               it_behaves_like 'parse error',
-                              'unexpected comma () at line 1, column 3'
+                              'unexpected comma (after ) at line 1, column 3'
             end
 
             describe 'lock version' do
@@ -257,7 +257,7 @@ describe 'API v3 Work package form resource', type: :request, with_mail: false d
               it_behaves_like 'valid payload' do
                 let(:raw_value) { description }
                 let(:html_value) do
-                  '<p><strong>Some text</strong> <em>describing</em> ' \
+                  '<p class="op-uc-p"><strong>Some text</strong> <em>describing</em> ' \
                   '<strong>something</strong>...</p>'
                 end
               end
@@ -399,24 +399,6 @@ describe 'API v3 Work package form resource', type: :request, with_mail: false d
             end
 
             describe 'assignee and responsible' do
-              shared_context 'setup group membership' do |group_assignment|
-                let(:group) { FactoryBot.create(:group) }
-                let(:role) { FactoryBot.create(:role) }
-                let(:group_member) do
-                  FactoryBot.create(:member,
-                                    principal: group,
-                                    project: project,
-                                    roles: [role])
-                end
-
-                before do
-                  allow(Setting).to receive(:work_package_group_assignment?)
-                    .and_return(group_assignment)
-
-                  group_member.save!
-                end
-              end
-
               shared_examples_for 'handling people' do |property|
                 let(:path) { "_embedded/payload/_links/#{property}/href" }
                 let(:visible_user) do
@@ -457,8 +439,30 @@ describe 'API v3 Work package form resource', type: :request, with_mail: false d
 
                   context 'existing group' do
                     let(:user_link) { api_v3_paths.group group.id }
+                    let(:group) { FactoryBot.create(:group) }
+                    let(:role) { FactoryBot.create(:role) }
+                    let(:group_member) do
+                      FactoryBot.create(:member,
+                                        principal: group,
+                                        project: project,
+                                        roles: [role])
+                    end
 
-                    include_context 'setup group membership', true
+                    before do
+                      group_member.save!
+                    end
+
+                    it_behaves_like 'valid user assignment'
+                  end
+
+                  context 'existing placeholder_user' do
+                    let(:user_link) { api_v3_paths.placeholder_user placeholder_user.id }
+                    let(:role) { FactoryBot.create(:role) }
+                    let(:placeholder_user) do
+                      FactoryBot.create(:placeholder_user,
+                                        member_in_project: project,
+                                        member_through_role: role)
+                    end
 
                     it_behaves_like 'valid user assignment'
                   end
@@ -486,23 +490,7 @@ describe 'API v3 Work package form resource', type: :request, with_mail: false d
                       let(:message) do
                         I18n.t('api_v3.errors.invalid_resource',
                                property: property,
-                               expected: "/api/v3/groups/:id' or '/api/v3/users/:id",
-                               actual: user_link)
-                      end
-                    end
-                  end
-
-                  context 'group assignement disabled' do
-                    let(:user_link) { api_v3_paths.group group.id }
-
-                    include_context 'setup group membership', false
-                    include_context 'post request'
-
-                    it_behaves_like 'invalid resource link' do
-                      let(:message) do
-                        I18n.t('api_v3.errors.invalid_resource',
-                               property: property,
-                               expected: "/api/v3/users/:id",
+                               expected: "/api/v3/groups/:id' or '/api/v3/users/:id' or '/api/v3/placeholder_users/:id",
                                actual: user_link)
                       end
                     end
@@ -668,6 +656,55 @@ describe 'API v3 Work package form resource', type: :request, with_mail: false d
               end
             end
 
+            describe 'budget' do
+              let(:path) { '_embedded/payload/_links/budget/href' }
+              let(:links_path) { '_embedded/schema/budget/_links' }
+              let(:target_budget) { FactoryBot.create(:budget, project: project) }
+              let(:other_budget) { FactoryBot.create(:budget, project: project) }
+              let(:budget_link) { api_v3_paths.budget target_budget.id }
+              let(:budget_parameter) { { _links: { budget: { href: budget_link } } } }
+              let(:params) { valid_params.merge(budget_parameter) }
+
+              describe 'allowed values' do
+                before do
+                  other_budget
+                end
+
+                include_context 'post request'
+
+                it 'should list the budgets' do
+                  budgets = project.budgets
+
+                  budgets.each_with_index do |budget, index|
+                    expect(subject.body).to be_json_eql(api_v3_paths.budget(budget.id).to_json)
+                                              .at_path("#{links_path}/allowedValues/#{index}/href")
+                  end
+                end
+              end
+
+              context 'valid budget' do
+                include_context 'post request'
+
+                it_behaves_like 'having no errors'
+
+                it 'should respond with updated work package budget' do
+                  expect(subject.body).to be_json_eql(budget_link.to_json).at_path(path)
+                end
+              end
+
+              context 'invalid budget' do
+                let(:target_budget) { FactoryBot.create(:budget) }
+
+                include_context 'post request'
+
+                it_behaves_like 'having an error', 'budget'
+
+                it 'should respond with updated work package budget' do
+                  expect(subject.body).to be_json_eql(budget_link.to_json).at_path(path)
+                end
+              end
+            end
+
             describe 'multiple errors' do
               let(:user_link) { api_v3_paths.user 4200 }
               let(:status_link) { api_v3_paths.status -1 }
@@ -699,6 +736,29 @@ describe 'API v3 Work package form resource', type: :request, with_mail: false d
               it {
                 expect(subject.body).to have_json_path('_embedded/validationErrors/responsible')
               }
+            end
+
+            describe 'formattable custom field set to nil' do
+              let(:custom_field) do
+                FactoryBot.create :work_package_custom_field, field_format: 'text'
+              end
+
+              let(:cf_param) { { "customField#{custom_field.id}" => nil } }
+              let(:params) { valid_params.merge(cf_param) }
+
+              before do
+                project.work_package_custom_fields << custom_field
+                project.save!
+                work_package.type.custom_fields << custom_field
+                work_package.save!
+
+                login_as(current_user)
+                post post_path, (params ? params.to_json : nil), 'CONTENT_TYPE' => 'application/json'
+              end
+
+              it 'should respond with a valid body (Regression OP#37510)' do
+                expect(last_response.status).to eq(200)
+              end
             end
           end
         end

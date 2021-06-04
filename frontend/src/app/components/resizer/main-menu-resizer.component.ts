@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,11 +26,11 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {ChangeDetectorRef, Component, ElementRef, OnInit} from '@angular/core';
-import {distinctUntilChanged} from 'rxjs/operators';
-import {ResizeDelta} from "core-app/modules/common/resizer/resizer.component";
-import {MainMenuToggleService} from "core-components/main-menu/main-menu-toggle.service";
-import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
+import { ChangeDetectorRef, Component, ElementRef, OnInit } from '@angular/core';
+import { distinctUntilChanged } from 'rxjs/operators';
+import { ResizeDelta } from "core-app/modules/common/resizer/resizer.component";
+import { MainMenuToggleService } from "core-components/main-menu/main-menu-toggle.service";
+import { UntilDestroyedMixin } from "core-app/helpers/angular/until-destroyed.mixin";
 
 export const mainMenuResizerSelector = 'main-menu-resizer';
 
@@ -43,13 +43,15 @@ export const mainMenuResizerSelector = 'main-menu-resizer';
              (end)="resizeEnd()"
              (start)="resizeStart()"
              (move)="resizeMove($event)">
-      <a href="#"
-         [attr.title]="toggleTitle"
-         class="main-menu--navigation-toggler"
-         (accessibleClick)="toggleService.toggleNavigation($event)">
+      <div class="resizer-toggle-container">
+        <i [attr.title]="toggleTitle"
+            class="main-menu--navigation-toggler"
+            [ngClass]="{'open': toggleService.showNavigation}"
+            (accessibleClick)="toggleService.toggleNavigation($event)"></i>
+
         <i class="icon-resizer-vertical-lines"
            aria-hidden="true"></i>
-      </a>
+      </div>
     </resizer>
   `
 })
@@ -62,7 +64,7 @@ export class MainMenuResizerComponent extends UntilDestroyedMixin implements OnI
   private elementWidth:number;
   private mainMenu = jQuery('#main-menu')[0];
 
-  public moving:boolean = false;
+  public moving = false;
 
   constructor(readonly toggleService:MainMenuToggleService,
               readonly cdRef:ChangeDetectorRef,

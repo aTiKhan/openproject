@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -36,11 +36,12 @@ describe 'creating a child directly after the wp itself was created', js: true d
   let!(:status) { FactoryBot.create(:status, is_default: true) }
   let!(:priority) { FactoryBot.create(:priority, is_default: true) }
   let(:type) { FactoryBot.create(:type, custom_fields: [custom_field]) }
-  let(:custom_field) { FactoryBot.create :work_package_custom_field,
-                                         field_format: 'int',
-                                         is_for_all: true
-  }
-  let(:relations_tab) { find('.tabrow li', text: 'RELATIONS') }
+  let(:custom_field) do
+    FactoryBot.create :work_package_custom_field,
+                      field_format: 'int',
+                      is_for_all: true
+  end
+  let(:relations_tab) { find('.op-tab-row--link', text: 'RELATIONS') }
 
   before do
     login_as user
@@ -70,7 +71,7 @@ describe 'creating a child directly after the wp itself was created', js: true d
 
     # Expect CF value to be still visible
     wp_page.expect_and_dismiss_notification(message: 'Successful creation.')
-    expect(wp_page).to have_selector('wp-relations-count', text: 1)
+    expect(wp_page).to have_selector('op-tab-count', text: 1)
     wp_page.expect_attributes "customField#{custom_field.id}": '42'
   end
 end

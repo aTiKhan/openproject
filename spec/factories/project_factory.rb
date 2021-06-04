@@ -1,13 +1,14 @@
 # encoding: utf-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -32,6 +33,7 @@ FactoryBot.define do
     transient do
       no_types { false }
       disable_modules { [] }
+      members { [] }
     end
 
     sequence(:name) { |n| "My Project No. #{n}" }
@@ -40,6 +42,7 @@ FactoryBot.define do
     updated_at { Time.now }
     enabled_module_names { OpenProject::AccessControl.available_project_modules }
     public { false }
+    templated { false }
 
     callback(:after_build) do |project, evaluator|
       disabled_modules = Array(evaluator.disable_modules)
@@ -50,8 +53,22 @@ FactoryBot.define do
       end
     end
 
+    callback(:after_create) do |project, evaluator|
+      evaluator.members.each do |user, roles|
+        Members::CreateService
+          .new(user: nil, contract_class: EmptyContract)
+          .call(principal: user, project: project, roles: Array(roles))
+      end
+    end
+
     factory :public_project do
       public { true } # Remark: public defaults to true
+    end
+
+    factory :template_project do
+      sequence(:name) { |n| "Template project No. #{n}" }
+      sequence(:identifier) { |n| "template_no_#{n}" }
+      templated { true }
     end
 
     factory :project_with_types do

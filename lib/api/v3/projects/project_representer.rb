@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -107,7 +107,7 @@ module API
                current_user_allowed_to(:view_members, context: represented)
              } do
           {
-            href: api_v3_paths.path_for(:memberships, filters: [{ project: { operator: "=", values: [represented.id.to_s] }}]),
+            href: api_v3_paths.path_for(:memberships, filters: [{ project: { operator: "=", values: [represented.id.to_s] } }])
           }
         end
 
@@ -157,23 +157,16 @@ module API
                             v3_path: :project,
                             representer: ::API::V3::Projects::ProjectRepresenter,
                             uncacheable_link: true,
-                            link: ->(*) {
-                              if represented.parent&.visible?
-                                {
-                                  href: api_v3_paths.project(represented.parent.id),
-                                  title: represented.parent.name
-                                }
-                              else
-                                {
-                                  href: nil,
-                                  title: nil
-                                }
-                              end
-                            }
+                            undisclosed: true,
+                            skip_render: ->(*) { represented.parent && !represented.parent.visible? }
 
         property :id
-        property :identifier
-        property :name
+        property :identifier,
+                 render_nil: true
+
+        property :name,
+                 render_nil: true
+
         property :active
         property :public
 
@@ -183,24 +176,36 @@ module API
 
         date_time_property :updated_at
 
-        property :status,
-                 name_source: ->(*) { I18n.t('activerecord.attributes.projects/status.code') },
-                 render_nil: true,
+        resource :status,
                  getter: ->(*) {
-                   next unless status&.code
+                   next unless represented.status&.code
 
-                   status.code.to_s.tr('_', ' ')
+                   ::API::V3::Projects::Statuses::StatusRepresenter
+                     .create(represented.status.code, current_user: current_user, embed_links: embed_links)
                  },
-                 reader: ->(doc:, represented:, **) {
-                   next unless doc.key?('status')
+                 link: ->(*) {
+                   if represented.status&.code
+                     {
+                       href: api_v3_paths.project_status(represented.status.code),
+                       title: I18n.t(:"activerecord.attributes.projects/status.codes.#{represented.status.code}",
+                                     default: nil)
+                     }.compact
+                   else
+                     {
+                       href: nil
+                     }
+                   end
+                 },
+                 setter: ->(fragment:, represented:, **) {
+                   represented.status_attributes ||= OpenStruct.new
 
-                   represented.status_attributes ||= {}
-                   represented.status_attributes[:code] =
-                     if doc['status'].nil?
-                       nil
-                     else
-                       doc['status'].strip.tr(' ', '_').underscore.to_sym
-                     end
+                   link = ::API::Decorators::LinkObject.new(represented.status_attributes,
+                                                            path: :project_status,
+                                                            property_name: :status,
+                                                            getter: :code,
+                                                            setter: :"code=")
+
+                   link.from_hash(fragment)
                  }
 
         property :status_explanation,
@@ -211,7 +216,7 @@ module API
                                                       plain: false)
                  },
                  setter: ->(fragment:, represented:, **) {
-                   represented.status_attributes ||= {}
+                   represented.status_attributes ||= OpenStruct.new
                    represented.status_attributes[:explanation] = fragment["raw"]
                  }
 
@@ -222,7 +227,7 @@ module API
         self.to_eager_load = [:status,
                               :parent,
                               :enabled_modules,
-                              custom_values: :custom_field]
+                              { custom_values: :custom_field }]
 
         self.checked_permissions = [:add_work_packages]
       end

@@ -43,7 +43,8 @@ describe Bim::IfcModels::UpdateService do
       .to receive(:new)
       .with(user: user,
             model: model,
-            contract_class: contract_class)
+            contract_class: contract_class,
+            contract_options: {})
       .and_return(service)
 
     allow(service)
@@ -113,10 +114,10 @@ describe Bim::IfcModels::UpdateService do
 
     context 'if the attachment is altered' do
       let(:attachment_marked_for_destruction) { true }
-      before do
-        allow(ifc_attachment)
-          .to receive(:new_record?)
-          .and_return(true)
+      let(:call_attributes) do
+        { name: 'Some name',
+          identifier: 'Some identifier',
+          ifc_attachment: ifc_attachment }
       end
 
       it 'schedules conversion job' do

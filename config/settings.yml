@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -79,7 +79,7 @@ consent_info:
   serialized: true
   default:
     en: "## Consent\n\nYou need to agree to the [privacy and security policy](https://www.openproject.org/data-privacy-and-security/) of this OpenProject instance."
-# Indicates wether or not users need to consent to something such as privacy policy.
+# Indicates whether or not users need to consent to something such as privacy policy.
 consent_required:
   default: 0
   format: boolean
@@ -230,8 +230,6 @@ user_format:
 cross_project_work_package_relations:
   default: 1
   format: boolean
-work_package_group_assignment:
-  default: 1
 notified_events:
   serialized: true
   default:
@@ -246,6 +244,8 @@ notified_events:
   - message_posted
   - wiki_content_added
   - wiki_content_updated
+  - membership_added
+  - membership_updated
 mail_handler_body_delimiters:
   default: ''
 mail_handler_ignore_filenames:
@@ -259,9 +259,9 @@ mail_suffix_separators:
 work_package_list_default_columns:
   serialized: true
   default:
-  - type
   - id
   - subject
+  - type
   - status
   - assigned_to
   - priority
@@ -270,10 +270,6 @@ work_package_list_default_highlighting_mode:
 work_package_list_default_highlighted_attributes:
   serialized: true
   default: []
-work_package_list_summable_columns:
-  serialized: true
-  default:
-  - estimated_hours
 display_subprojects_work_packages:
   default: 1
 work_package_done_ratio:
@@ -287,14 +283,22 @@ default_projects_modules:
   - board_view
   - work_package_tracking
   - news
-  - time_tracking
+  - costs
   - wiki
+enabled_projects_columns:
+  serialized: true
+  default:
+    - project_status
+    - public
+    - created_at
+    - latest_activity_at
+    - required_disk_space
+project_gantt_query:
+  default: ''
 # Role given to a non-admin user who creates a project
 new_project_user_role_id:
   format: int
   default: ''
-sequential_project_identifiers:
-  default: 0
 # encodings used to convert repository files content to UTF-8
 # multiple values accepted, comma separated
 repositories_encodings:
@@ -312,6 +316,8 @@ emails_footer:
       You have received this notification because you have either subscribed to it, or are involved in it.
       To change your notification preferences, please click here: http://hostname/my/account
 start_of_week:
+  default: ''
+first_week_of_year:
   default: ''
 rest_api_enabled:
   default: 1
@@ -369,3 +375,9 @@ installation_uuid:
 oauth_allow_remapping_of_existing_users:
   default: false
   format: boolean
+apiv3_cors_enabled:
+  default: false
+  format: boolean
+apiv3_cors_origins:
+  serialized: true
+  default: []

@@ -4,6 +4,7 @@ require_relative 'aggregations'
 
 module OpenProject::Bim::BcfXml
   class Importer
+    MINIMUM_BCF_VERSION = "2.1"
     attr_reader :file, :project, :current_user
 
     DEFAULT_IMPORT_OPTIONS = {
@@ -12,12 +13,12 @@ module OpenProject::Bim::BcfXml
       unknown_priorities_action: "use_default",
       invalid_people_action: "anonymize",
       unknown_mails_action: 'invite',
-      non_members_action: 'add',
+      non_members_action: 'chose',
       unknown_types_chose_ids: [],
       unknown_statuses_chose_ids: [],
       unknown_priorities_chose_ids: [],
       unknown_mails_invite_role_ids: [],
-      non_members_add_role_ids: []
+      non_members_chose_role_ids: []
     }.freeze
 
     def initialize(file, project, current_user:)
@@ -60,6 +61,19 @@ module OpenProject::Bim::BcfXml
       raise
     end
 
+    def bcf_version_valid?
+      Zip::File.open(@file) do |zip|
+        zip_entry = zip.find { |entry| entry.name.end_with?('bcf.version') }
+        markup = zip_entry.get_input_stream.read
+        doc = Nokogiri::XML(markup, nil, 'UTF-8')
+        bcf_version = doc.xpath('/Version').first['VersionId']
+        return Gem::Version.new(bcf_version) >= Gem::Version.new(MINIMUM_BCF_VERSION)
+      end
+    rescue StandardError => e
+      # The uploaded file could be anything.
+      false
+    end
+
     private
 
     def create_or_add_missing_members(options)
@@ -69,10 +83,8 @@ module OpenProject::Bim::BcfXml
     end
 
     def treat_invalid_people(options)
-      if aggregations.invalid_people.any?
-        unless options[:invalid_people_action] == 'anonymize'
-          raise StandardError.new 'Invalid people found in import. Use valid email addresses.'
-        end
+      if aggregations.invalid_people.any? && !(options[:invalid_people_action] == 'anonymize')
+        raise StandardError.new 'Invalid people found in import. Use valid email addresses.'
       end
     end
 
@@ -121,7 +133,7 @@ module OpenProject::Bim::BcfXml
       membership_service = ::Members::EditMembershipService.new(member,
                                                                 save: true,
                                                                 current_user: User.current)
-      membership_service.call(attributes: { role_ids: options[:non_members_add_role_ids] })
+      membership_service.call(attributes: { role_ids: options[:non_members_chose_role_ids] })
     end
 
     def treat_unknown_mails?(options)
@@ -132,8 +144,8 @@ module OpenProject::Bim::BcfXml
 
     def treat_non_members?(options)
       aggregations.non_members.any? &&
-        options[:non_members_action] == 'add' &&
-        options[:non_members_add_role_ids].any?
+        options[:non_members_action] == 'chose' &&
+        options[:non_members_chose_role_ids].any?
     end
 
     def to_listing(extractor)

@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -36,9 +36,9 @@ module API
     module Queries
       module Schemas
         class QuerySchemaRepresenter < ::API::Decorators::SchemaRepresenter
-          def initialize(represented, self_link = nil, current_user: nil, form_embedded: false)
+          def initialize(represented, self_link: nil, current_user: nil, form_embedded: false)
             super(represented,
-                  self_link,
+                  self_link: self_link,
                   current_user: current_user,
                   form_embedded: form_embedded)
           end
@@ -77,6 +77,7 @@ module API
 
           schema :user,
                  type: 'User',
+                 location: :link,
                  has_default: true
 
           schema_with_allowed_link :project,
@@ -263,7 +264,7 @@ module API
                       .reject { |f| f.is_a?(::Queries::WorkPackages::Filter::RelatableFilter) }
 
             QueryFilterInstanceSchemaCollectionRepresenter.new(filters,
-                                                               filter_instance_schemas_href,
+                                                               self_link: filter_instance_schemas_href,
                                                                form_embedded: form_embedded,
                                                                current_user: current_user)
           end

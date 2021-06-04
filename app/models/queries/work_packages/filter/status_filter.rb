@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -30,7 +30,7 @@
 
 class Queries::WorkPackages::Filter::StatusFilter < Queries::WorkPackages::Filter::WorkPackageFilter
   def allowed_values
-    all_statuses.map { |s| [s.name, s.id.to_s] }
+    all_statuses.values.map { |s| [s.name, s.id.to_s] }
   end
 
   def available_operators
@@ -54,13 +54,13 @@ class Queries::WorkPackages::Filter::StatusFilter < Queries::WorkPackages::Filte
   end
 
   def value_objects
-    values_ids = values.map(&:to_i)
-
-    all_statuses.select { |status| values_ids.include?(status.id) }
+    values
+      .map { |status_id| all_statuses[status_id.to_i] }
+      .compact
   end
 
   def allowed_objects
-    all_statuses
+    all_statuses.values
   end
 
   def ar_object_filter?
@@ -73,7 +73,7 @@ class Queries::WorkPackages::Filter::StatusFilter < Queries::WorkPackages::Filte
     key = 'Queries::WorkPackages::Filter::StatusFilter/all_statuses'
 
     RequestStore.fetch(key) do
-      Status.all.to_a
+      Status.all.to_a.index_by(&:id)
     end
   end
 

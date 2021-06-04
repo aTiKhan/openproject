@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -38,7 +38,15 @@ module Pages
     end
 
     def card_element
-      page.find(".wp-card-#{work_package.id}")
+      page.find(card_selector)
+    end
+
+    def card_selector
+      ".wp-card-#{work_package.id}"
+    end
+
+    def expect_selected
+      expect(page).to have_selector("#{card_selector}.-checked")
     end
 
     def expect_type(name)
@@ -51,6 +59,13 @@ module Pages
       page.within(card_element) do
         expect(page).to have_selector('.wp-card--subject', text: subject)
       end
+    end
+
+    def open_details_view
+      card_element.hover
+      card_element.find('.wp-card--details-button').click
+
+      ::Pages::SplitWorkPackage.new work_package
     end
   end
 end

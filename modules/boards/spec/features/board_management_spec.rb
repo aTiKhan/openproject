@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -242,10 +242,15 @@ describe 'Board management spec', type: :feature, js: true do
       # Add item
       board_page.add_card 'List 1', 'Task 1'
 
+      board_page.expect_and_dismiss_notification(message: "Successful creation.")
+
       # Move item to Second list
       board_page.move_card(0, from: 'List 1', to: 'List 2')
       board_page.expect_card('List 1', 'Task 1', present: false)
       board_page.expect_card('List 2', 'Task 1', present: true)
+
+      # There is no frontend visible semaphore to check for the change being saved
+      sleep(0.1)
 
       # Expect added to query
       queries = board_page.board(reload: true).contained_queries

@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -33,14 +33,19 @@ module API
         helpers ::API::Utilities::PageSizeHelper
 
         resources :memberships do
-          get &::API::V3::Utilities::Endpoints::Index.new(model: Member,
-                                                          scope: -> { Member.includes(MembershipRepresenter.to_eager_load) },
-                                                          api_name: 'Membership')
-                                                     .mount
+          get &::API::V3::Utilities::Endpoints::Index
+                 .new(model: Member,
+                      scope: -> { Member.includes(MembershipRepresenter.to_eager_load) },
+                      api_name: 'Membership')
+                 .mount
 
-          post &::API::V3::Utilities::Endpoints::Create.new(model: Member,
-                                                            api_name: 'Membership')
-                                                       .mount
+          post &::API::V3::Utilities::Endpoints::Create
+                  .new(model: Member,
+                       api_name: 'Membership',
+                       params_modifier: ->(params) {
+                         params.except(:meta).merge(params.fetch(:meta, {}).to_h)
+                       })
+                  .mount
 
           mount ::API::V3::Memberships::AvailableProjectsAPI
           mount ::API::V3::Memberships::Schemas::MembershipSchemaAPI
@@ -54,16 +59,22 @@ module API
                         .find(params['id'])
             end
 
-            get &::API::V3::Utilities::Endpoints::Show.new(model: Member,
-                                                           api_name: 'Membership')
-                                                      .mount
+            get &::API::V3::Utilities::Endpoints::Show
+                   .new(model: Member,
+                        api_name: 'Membership')
+                   .mount
 
-            patch &::API::V3::Utilities::Endpoints::Update.new(model: Member,
-                                                               api_name: 'Membership')
-                                                          .mount
+            patch &::API::V3::Utilities::Endpoints::Update
+                     .new(model: Member,
+                          api_name: 'Membership',
+                          params_modifier: ->(params) {
+                            params.except(:meta).merge(params.fetch(:meta, {}).to_h)
+                          })
+                     .mount
 
-            delete &::API::V3::Utilities::Endpoints::Delete.new(model: Member)
-                                                           .mount
+            delete &::API::V3::Utilities::Endpoints::Delete
+                      .new(model: Member)
+                      .mount
 
             mount ::API::V3::Memberships::UpdateFormAPI
           end

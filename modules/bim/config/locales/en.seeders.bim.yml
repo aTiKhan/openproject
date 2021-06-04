@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -1101,7 +1101,7 @@ en:
             boards:
               bcf:
                 name: "BCF issues"
-            bcf_xml_file: "seed.bcfzip"
+            bcf_xml_file: "seed.bcf"
             work_packages:
               - :start: 77
                 :bcf_issue_uuid: fbbf9ecf-5721-4bf1-a08c-aed50dc19353
@@ -1180,11 +1180,6 @@ en:
                 :parent: Issue management, first cycle
               - :start: 77
                 :bcf_issue_uuid: fbe1d941-06ce-45f4-8ccb-ef48b8426f72
-                :assigned_to: BIM Modellers
-                :duration: 3
-                :parent: Issue management, first cycle
-              - :start: 77
-                :bcf_issue_uuid: faad0e05-0e05-48d8-96e6-a4fe29ecdbc0
                 :assigned_to: BIM Modellers
                 :duration: 3
                 :parent: Issue management, first cycle

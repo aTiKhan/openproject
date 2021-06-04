@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,11 +24,11 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {PaginationService} from 'core-components/table-pagination/pagination-service';
-import {PaginationInstance} from 'core-components/table-pagination/pagination-instance';
-import {IPaginationOptions} from './pagination-service';
+import { PaginationService } from 'core-components/table-pagination/pagination-service';
+import { PaginationInstance } from 'core-components/table-pagination/pagination-instance';
+import { IPaginationOptions } from './pagination-service';
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -38,8 +38,8 @@ import {
   OnInit,
   Output
 } from '@angular/core';
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
-import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
+import { UntilDestroyedMixin } from "core-app/helpers/angular/until-destroyed.mixin";
 
 @Component({
   selector: '[tablePagination]',
@@ -48,9 +48,9 @@ import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixi
 })
 export class TablePaginationComponent extends UntilDestroyedMixin implements OnInit {
   @Input() totalEntries:string;
-  @Input() hideForSinglePageResults:boolean = false;
-  @Input() showPerPage:boolean = true;
-  @Input() showPageSelections:boolean = true;
+  @Input() hideForSinglePageResults = false;
+  @Input() showPerPage = true;
+  @Input() showPageSelections = true;
   @Input() infoText?:string;
   @Output() updateResults = new EventEmitter<PaginationInstance>();
 
@@ -62,7 +62,7 @@ export class TablePaginationComponent extends UntilDestroyedMixin implements OnI
     no_other_page: this.I18n.t('js.pagination.no_other_page')
   };
 
-  public currentRange:string = '';
+  public currentRange = '';
   public pageNumbers:number[] = [];
   public postPageNumbers:number[] = [];
   public prePageNumbers:number[] = [];
@@ -121,9 +121,9 @@ export class TablePaginationComponent extends UntilDestroyedMixin implements OnI
    */
   public updateCurrentRangeLabel() {
     if (this.pagination.total) {
-      let totalItems = this.pagination.total;
-      let lowerBound = this.pagination.getLowerPageBound();
-      let upperBound = this.pagination.getUpperPageBound(this.pagination.total);
+      const totalItems = this.pagination.total;
+      const lowerBound = this.pagination.getLowerPageBound();
+      const upperBound = this.pagination.getUpperPageBound(this.pagination.total);
 
       this.currentRange = '(' + lowerBound + ' - ' + upperBound + '/' + totalItems + ')';
     } else {

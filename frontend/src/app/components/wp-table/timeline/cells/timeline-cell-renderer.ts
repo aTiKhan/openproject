@@ -1,5 +1,5 @@
 import * as moment from 'moment';
-import {WorkPackageResource} from 'core-app/modules/hal/resources/work-package-resource';
+import { WorkPackageResource } from 'core-app/modules/hal/resources/work-package-resource';
 import {
   calculatePositionValueForDayCount,
   calculatePositionValueForDayCountingPx,
@@ -20,17 +20,19 @@ import {
   classNameShowOnHover,
   WorkPackageCellLabels
 } from './wp-timeline-cell';
-import {classNameBarLabel, classNameLeftHandle, classNameRightHandle} from './wp-timeline-cell-mouse-handler';
-import {WorkPackageTimelineTableController} from '../container/wp-timeline-container.directive';
-import {DisplayFieldRenderer} from '../../../wp-edit-form/display-field-renderer';
-import {Inject, Injector} from '@angular/core';
-import {TimezoneService} from 'core-components/datetime/timezone.service';
-import {Highlighting} from "core-components/wp-fast-table/builders/highlighting/highlighting.functions";
-import {HierarchyRenderPass} from "core-components/wp-fast-table/builders/modes/hierarchy/hierarchy-render-pass";
+import { classNameBarLabel, classNameLeftHandle, classNameRightHandle } from './wp-timeline-cell-mouse-handler';
+import { WorkPackageTimelineTableController } from '../container/wp-timeline-container.directive';
+import { DisplayFieldRenderer } from 'core-app/modules/fields/display/display-field-renderer';
+import { Injector } from '@angular/core';
+import { TimezoneService } from 'core-components/datetime/timezone.service';
+import { Highlighting } from "core-components/wp-fast-table/builders/highlighting/highlighting.functions";
+import { HierarchyRenderPass } from "core-components/wp-fast-table/builders/modes/hierarchy/hierarchy-render-pass";
 import Moment = moment.Moment;
-import {WorkPackageViewTimelineService} from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-timeline.service";
-import {WorkPackageChangeset} from "core-components/wp-edit/work-package-changeset";
-import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
+import { WorkPackageViewTimelineService } from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-timeline.service";
+import { WorkPackageChangeset } from "core-components/wp-edit/work-package-changeset";
+import { InjectField } from "core-app/helpers/angular/inject-field.decorator";
+import { SchemaCacheService } from "core-components/schemas/schema-cache.service";
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
 
 export interface CellDateMovement {
   // Target values to move work package to
@@ -45,12 +47,24 @@ export type LabelPosition = 'left'|'right'|'farRight';
 export class TimelineCellRenderer {
   @InjectField() wpTableTimeline:WorkPackageViewTimelineService;
   @InjectField() TimezoneService:TimezoneService;
+  @InjectField() schemaCache:SchemaCacheService;
+  @InjectField() I18n!:I18nService;
+
+  public text = {
+    label_children_derived_duration: this.I18n.t('js.label_children_derived_duration')
+  };
+
+  public ganttChartRowHeight:number;
+
   public fieldRenderer:DisplayFieldRenderer = new DisplayFieldRenderer(this.injector, 'timeline');
 
   protected dateDisplaysOnMouseMove:{ left?:HTMLElement; right?:HTMLElement } = {};
 
   constructor(readonly injector:Injector,
               readonly workPackageTimeline:WorkPackageTimelineTableController) {
+    this.ganttChartRowHeight = +getComputedStyle(document.documentElement)
+      .getPropertyValue('--table-timeline--row-height')
+      .replace('px', '');
   }
 
   public get type():string {
@@ -58,7 +72,8 @@ export class TimelineCellRenderer {
   }
 
   public canMoveDates(wp:WorkPackageResource) {
-    return wp.schema.startDate.writable && wp.schema.dueDate.writable && wp.isAttributeEditable('startDate');
+    const schema = this.schemaCache.of(wp);
+    return schema.startDate.writable && schema.dueDate.writable && schema.isAttributeEditable('startDate');
   }
 
   public isEmpty(wp:WorkPackageResource) {
@@ -90,8 +105,8 @@ export class TimelineCellRenderer {
    *
    */
   public assignDateValues(change:WorkPackageChangeset,
-                          labels:WorkPackageCellLabels,
-                          dates:any):void {
+    labels:WorkPackageCellLabels,
+    dates:any):void {
 
     this.assignDate(change, 'startDate', dates.startDate);
     this.assignDate(change, 'dueDate', dates.dueDate);
@@ -104,9 +119,9 @@ export class TimelineCellRenderer {
    * depending on which initial date was set.
    */
   public onDaysMoved(change:WorkPackageChangeset,
-                     dayUnderCursor:Moment,
-                     delta:number,
-                     direction:'left'|'right'|'both'|'create'|'dragright'):CellDateMovement {
+    dayUnderCursor:Moment,
+    delta:number,
+    direction:'left'|'right'|'both'|'create'|'dragright'):CellDateMovement {
 
     const initialStartDate = change.pristineResource.startDate;
     const initialDueDate = change.pristineResource.dueDate;
@@ -116,7 +131,7 @@ export class TimelineCellRenderer {
     const startDate = moment(change.projectedResource.startDate);
     const dueDate = moment(change.projectedResource.dueDate);
 
-    let dates:CellDateMovement = {};
+    const dates:CellDateMovement = {};
 
     if (direction === 'left') {
       dates.startDate = moment(initialStartDate || initialDueDate).add(delta, 'days');
@@ -146,10 +161,10 @@ export class TimelineCellRenderer {
   }
 
   public onMouseDown(ev:MouseEvent,
-                     dateForCreate:string|null,
-                     renderInfo:RenderInfo,
-                     labels:WorkPackageCellLabels,
-                     elem:HTMLElement):'left'|'right'|'both'|'dragright'|'create' {
+    dateForCreate:string|null,
+    renderInfo:RenderInfo,
+    labels:WorkPackageCellLabels,
+    elem:HTMLElement):'left'|'right'|'both'|'dragright'|'create' {
 
     // check for active selection mode
     if (renderInfo.viewParams.activeSelectionMode) {
@@ -201,8 +216,6 @@ export class TimelineCellRenderer {
   public update(element:HTMLDivElement, labels:WorkPackageCellLabels|null, renderInfo:RenderInfo):boolean {
     const change = renderInfo.change;
     const bar = element.querySelector(`.${timelineBackgroundElementClass}`) as HTMLElement;
-
-    const viewParams = renderInfo.viewParams;
     let start = moment(change.projectedResource.startDate);
     let due = moment(change.projectedResource.dueDate);
 
@@ -225,19 +238,7 @@ export class TimelineCellRenderer {
       bar.style.backgroundImage = `linear-gradient(90deg, #F1F1F1 0%, rgba(255,255,255,0) 80%)`;
     }
 
-    // offset left
-    const offsetStart = start.diff(viewParams.dateDisplayStart, 'days');
-    element.style.left = calculatePositionValueForDayCount(viewParams, offsetStart);
-
-    // duration
-    const duration = due.diff(start, 'days') + 1;
-    element.style.width = calculatePositionValueForDayCount(viewParams, duration);
-
-    // ensure minimum width
-    if (!_.isNaN(start.valueOf()) || !_.isNaN(due.valueOf())) {
-      const minWidth = _.max([renderInfo.viewParams.pixelPerDay, 2]);
-      element.style.minWidth = minWidth + 'px';
-    }
+    this.setElementPositionAndSize(element, renderInfo, start, due);
 
     // Update labels if any
     if (labels) {
@@ -266,7 +267,7 @@ export class TimelineCellRenderer {
     const projection = renderInfo.change.projectedResource;
 
     let start = moment(projection.startDate);
-    let due = moment(projection.dueDate);
+    const due = moment(projection.dueDate);
     start = _.isNaN(start.valueOf()) ? due.clone() : start;
 
     const offsetStart = start.diff(renderInfo.viewParams.dateDisplayStart, 'days');
@@ -362,13 +363,13 @@ export class TimelineCellRenderer {
   }
 
   protected applyTypeColor(renderInfo:RenderInfo, bg:HTMLElement):void {
-    let wp = renderInfo.workPackage;
-    let type = wp.type;
-    let selectionMode = renderInfo.viewParams.activeSelectionMode;
+    const wp = renderInfo.workPackage;
+    const type = wp.type;
+    const selectionMode = renderInfo.viewParams.activeSelectionMode;
 
-    // Don't apply the class in selection mode or for parents (clamps)
+    // Don't apply the class in selection mode
     const id = type.id;
-    if (selectionMode || this.isParentWithVisibleChildren(wp)) {
+    if (selectionMode) {
       bg.classList.remove(Highlighting.backgroundClass('type', id!));
     } else {
       bg.classList.add(Highlighting.backgroundClass('type', id!));
@@ -381,36 +382,78 @@ export class TimelineCellRenderer {
     }
   }
 
+  setElementPositionAndSize(element:HTMLElement, renderInfo:RenderInfo, start:moment.Moment, due:moment.Moment) {
+    const viewParams = renderInfo.viewParams;
+    // offset left
+    const offsetStart = start.diff(viewParams.dateDisplayStart, 'days');
+    element.style.left = calculatePositionValueForDayCount(viewParams, offsetStart);
+
+    // duration
+    const duration = due.diff(start, 'days') + 1;
+    element.style.width = calculatePositionValueForDayCount(viewParams, duration);
+
+    // ensure minimum width
+    if (!_.isNaN(start.valueOf()) || !_.isNaN(due.valueOf())) {
+      const minWidth = _.max([renderInfo.viewParams.pixelPerDay, 2]);
+      element.style.minWidth = minWidth + 'px';
+    }
+  }
+
   /**
    * Changes the presentation of the work package.
    *
    * Known cases:
    * 1. Display a clamp if this work package is a parent element
+   *    and display a box wrapping all the visible children when the
+   *    parent is hovered
    */
   checkForSpecialDisplaySituations(renderInfo:RenderInfo, bar:HTMLElement) {
     const wp = renderInfo.workPackage;
-    let selectionMode = renderInfo.viewParams.activeSelectionMode;
+    const row = bar.parentElement!.parentElement!;
+    const selectionMode = renderInfo.viewParams.activeSelectionMode;
 
     // Cannot edit the work package if it has children
-    if (!wp.isLeaf && !selectionMode) {
+    // and it is not on 'Manual scheduling' mode
+    if (!wp.isLeaf && !selectionMode && !wp.scheduleManually) {
       bar.classList.add('-readonly');
     } else {
       bar.classList.remove('-readonly');
     }
 
-    // Display the parent as clamp-style when it has children in the table
-    if (this.isParentWithVisibleChildren(wp)) {
-      bar.classList.add('-clamp-style');
-      bar.style.borderStyle = 'solid';
-      bar.style.borderWidth = '2px';
-      bar.style.borderBottom = 'none';
-      bar.style.background = 'none';
+    // Display the children's duration clamp
+    if (wp.derivedStartDate && wp.derivedDueDate) {
+      const derivedStartDate = moment(wp.derivedStartDate);
+      const derivedDueDate = moment(wp.derivedDueDate);
+      const startDate = moment(renderInfo.change.projectedResource.startDate);
+      const dueDate = moment(renderInfo.change.projectedResource.dueDate);
+      const previousChildrenDurationBar = row.querySelector('.children-duration-bar');
+      const childrenDurationBar = document.createElement('div');
+      const childrenDurationHoverContainer = document.createElement('div');
+      const visibleChildren = document.querySelectorAll(`.wp-timeline-cell.__hierarchy-group-${wp.id}:not([class*='__collapsed-group'])`).length || 0;
+
+      childrenDurationBar.classList.add('children-duration-bar', '-clamp-style');
+      childrenDurationBar.title = this.text.label_children_derived_duration;
+      childrenDurationHoverContainer.classList.add('children-duration-hover-container');
+      childrenDurationHoverContainer.style.height = this.ganttChartRowHeight * visibleChildren + 10 + 'px';
+
+      if (derivedStartDate.isBefore(startDate) || derivedDueDate.isAfter(dueDate)) {
+        childrenDurationBar.classList.add('-duration-overflow');
+      }
+
+      this.setElementPositionAndSize(childrenDurationBar, renderInfo, derivedStartDate, derivedDueDate);
+
+      if (previousChildrenDurationBar) {
+        previousChildrenDurationBar.remove();
+      }
+
+      childrenDurationBar.appendChild(childrenDurationHoverContainer);
+      row!.appendChild(childrenDurationBar);
     }
   }
 
   protected updateLabels(activeDragNDrop:boolean,
-                         labels:WorkPackageCellLabels,
-                         change:WorkPackageChangeset) {
+    labels:WorkPackageCellLabels,
+    change:WorkPackageChangeset) {
 
     const labelConfiguration = this.wpTableTimeline.getNormalizedLabels(change.projectedResource);
 
@@ -431,13 +474,13 @@ export class TimelineCellRenderer {
   }
 
   protected renderLabel(change:WorkPackageChangeset,
-                        labels:WorkPackageCellLabels,
-                        position:LabelPosition|'leftHover'|'rightHover',
-                        attribute:string|null) {
+    labels:WorkPackageCellLabels,
+    position:LabelPosition|'leftHover'|'rightHover',
+    attribute:string|null) {
 
     // Get the label position
     // Skip label if it does not exist (milestones)
-    let label = labels[position];
+    const label = labels[position];
     if (!label) {
       return;
     }
@@ -451,7 +494,7 @@ export class TimelineCellRenderer {
     }
 
     // Get the rendered field
-    let [field, span] = this.fieldRenderer.renderFieldValue(change.projectedResource, attribute, change);
+    const [field, span] = this.fieldRenderer.renderFieldValue(change.projectedResource, attribute, change);
 
     if (label && field && span) {
       span.classList.add('label-content');

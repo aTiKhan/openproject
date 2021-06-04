@@ -1,21 +1,21 @@
-import { NewsDmService } from "core-app/modules/hal/dm-services/news-dm.service";
-import { ComponentFixture, fakeAsync, TestBed, tick, async } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick, waitForAsync } from '@angular/core/testing';
 import { WidgetNewsComponent } from './news.component';
 import { DebugElement, NO_ERRORS_SCHEMA } from '@angular/core';
 import { TimezoneService } from 'core-app/components/datetime/timezone.service';
 import { ConfigurationService } from 'core-app/modules/common/config/configuration.service';
 import { States } from 'core-app/components/states.service';
-import { UserDmService } from 'core-app/modules/hal/dm-services/user-dm.service';
 import { HalResourceService } from "core-app/modules/hal/services/hal-resource.service";
 import { HttpClientModule } from "@angular/common/http";
 import { By } from '@angular/platform-browser';
+import { APIV3Service } from "core-app/modules/apiv3/api-v3.service";
+import { of } from "rxjs";
 
 describe('shows news', () => {
   let app:WidgetNewsComponent;
   let fixture:ComponentFixture<WidgetNewsComponent>;
   let element:DebugElement;
 
-  let newsStub = {
+  const newsStub = {
     id: 1,
     title: 'Welcome to your demo project',
     author: {
@@ -32,13 +32,15 @@ describe('shows news', () => {
     updatedAt: '2020-03-26T10:42:14Z',
   };
 
-  let newsDmServiceStub = {
-    list: (_params:any) => {
-      return Promise.resolve({ elements: [newsStub] });
+  const apiv3ServiceStub = {
+    news: {
+      list: (_params:any) => {
+        return of({ elements: [newsStub] });
+      }
     }
   };
 
-  let configurationServiceStub = {
+  const configurationServiceStub = {
     isTimezoneSet: () => false,
     dateFormatPresent: () => false,
     timeFormatPresent: () => false
@@ -51,8 +53,7 @@ describe('shows news', () => {
         TimezoneService,
         { provide: ConfigurationService, useValue: configurationServiceStub },
         States,
-        UserDmService,
-        { provide: NewsDmService, useValue: newsDmServiceStub },
+        { provide: APIV3Service, useValue: apiv3ServiceStub },
         HalResourceService,
       ],
       imports: [HttpClientModule],
@@ -71,45 +72,45 @@ describe('shows news', () => {
   }));
 
 
-  it('should render the componenet successfully to show the news', async(() => {
+  it('should render the componenet successfully to show the news', waitForAsync(() => {
     fixture.detectChanges();
     fixture.whenStable().then(() => {
-      let newsItem = document.querySelector('li');
+      const newsItem = document.querySelector('li');
       expect(document.contains(newsItem)).toBeTruthy();
     });
   }));
 
-  it('should Not add the no-results component into DOM', async(() => {
+  it('should Not add the no-results component into DOM', waitForAsync(() => {
     fixture.detectChanges();
     fixture.whenStable().then(() => {
-      let newsItem = document.querySelector('no-results');
+      const newsItem = document.querySelector('no-results');
       expect(document.contains(newsItem)).not.toBeTruthy();
     });
   }));
 
-  it('should add the widget-header component into DOM', async(() => {
+  it('should add the widget-header component into DOM', waitForAsync(() => {
     fixture.detectChanges();
     fixture.whenStable().then(() => {
-      let newsItem = document.querySelector('widget-header');
+      const newsItem = document.querySelector('widget-header');
       expect(document.contains(newsItem)).toBeTruthy();
     });
   }));
 
-  it('should show summary of news', async(() => {
+  it('should show summary of news', waitForAsync(() => {
     fixture.detectChanges();
 
     fixture.whenStable().then(() => {
-      let newsItem:HTMLElement = element.query(By.css('.widget-box--additional-info')).nativeElement;
+      const newsItem:HTMLElement = element.query(By.css('.widget-box--additional-info')).nativeElement;
       expect(newsItem.innerText).toContain('We are glad you joined.');
 
     });
   }));
 
-  it('should Not add the user-avatar component into DOM', async(() => {
+  it('should Not add the op-principal component into DOM', waitForAsync(() => {
     fixture.detectChanges();
 
     fixture.whenStable().then(() => {
-      let newsItem = document.querySelector('user-avatar');
+      const newsItem = document.querySelector('op-principal');
       expect(document.contains(newsItem)).toBeTruthy();
 
     });

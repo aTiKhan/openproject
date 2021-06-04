@@ -1,5 +1,3 @@
-<%= render partial: 'header_tags' %>
-
 <% html_title(t(:label_administration), t('webhooks.plural')) -%>
 <% local_assigns[:additional_breadcrumb] = t('webhooks.plural') %>
 
@@ -15,5 +13,5 @@
   </li>
 <% end %>
 
-<%= cell ::Webhooks::Outgoing::Webhooks::TableCell, @webhooks %>
+<%= rails_cell ::Webhooks::Outgoing::Webhooks::TableCell, @webhooks %>
 

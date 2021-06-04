@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,40 +26,20 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {HalResource} from 'core-app/modules/hal/resources/hal-resource';
-import {SchemaResource} from "core-app/modules/hal/resources/schema-resource";
-import {SchemaCacheService} from "core-components/schemas/schema-cache.service";
-import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
+import { HalResource } from 'core-app/modules/hal/resources/hal-resource';
+import { ICKEditorContext } from "core-app/modules/common/ckeditor/ckeditor-setup.service";
 
 export class ProjectResource extends HalResource {
-  @InjectField() private schemaCacheService:SchemaCacheService;
-
   public get state() {
     return this.states.projects.get(this.id!) as any;
   }
 
-  public getEditorTypeFor(fieldName:string):"full"|"constrained" {
+  public getEditorContext(fieldName:string):ICKEditorContext {
     if (['statusExplanation', 'description'].indexOf(fieldName) !== -1) {
-      return 'full';
+      return { type: 'full', macros: 'resource' };
     }
 
-    return 'constrained';
-  }
-
-  /**
-   * Get the schema of the project
-   * ensure that it's loaded
-   *
-   * TODO this is duplicating the WorkPackageResource#schema getter
-   */
-  public get schema():SchemaResource {
-    const state = this.schemaCacheService.state(this as any);
-
-    if (!state.hasValue()) {
-      throw `Accessing schema of ${this.id} without it being loaded.`;
-    }
-
-    return state.value!;
+    return { type: 'constrained' };
   }
 
   /**

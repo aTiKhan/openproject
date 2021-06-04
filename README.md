@@ -1,6 +1,6 @@
 # OpenProject
-[<img src="https://travis-ci.org/opf/openproject.svg?branch=dev" alt="Build Status" />](https://travis-ci.org/opf/openproject)
 [![Code Climate](https://codeclimate.com/github/opf/openproject/badges/gpa.svg)](https://codeclimate.com/github/opf/openproject)
+[![Github Tests](https://github.com/opf/openproject/actions/workflows/test-core.yml/badge.svg?branch=dev)](https://github.com/opf/openproject/actions/workflows/test-core.yml)
 
 OpenProject is a web-based project management software. Its key features are:
 
@@ -21,19 +21,24 @@ More information and screenshots can be found on our [website](https://www.openp
 If you want to run an instance of OpenProject in production (or for evaluation), refer to our
 in-depth [installation guides](https://www.openproject.org/download-and-installation/).
 
-If you're a developer wanting to set-up a local environment for contributing to OpenProject or
-developing plugins, you should refer instead to our [Quick Start for Developers](https://www.openproject.org/development/setting-up-development-environment/).
-
 ## Reporting bugs
 
-You found a bug? Please report it to our [OpenProject community](https://community.openproject.com/projects/openproject). Thank you!
+You found a bug? Please [report it](https://docs.openproject.org/development/report-a-bug) to our [OpenProject community](https://community.openproject.com/projects/openproject). Thank you!
 
-## Contact
+## Contribute
 
 OpenProject is supported by its community members, both companies and individuals.
 
-Here you can find our [contact information](https://www.openproject.org/contact-us).
+We are always looking for new members to our community, so if you are interested in improving OpenProject we would be glad to welcome and support you getting into the code. There are guides as well, e.g. a [Quick Start for Developers](https://www.openproject.org/development/setting-up-development-environment/), but don't hesitate to simply [contact us](https://www.openproject.org/contact-us) if you have questions.
 
+Working on OpenProject comes with the satisfaction of working on a widely used open source application.
+
+Also, if you do not want to be limited to working on open source in your free time, OpenProject GmbH, the company contributing to the OpenProject development, [is hiring](https://www.openproject.org/career/).
+
+
+## Contact
+
+Here you can find our [contact information](https://www.openproject.org/contact-us).
 
 ## Security / responsible disclosure
 
@@ -42,7 +47,7 @@ will keep our community secure. If you happen to come across a security issue we
 you to disclose it to us privately to allow our users and community enough time to
 upgrade. Security issues will always take precedence over anything else in the pipeline.
 
-For more information on how to disclosure a security vulnerability, [please see this page](docs/security/README.md).
+For more information on how to disclose a security vulnerability, [please see this page](docs/development/security/README.md).
 
 ## License
 

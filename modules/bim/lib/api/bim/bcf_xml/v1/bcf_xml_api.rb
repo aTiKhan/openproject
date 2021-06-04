@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -88,7 +88,17 @@ module API
                     importer = ::OpenProject::Bim::BcfXml::Importer.new(file,
                                                                         project,
                                                                         current_user: User.current)
+
+                    unless importer.bcf_version_valid?
+                      error_message = I18n.t('bcf.bcf_xml.import_failed_unsupported_bcf_version',
+                                             minimal_version: OpenProject::Bim::BcfXml::Importer::MINIMUM_BCF_VERSION)
+
+                      raise API::Errors::UnsupportedMediaType.new(error_message)
+                    end
+
                     importer.import!(import_options)
+                  rescue API::Errors::UnsupportedMediaType => e
+                    raise e
                   rescue StandardError => e
                     raise API::Errors::InternalError.new(e.message)
                   ensure

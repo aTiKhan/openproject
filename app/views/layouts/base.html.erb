@@ -1,12 +1,12 @@
 <%#-- copyright
 OpenProject is an open source project management software.
-Copyright (C) 2012-2020 the OpenProject GmbH
+Copyright (C) 2012-2021 the OpenProject GmbH
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License version 3.
 
 OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-Copyright (C) 2006-2017 Jean-Philippe Lang
+Copyright (C) 2006-2013 Jean-Philippe Lang
 Copyright (C) 2010-2013 the ChiliProject Team
 
 This program is free software; you can redistribute it and/or
@@ -30,12 +30,12 @@ See docs/COPYRIGHT.rdoc for more details.
 <html xmlns="http://www.w3.org/1999/xhtml"
       lang="<%= I18n.locale.to_s %>"
       xml:lang="<%= I18n.locale.to_s %>"
-      ng-csp="no-unsafe-eval"
       class="<%= 'in_modal' unless show_decoration %>">
 <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
   <meta name="viewport" content="width=device-width">
   <%= output_title_and_meta_tags %>
+  <%= sentry_frontend_tags %>
 
   <% relative_url_root = OpenProject::Configuration['rails_relative_url_root'] || '' %>
   <meta name="app_base_path" content="<%= relative_url_root %>"/>
@@ -53,12 +53,9 @@ See docs/COPYRIGHT.rdoc for more details.
           data-id="<%= User.current.id %>" />
   <% end %>
 
-  <% if OpenProject::Configuration.frontend_sentry? %>
-    <%= tag :meta, name: 'openproject_sentry', data: { dsn: OpenProject::Configuration.sentry_dsn } %>
-  <% end %>
-
   <meta name="openproject_initializer"
         data-locale="<%= I18n.locale %>"
+        data-first-week-of-year="<%= locale_first_week_of_year %>"
         data-first-day-of-week="<%= locale_first_day_of_week %>"
         data-default-locale="<%= I18n.default_locale %>"
         data-environment="<%= Rails.env %>"
@@ -72,7 +69,6 @@ See docs/COPYRIGHT.rdoc for more details.
   <%= call_hook :view_layouts_base_html_meta %>
 
   <%= render 'common/favicons' %>
-  <%= stylesheet_link_tag 'openproject', media: "all" %>
 
   <%# Include CLI assets (development) or prod build assets %>
   <%= include_frontend_assets %>
@@ -82,17 +78,12 @@ See docs/COPYRIGHT.rdoc for more details.
                           media: :all,
                           skip_pipeline: true %>
 
-  <%= javascript_include_tag 'application' %>
-  <%= javascript_include_tag "locales/#{I18n.locale}" %>
-  <!-- Text formatting specific includes -->
-  <%= text_formatting_js_includes %>
-  <!-- Onboarding specific includes -->
-  <%= javascript_include_tag 'vendor/enjoyhint.js'%>
   <!-- project specific tags -->
   <%= call_hook :view_layouts_base_html_head %>
   <!-- page specific tags -->
   <%= content_for(:header_tags) if content_for?(:header_tags) %>
-  <% if EnterpriseToken.allows_to?(:define_custom_style) && CustomStyle.try(:current).present? %>
+  <%= render partial: "custom_styles/inline_css_logo" %>
+  <% if apply_custom_styles? %>
     <% cache(CustomStyle.current) do %>
       <%= render partial: "custom_styles/inline_css" %>
       <% if CustomStyle.current.favicon.present? %>
@@ -115,7 +106,7 @@ See docs/COPYRIGHT.rdoc for more details.
         <strong><%= t(:noscript_heading) %></strong>
       </span>
       <%= t(:noscript_description) %>
-      <a href="http://www.enable-javascript.com/" target="_blank"><%= l(:noscript_learn_more) %></a>
+      <a href="http://www.enable-javascript.com/" target="_blank"><%= t(:noscript_learn_more) %></a>
     </p>
   </div>
 </noscript>
@@ -125,35 +116,33 @@ See docs/COPYRIGHT.rdoc for more details.
 <% initial_classes = initial_menu_classes(side_displayed, show_decoration) %>
 <div id="wrapper" style="<%= initial_menu_styles %>" class="<%= initial_classes %>">
   <% if show_decoration %>
-    <div id="top-menu">
-      <div id="header">
-        <div id="top-menu-items">
-          <h1 class="hidden-for-sighted">
-            <%= l(:label_top_menu) %>
-          </h1>
-          <main-menu-toggle></main-menu-toggle>
-          <a href="" class="hidden-for-sighted skip-navigation-link"
-             aria-label="<%= I18n.t('js.work_packages.jump_marks.label_content') %>">
-            <%= I18n.t('js.work_packages.jump_marks.content') %>
-          </a>
-          <%= render_top_menu_left %>
-          <div id="logo" class="hidden-for-mobile">
-            <%= link_to(I18n.t('label_home'), fixed_home_url, class: 'home-link') %>
-          </div>
-          <%= call_hook :view_layouts_base_top_menu %>
-          <div class="top-menu-items-right">
-            <%= render partial: 'search/mini_form' %>
-            <%= render_top_menu_right %>
-          </div>
-        </div>
+    <header class="op-app-header">
+      <div class="op-app-header--start">
+        <h1 class="hidden-for-sighted">
+          <%= t(:label_top_menu) %>
+        </h1>
+        <main-menu-toggle></main-menu-toggle>
+        <a href="" class="hidden-for-sighted skip-navigation-link"
+           aria-label="<%= I18n.t('js.work_packages.jump_marks.label_content') %>">
+          <%= I18n.t('js.work_packages.jump_marks.content') %>
+        </a>
+        <%= render_top_menu_left %>
       </div>
-    </div>
+      <div class="op-app-header--center op-logo">
+        <%= link_to(I18n.t('label_home'), fixed_home_url, class: 'op-logo--link') %>
+      </div>
+      <%= call_hook :view_layouts_base_top_menu %>
+      <div class="op-app-header--end">
+        <%= render partial: 'search/mini_form' %>
+        <%= render_top_menu_right %>
+      </div>
+    </header>
   <% end %>
   <div id="main"
        class="<%= initial_classes %>">
     <% if (side_displayed && show_decoration) %>
       <div id="main-menu" class="main-menu">
-        <h1 class="hidden-for-sighted"><%= l(:label_main_menu) %></h1>
+        <h1 class="hidden-for-sighted"><%= t(:label_main_menu) %></h1>
         <main-menu-resizer></main-menu-resizer>
         <div id="menu-sidebar">
           <%= main_menu %>
@@ -168,7 +157,7 @@ See docs/COPYRIGHT.rdoc for more details.
       </div>
     <% end %>
     <div class="content-overlay"></div>
-    <div id="content-wrapper" class="<%= initial_classes %>">
+    <main id="content-wrapper" class="<%= initial_classes %>">
       <% if show_decoration %>
         <div id="breadcrumb" class="<%= initial_classes %><%= show_breadcrumb ? ' -show' : '' %>">
           <%= you_are_here_info %>
@@ -180,21 +169,21 @@ See docs/COPYRIGHT.rdoc for more details.
       <% if show_onboarding_modal? %>
         <section data-augmented-model-wrapper
                  data-modal-initialize-now="true"
-                 data-modal-class-name="onboarding-modal -highlight">
+                 data-modal-class-name="onboarding-modal op-modal_autoheight -highlight">
           <%= render partial: '/onboarding/configuration_modal' %>
         </section>
       <% end %>
       <div id="content" class="<%= initial_classes %>">
-        <h1 class="hidden-for-sighted"><%= l(:label_content) %></h1>
+        <h1 class="hidden-for-sighted"><%= t(:label_content) %></h1>
         <%= content_for :content_body %>
         <% unless local_assigns[:no_action_menu] %>
           <%= yield %>
         <% end %>
         <%= call_hook :view_layouts_base_content %>
       </div>
-    </div>
+    </main>
   </div>
-  <div id="ajax-indicator" style="display:none;"><span><%= l(:label_loading) %></span></div>
+  <div id="ajax-indicator" style="display:none;"><span><%= t(:label_loading) %></span></div>
 </div>
 <%# Properly decides main menu expanded state and width before its drawn. Fixes flickering side menu
         where menu is first expanded, then being collapsed in angular. %>

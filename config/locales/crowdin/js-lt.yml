@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -33,10 +33,24 @@ lt:
         single: "Pasirinkti „%{name}“"
       remove: "Pašalinti %{name}"
       active: "Aktyvus %{label} %{name}"
+    backup:
+      attachments_disabled: Prisegti failai negalėjo būti įtraukti, nes jie viršija maksimalių bendrą leidžiamą dydį. Jūs galite tai pakeisti konfigūracijoje (reikia perstartuoti serverį).
+      info: >
+        Jūs čia galite pradėti atsarginės kopijos darymą. Šis procesas gali užtrukti šiek tiek laiko priklausomai nuo jūsų turimų duomenų kiekio (ypač priedų). Kai jis bus baigtas, gausite el. pašto laišką.
+      note: >
+        Nauja atsarginė kopija perrašys senąją. Per dieną galima prašyti tik riboto kiekio atsarginių kopijų.
+      last_backup: 'Paskutinė atsarginė kopija:'
+      last_backup_from: Paskutinė atsarginė kopija nuo
+      title: OpenProject atsarginė kopija
+      options: Nustatymai
+      include_attachments: Įtraukti priedus
+      download_backup: Atsiųsti atsarginę kopiją
+      request_backup: Prašyti atsarginės kppijos
     close_popup_title: "Užverti iškylantį langą"
     close_filter_title: "Užverti filtrą"
     close_form_title: "Užverti formą"
     button_add_watcher: "Pridėti stebėtojų"
+    button_add: "Pridėti"
     button_back: "Atgal"
     button_back_to_list_view: "Atgal į sąrašo peržiūrą"
     button_cancel: "Atšaukti"
@@ -54,6 +68,8 @@ lt:
     button_duplicate: "Dublikuoti"
     button_edit: "Redaguoti"
     button_filter: "Filtras"
+    button_collapse_all: "Sutraukti visus"
+    button_expand_all: "Išskleisti visus"
     button_advanced_filter: "Sudėtingesnis filtras"
     button_list_view: "Sąrašo rodinys"
     button_show_view: "Viso ekrano rodinys"
@@ -71,14 +87,15 @@ lt:
     button_update: "Atnaujinti"
     button_export-pdf: "Parsisiųsti PDF"
     button_export-atom: "Parsiųsti Atom"
+    button_create: "Sukurti"
     calendar:
       title: 'Kalendorius'
       too_many: 'Iš viso yra %{count} darbo paketų, bet tik %{max} gali būti rodomi.'
     card:
       add_new: 'Pridėti naują kortelę'
       highlighting:
-        inline: 'Highlight inline:'
-        entire_card_by: 'Entire card by'
+        inline: 'Paryškinti eilutėje:'
+        entire_card_by: 'Visa kortelė pagal'
       remove_from_list: 'Išimti kortelę iš sąrašo'
     caption_rate_history: "Koeficiento istorija"
     clipboard:
@@ -91,11 +108,11 @@ lt:
       types:
         line: 'Linija'
         horizontal_bar: 'Horizontali juosta'
-        bar: 'Bar'
+        bar: 'Stulpeliai'
         pie: 'Pyragas'
         doughnut: 'Spurga'
         radar: 'Radaras'
-        polar_area: 'Polar area'
+        polar_area: 'Skritulinis'
       tabs:
         graph_settings: 'Bendra'
         dataset: 'Duomenų aibė %{number}'
@@ -115,6 +132,11 @@ lt:
         manual: 'Perjungti į Markdown išeities kodą'
         wysiwyg: 'Perjungti į WYSIWYG (ką matai, tą ir turi) redaktorių'
       macro:
+        error: 'Negaliu išskleisti makrokomandos: %{message}'
+        attribute_reference:
+          macro_help_tooltip: 'Šis teksto segmentas yra dinamiškai sukuriamas makrokomandos.'
+          not_found: 'Reikalaujamas resursas nerastas.'
+          invalid_attribute: "Pasirinktas atributas '%{name}' neegzistuoja."
         child_pages:
           button: 'Nuorodos į vaikų puslapius'
           include_parent: 'Įtraukti tėvus'
@@ -165,56 +187,58 @@ lt:
         reset_to_defaults: 'Atkurti į numatytuosius'
       enterprise:
         trial:
-          confirmation: "Confirmation of email address"
-          confirmation_info: "We sent you an email. Please check your emails and click the confirmation link provided to start your 14 days trial."
+          confirmation: "Patvirtinti el. pašto adresą"
+          confirmation_info: >
+            Mes %{date} išsiuntėme jums el. laišką adresu %{email}. Prašome patikrinti savo laiškų dėžutę ir spustelėti ant patvirtinimo nuorodos, kad pradėtumėte savo 14 dienų bandomąjį periodą.
           form:
             general_consent: >
-              I agree with the <a target="_blank" href="%{link_terms}">terms of service</a> and the <a target="_blank" href="%{link_privacy}">privacy policy</a>.
-            invalid_email: "Invalid email address"
-            label_company: "Company"
+              Sutinku su <a target="_blank" href="%{link_terms}">paslaugos sąlygomis</a> ir <a target="_blank" href="%{link_privacy}">privatumo taisyklėmis</a>.
+            invalid_email: "Neteisingas el. pašto adresas"
+            label_company: "Kompanija"
             label_first_name: "Vardas"
             label_last_name: "Pavardė"
             label_email: "El. paštas"
-            label_domain: "Domain"
+            label_domain: "Domenas"
             label_subscriber: "Prenumeruotojas"
             label_maximum_users: "Maksimalus aktyvių vartotojų skaičius"
-            label_starts_at: "Starts at"
+            label_starts_at: "Prasideda nuo"
             label_expires_at: "Nustoja galioti"
-            receive_newsletter: I want to receive the OpenProject <a target="_blank" href="%{link}">newsletter</a>.
-          email_not_received: "You did not receive an email? You can resend the email with the link on the right."
-          try_another_email: "Or try it with another email address."
-          try_another_email_hint: "Please be aware that your previous email address gets invalid if you try again with a new one."
-          next_steps: "Next steps"
+            receive_newsletter: Noriu gauti OpenProject <a target="_blank" href="%{link}">naujienlaiškį</a>.
+            taken_domain: Gali būti tik vienas aktyvus bandomasis periodas domenui.
+            taken_email: Kiekvienas vartotojas gali sukurti tik vieną bandomąjį periodą.
+          email_not_received: "Negavote el. laiško? Galite pakartotinai išsiųsti laišką naudodami nuorodą dešinėje."
+          try_another_email: "Arba bandykite su kitu el. pašto adresu."
+          next_steps: "Kiti žingsniai"
           resend_link: "Siųsti iš naujo"
-          resend_success: "Email has been resent. Please check your emails and click the confirmation link provided."
-          resend_warning: "Could not resend email."
-          session_timeout: "Your session timed out. Please try to reload the page or resend email."
-          status_label: "Status:"
-          status_confirmed: "confirmed"
-          status_waiting: "email sent - waiting for confirmation"
-          test_ee: "Test the Enterprise Edition 14 days for free"
-          quick_overview: "Get a quick overview of project management and team collaboration with OpenProject Enterprise Edition."
+          resend_success: "El. laiškas buvo pakartotinai išsiųstas. Prašome patikrinti savo pašto dėžutę ir paspausti ant pateiktos patvirtinimo nuorodos."
+          resend_warning: "Negalima pakartotinai išsiųsti el. laiško."
+          session_timeout: "Jūsų sesijos laikas baigėsi. Pabandykite perkrauti puslapį ar išsiųsti el. laišką pakartotinai."
+          status_label: "Būsena:"
+          status_confirmed: "patvirtinta"
+          status_waiting: "laiškas išsiųstas -- laukiame patvirtinimo"
+          test_ee: "Išbandykite Enterprise Edition 14 dienų nemokamai"
+          quick_overview: "Gauti greitą apžvalgą apie projektų valdymą ir komandos bendradarbiavimą naudojant OpenProject Enterprise Edition."
         upsale:
           become_hero: "Tapti didvyriu!"
           benefits:
-            description: "Kokie privalumai?"
-            high_security: "Security features"
-            high_security_text: "Single sign on (SAML, OpenID Connect, CAS), two-factor authentication and automatic sync of LDAP groups."
-            installation: "Installation support"
-            installation_text: "Experienced software engineers guide you through the complete installation and setup process in your own infrastructure."
-            premium_features: "Premium features"
-            premium_features_text: "Agile boards, custom theme and logo, graphs, intelligent workflows with custom actions, full text search for work package attachments and multi-select custom fields."
+            description: "Kokie yra Enterprise on-premises Edition privalumai?"
+            high_security: "Saugumo funkcijos"
+            high_security_text: "Vienas prisijungimas (naudojant SAML, OpenID Connect, CAS), dviejų lygių autentifikacija ir automatinis LDAP grupių sinchronizavimas."
+            installation: "Instaliavimo pagalba"
+            installation_text: "Patyręs programų inžinierius ves jus per visą instaliavimo ir nustatymo procesą naudojant jūsų pačių infrastruktūrą."
+            premium_features: "„Premium“ funkcijos"
+            premium_features_text: "Agile lentos, savo tema ir logotipas, grafai, protingi darbo scenarijai su apibrėžtais veiksmais, pilna teksto paieška darbo paketų prieduose ir galimybė pasirinkti daugiau nei vieną reikšmę pritaikytuose laukuose."
             professional_support: "Profesionali pagalba"
-            professional_support_text: "Get reliable, high-touch support from senior support engineers with expert knowledge about running OpenProject in business-critical environments."
-          button_start_trial: "Start free trial"
-          button_book_now: "Book now"
+            professional_support_text: "Gaukite patikimą, artimą pagalbą iš vyresnių pagalbos inžinierių su ekspertinėmis žiniomis apie OpenProject naudojimą verslui kritinėse aplinkose."
+          button_start_trial: "Pradėti bandomąjį laikotarpį"
+          button_book_now: "Užsakyti dabar"
           confidence: >
-            We deliver the confidence of a tested and supported enterprise-class project management software - with Open Source and an open mind.
-          link_quote: "Get a quote"
+            Mes duodame patikrintos ir palaikomas korporacijos-lygio projektų valdymo programos užtikrintumą -- su atviru kodu ir plačiomis pažiūromis.
+          link_quote: "Gauti pasiūlymą"
           text: >
-            The OpenProject Enterprise Edition builds on top of the Community Edition. It includes premium features and professional support mainly aimed at organizations with more than 10 users that manage business critical projects with OpenProject.
-          unlimited: "Unlimited"
-          you_contribute: "Developers need to pay their bills, too. With the Enterprise Edition, you substantially contribute to this Open Source community effort."
+            OpenProject Enterprise Edition yra pastatyta virš Community Edition. Papildomai įdėta „premium“ savybės ir profesionalus aptarnavimas, pagrindinai orientuotas į organizacijas su daugiau nei 10 vartotojų, kurie naudodami OpenProject valdo verslui kritinius projektus.
+          unlimited: "Neribota"
+          you_contribute: "Kūrėjams taip pat reikia apmokėti savo sąskaitas. Su „Enterprise Edition“ jūs iš esmės prisidėsite prie atviro kodo bendruomenės darbo."
     custom_actions:
       date:
         specific: 'įjungta'
@@ -248,7 +272,6 @@ lt:
     general_text_yes: "taip"
     general_text_No: "Ne"
     general_text_Yes: "Taip"
-    global_roles: Globalios rolės
     hal:
       error:
         update_conflict_refresh: "Spauskite čia resurso atnaujinimui iki naujausios versijos."
@@ -262,13 +285,13 @@ lt:
           text_new_features: "Skaitykite apie naujas savybes ir produkto atnaujinimus."
           learn_about: "Sužinokite apie naujas galimybes"
           standard:
-            learn_about_link: https://www.openproject.org/openproject-10-4
+            learn_about_link: https://www.openproject.org/openproject-11-3-release
             current_new_feature_html: >
-              Šioje laidoje yra naujų galimybių ir patobulinimų: <br><br> <ul> <li>Numatytos šviesaus ir tamaus <b>vaizdo temos</b> (EE galimybė).</li> <li>Naujas <b>laiko sekimo įrankis</b> skirtas <i>Mano puslapyje</i> parodyti sugaištą laiką kaip stulpelinę diagramą.</li> <li><b>XLS elsportas sąnaudų raportams</b> ir formatuotas tekstas darbo paketų PDF eksporte.</li> <li><b>Pagerintas dizainas ir vartojamumas</b>, t.y. lapeliai ir daugiau projekto nustatymuose ir administravime.</li> </ul>
+              Šioje laidoje yra įvairios naujos galimybės ir patobulinimai: <br> <ul class="%{list_styling_class}"> <li>Naujas mygtukas navigacijos antraštėje skirtas kurti naujus projektus, vartotojus ir darbų paketus.</li> <li>Naujas modalinis langas vartotojams, grupėms ir statytiniams vartotojams kurti leidžia lengvai pridėti vartotojus ir priskirti juos darbų paketams.</li> <li>GitHub integracija į OpenProject.</li> <li>API v3 praplėtimai grupėms ir ne tik, t.y. realizuota galimybė kurti, skaityti, atnaujinti ir pašalinti grupes ir grupių narius naudojant API.</li> <li>Galimybė pasirinkti daugiau nei vieną variantą projekto sąrašo tipo vartotojo laukuose.</li> <li>Atsarginės kopijos kūrimas iš web sąsajos.</li> </ul>
           bim:
-            learn_about_link: https://www.openproject.org/openproject-bim-10-4
+            learn_about_link: https://www.openproject.org/openproject-11-3-release
             current_new_feature_html: >
-              OpenProject turi <b>naują IFC modulį, leidžiantį integruoti 3D modelius</b> į projekto valdymo programą ir bendrai dirbti su tais failais be brangių programų ir licenzijų instaliavimo. <br><br> <ul> <li><b>Importuoti IFC filus</b> arba pastatų modelius į jūsų OpenProject programą.</li> <li><b>Atidaryti 3D modelius ir pavaizduoti pastatų modelius</b> jūsų naršyklėje.</li> <li> Lengvai <b>dirbti su keliais IFC failais</b> kartu su jūsų komanda tiesiai OpenProject neinstaliuojant atskiros brangios programinės įrangos.</li> </ul>
+              The release contains various new features and improvements: <br> <ul class="%{list_styling_class}"> <li>BIM: Improved performance of the IFC model viewer.</li> <li>BIM: The IFC viewer now supports double precision models, which is great for large construction sites such as bridges, roads etc.</li> <li>BIM: Toggle button for switching between perspective and orthogonal mode.</li> <li>BIM: A menu for editing, deleting or flipping section planes.</li> <li>New button in header navigation to create projects, users and work packages.</li> <li>A new invite modal for users, groups and placeholder users allows to easily add or invite new users and assign them to work packages.</li> <li>API v3 extensions for groups and more, i.e. create, read, update and delete groups and group members through the API.</li> <li>Multi-selection for project custom fields of type list.</li> <li>Creation of backup from the web interface.</li> </ul>
     label_activate: "Aktyvuoti"
     label_add_column_after: "Pridėti stulpelį po"
     label_add_column_before: "Pridėti stulpelį prieš"
@@ -279,7 +302,7 @@ lt:
     label_add_row_before: "Pridėti eilutę prieš"
     label_add_selected_columns: "Pridėti pažymėtus stulpelius"
     label_added_by: "pridėta"
-    label_added_time_by: "Pridėta %{author} %{age}"
+    label_added_time_by: "Pridėjo <a href=%{authorLink}>%{author}</a> prieš %{age}"
     label_ago: "dienų prieš"
     label_all: "visi"
     label_all_work_packages: "visi darbų paketai"
@@ -320,9 +343,11 @@ lt:
     label_expand_all: "Išskleisti visus"
     label_expand_project_menu: "Išplėsti projekto meniu"
     label_export: "Eksportuoti"
+    label_export_preparing: "Eksportas ruošiamas ir greitai bus parsiųstas."
     label_filename: "Byla"
     label_filesize: "Dydis"
     label_general: "Bendra"
+    label_global_roles: "Globalios rolės"
     label_greater_or_equal: ">="
     label_group: 'Grupė'
     label_group_by: "Grupuoti pagal"
@@ -352,7 +377,7 @@ lt:
     label_next: "Kitas"
     label_no_color: "Be spalvų"
     label_no_data: "Nėra rodytinų duomenų"
-    label_no_due_date: "nėra pabaigos datos"
+    label_no_due_date: "be pabaigos datos"
     label_no_start_date: "nėra pradžios datos"
     label_no_value: "Nenurodytas dydis"
     label_none: "joks"
@@ -371,6 +396,7 @@ lt:
     label_quote_comment: "Cituoti šį komentarą"
     label_recent: "Paskutiniai"
     label_reset: "Nustatyti iš naujo"
+    label_remove: "Pašalinti"
     label_remove_column: "Išimti stulpelį"
     label_remove_columns: "Pašalinti pažymėtus stulpelius"
     label_remove_row: "Išimti eilutę"
@@ -387,14 +413,15 @@ lt:
     label_sort_lower: "Perkelti žemyn"
     label_sorting: "Rūšiavimas"
     label_spent_time: "Praleista laiko"
-    label_star_query: "Favored"
+    label_star_query: "Mėgiamiausi"
     label_press_enter_to_save: "Saugojimui spauskite enter."
     label_public_query: "Viešas"
     label_sum: "Suma"
     label_sum_for: "Suma"
+    label_total_sum: "Bendra suma"
     label_subject: "Tema"
     label_this_week: "ši savaitė"
-    label_today: "šiandien"
+    label_today: "Šiandien"
     label_time_entry_plural: "Praleista laiko"
     label_up: "Aukštyn"
     label_user_plural: "Vartotojai"
@@ -403,9 +430,11 @@ lt:
     label_total_progress: "%{percent} % įvykdyta"
     label_total_amount: "Iš viso: %{amount}"
     label_updated_on: "atnaujintas"
-    label_value_derived_from_children: "(value derived from children)"
+    label_value_derived_from_children: "(reikšmė išvesta iš vaikų)"
+    label_children_derived_duration: "Darbų paketo vaikų išvestinė trukmė"
     label_warning: "Įspėjimas"
     label_work_package: "Darbų paketas"
+    label_work_package_parent: "Tėvinis darbų paketas"
     label_work_package_plural: "Darbų paketai"
     label_watch: "Stebėti"
     label_watch_work_package: "Stebėti darbų paketą"
@@ -452,11 +481,12 @@ lt:
         help_menu: 'Meniu <b>Žinynas</b> rasite vartotojo vadovą ir papildomos pagalbos šaltinius. <br>Mėgaukitės darbu su OpenProject!'
         members: 'Pakvieskite naujus <b>Narius</b> prisijungti prie projekto.'
         project_selection: 'Prašome paspausti ant vieno iš projektų su įdėtais naudingais demonstraciniais duomenimis. <br> <b>Demo project</b> geriausiai tinka klasikiniam projektų valdymui, o <b>Scrum project</b> labiau tinka Agile projektų valdymui.'
+        quick_add_button: 'Sukurkite naują projektą arba pakvieskite bendradarbius.'
         sidebar_arrow: "Rodykle galite pereiti atgal į projekto <b>Pagrindinį meniu</b>."
         welcome: 'Paskirkite tris minutes įvadinei kelionei ir išmokite daugumą <b>svarbių sistemos galimybių</b>. <br>Rekomenduojame atlikti visus veiksmus iki pabaigos. Ekskursiją galite paleisti iš naujo bet kuriuo metu.'
         wiki: '<b>Wiki</b>''yje galite dokumentuoti ir dalintis žiniomis su savo komandos nariais.'
         backlogs:
-          overview: "Manage your work in the <b>Backlogs</b> view. <br> On the right you have the Product Backlog or a Bug Backlog, on the left you will have the respective sprints. Here you can create <b>epics, user stories, and bugs</b>, prioritize via drag'n'drop and add them to a sprint."
+          overview: "Valdykite savo darbus <b>Darbų sąrašo</b> vaizde. <br> Kairėje jūs matote Produktų darbų sąrašą arba Klaidų darbų sąrašą, dešinėje -- atitinkamus sprintus. Čia jūs galite kurti <b>epics, user stories ir bugs</b>, prioretizuoti vilkdami į reikiamą vietą ir priskirti sprintui."
           task_board_arrow: 'Norėdami matyti jūsų <b>Užduočių lentą</b>, atverkite Sprinto iškrentantį meniu...'
           task_board_select: '... ir pasirinkite <b>Task board</b> elementą.'
           task_board: "<b>Darbo lenta</b> rodo pažangą šiame sprinte. Pridėkite naujas užduotis ar kliūtis spausdami + piktogramą šalia vartotojo istorija. Naudodami drag'n'drop, jūs galite pakeisti būseną."
@@ -467,7 +497,7 @@ lt:
           drag: 'Galite pervilkti ir numesti kortelę sąrašo ribose (perrikiuoti) ar į kitą sąrašą. Dvigubas paspaudimas permes į detalių vaizdą.'
         wp:
           toggler: "Dabar žvilgtelėkime į <b>Darbų paketų</b> skyrių, kuris suteikia išsamesnį vaizdą apie jūsų darbus."
-          list: 'Tai <b>Darbų paketų</b> sąrašas su svarbiomis jūsų projektui veiksmais: tasks, features, milestones, bugs, ir pan. <br> Jūs galite kurti ir redaguoti darbų paketus tiesiai šiame sąraše. Norėdami pamatyti detaliau, du kart spustelkite pele ant pasirinktos eilutės.'
+          list: 'Tai <b>Darbų paketų</b> sąrašas su svarbiais jūsų projektui veiksmais: užduotimis (tasks), etapais (milestones), fazėmis (phases) ir t.t. <br> Jūs galite kurti ir redaguoti darbų paketus tiesiai šiame sąraše. Norėdami pamatyti detaliau, du kart spustelkite pele ant pasirinktos eilutės.'
           full_view: '<b>Darbo paketo detalių</b> lange rasite visą reikalingą informaciją, pvz., aprašymą, būseną ir prioritetą, veiklą, priklausomybes ar komentarus.'
           back_button: 'Su rodykle galite pereiti atgal į darbo paketų sąrašą.'
           create_button: 'Mygtukas <b>Sukurti</b> pridės naują darbą į jūsų projektą.'
@@ -492,6 +522,11 @@ lt:
       context: 'Projekto kontekstas'
       work_package_belongs_to: 'Šis darbų paketas priklauso projektui %{projectname}.'
       click_to_switch_context: 'Atidaryti darbų paketą tame projekte.'
+      confirm_template_load: 'Šablono pakeitimas perkraus puslapį ir jūs prarasite visą šioje formoje įvesta informaciją. Tęsti?'
+      use_template: "Naudoti šabloną"
+      no_template_selected: "(Nėra)"
+      copy:
+        copy_options: "Kopijos nustatymai"
       autocompleter:
         label: 'Projekto autoužpildymas'
     text_are_you_sure: "Ar esate įsitikinę?"
@@ -502,7 +537,7 @@ lt:
         reset_title: "Nustatyti iš naujo formos konfigūraciją"
         confirm_reset: >
           Įspėjimas: Ar tikrai norite grįžti prie pradinės formos konfigūracijos? Atributai bus perkelti į jų numatytąsias grupes ir išjungs VISUS pritaikytus laukelius.
-        upgrade_to_ee: "Patobulinti į „Enterprise Edition“ versiją"
+        upgrade_to_ee: "Patobulinkite į Enterprise on-premises Edition"
         upgrade_to_ee_text: "Vau! Jei Jums reikia šios funkcijos, esate super pro! Ar nenorėtumėte paremti mus, OpenSource (atviro kodo) kūrėjus, tapdami Enterprise Edition klientu?"
         more_information: "Daugiau informacijos"
         nevermind: "Nekreipti dėmesio"
@@ -519,7 +554,7 @@ lt:
       duration: 'Trukmė'
       spent_on: 'Data'
       hours: 'Valandų'
-      label: 'Laiko įrašas'
+      title: 'Registruoti laiką'
     two_factor_authentication:
       label_two_factor_authentication: 'Dviejų veiksnių autentikavimas'
     watchers:
@@ -552,8 +587,8 @@ lt:
       set_parent: "Priskirti tėvą"
       change_parent: "Keisti pirmtaką"
       remove_parent: "Pašalinti tėvą"
-      hierarchy_indent: "Indent hierarchy"
-      hierarchy_outdent: "Outdent hierarchy"
+      hierarchy_indent: "Paslinkti hierarchiją"
+      hierarchy_outdent: "Atslinkti hierarchiją"
       group_by_wp_type: "Grupuoti pagal darbų paketo tipą"
       group_by_relation_type: "Grupuoti pagal ryšio tipą"
       add_parent: "Pridėti jau esamą tėvą"
@@ -575,11 +610,18 @@ lt:
     relations_autocomplete:
       placeholder: "Paieškai pradėkite rinkti tekstą"
       parent_placeholder: "Pasirinkite naują tėvą arba spauskite Escape atšaukimui."
+    autocompleter:
+      placeholder: "Paieškai pradėkite rinkti tekstą"
+      notFoundText: "No items found"
+      typeToSearchText: "Paieškai pradėkite rinkti tekstą"
     repositories:
       select_tag: 'Pasirinkti žymę'
       select_branch: 'Parinkti padalinį'
     field_value_enter_prompt: "Įveskite \"%{field}\" reikšmę "
     project_menu_details: "Detali informacija"
+    scheduling:
+      manual: 'Rankinis laiko parinkimas'
+      automatic: 'Automatinis laiko parinkimas'
     sort:
       sorted_asc: 'Pritaikyta didėjimo tvarka, '
       sorted_dsc: 'Pritaikyta mažėjimo tvarka, '
@@ -697,7 +739,7 @@ lt:
       message_successful_show_in_fullscreen: "Paspauskite čia, kad atvertumėte darbų paketą pilno lango režime."
       message_view_spent_time: "Rodyti praleistą laiką su šiuo darbų paketu"
       message_work_package_read_only: "Šioje būsenoje darbų paketas yra užrakintas. Negali būti keičiamas joks atributas, išskyrus būseną."
-      message_work_package_status_blocked: "Work package status is not writable due to closed status and closed version being assigned."
+      message_work_package_status_blocked: "Darbų paketo statusas negali būti keičiamas, nes dabar yra uždarytas ir uždaryta versija yra priskirta."
       placeholder_filter_by_text: "Tema, aprašymas, komentarai, ..."
       inline_create:
         title: 'Paspauskite čia, kad pridėtumėte į sąrašą naują darbų paketą'
@@ -745,6 +787,7 @@ lt:
         startDate: "Pradžios data"
         status: "Būsena"
         subject: "Tema"
+        subproject: "Sub-projektas"
         title: "Pavadinimas"
         type: "Tipas"
         updatedAt: "Atnaujinta"
@@ -790,6 +833,9 @@ lt:
           not_found: "Nėra tokio vaizdo"
           duplicate_query_title: "Toks vaizdo vardas jau yra. Vis tiek keisti?"
         text_no_results: "Atitinkančių vaizdų nerasta."
+      scheduling:
+        is_parent: "Šio darbų paketo datos yra automatiškai nustatomos pagal jo vaikų datas. Norėdami nustatyti kitokias datas įjunkite „Rankinį tvarkaraščio parinkimą“"
+        is_switched_from_manual_to_automatic: "Po perjungimo iš rankinio į automatinį tvarkaraščio parinkimą šio darbų paketo datas gali reikėti perskaičiuoti, nes yra sąryšių su kitais darbų paketais."
       table:
         configure_button: 'Sukonfigūruokite darbų paketo lentelę'
         summary: "Lentelė su eilutėmis, sudarytomis iš darbų paketų, ir stulpeliais, sudarytais iš darbų paketų atributų."
@@ -823,7 +869,7 @@ lt:
           automatic: 'Automatinis'
           manually: 'Rankinis'
           warning: 'Aktyvuojant automatinį rikiavimo režimą jūs prarasite savo ankstesnį rikiavimą.'
-        columns_help_text: "Use the input above to add columns to your table view. You can drag and drop the columns to reorder them."
+        columns_help_text: "Aukščiau esančioje įvedimo eilutėje pridėkite stulpelius į lentelės vaizdą. Galite pele perkelti stulpelius, jei reikalinga kita jų tvarka."
         upsale:
           attribute_highlighting: 'Reikia išskirti tam tikrus darbo paketus iš didelės masės?'
           relation_columns: 'Ar reikia matyti ryšius darbų paketų sąraše?'
@@ -878,10 +924,14 @@ lt:
         has_children: "Darbų paketas turi %{childUnits}:"
         confirm_deletion_children: "Aš sutinku, kad VISI šio darbų paketo palikuoniai bus rekursiškai ištrinti."
         deletes_children: "Visi darbų paketo vaikai ir jų palikuoniai taip pat bus rekursiškai ištrinti."
+      destroy_time_entry:
+        title: "Patvirtinkite laiko įrašo trynimą."
+        text: "Ar Jūs tikrai norite ištrinti šį laiko įrašą?"
     notice_no_results_to_display: "Nėra rezultatų."
     notice_successful_create: "Sėkmingas sukūrimas."
     notice_successful_delete: "Sėkmingas panaikinimas."
     notice_successful_update: "Sėkmingas atnaujinimas."
+    notice_job_started: "užduoties vykdymas pradėtas."
     notice_bad_request: "Netinkama užklausa."
     relations:
       empty: Nėra jokių ryšių
@@ -919,11 +969,9 @@ lt:
         many: "%{count} darbų paketo vaikai"
         other: "%{count} darbų paketo vaikai"
       hour:
-        zero: "0 h"
-        one: "1 val"
-        few: "%{count} val"
-        many: "%{count} val"
+        one: "1 val."
         other: "%{count} val"
+        zero: "0 h"
     zen_mode:
       button_activate: 'Įjungti Zen režimą'
       button_deactivate: 'Išjungti Zen režimą'
@@ -941,3 +989,78 @@ lt:
       card: 'Kortelės'
       list: 'Stalas'
       timeline: 'Gantt'
+    invite_user_modal:
+      back: 'Atgal'
+      invite: 'Pakviesti'
+      title:
+        invite: 'Pakviesti vartotoją'
+        invite_to_project: 'Pakviesti %{type} į %{project}'
+        User: 'vartotojas'
+        Group: 'grupė'
+        PlaceholderUser: 'statytinis vartotojas'
+        invite_principal_to_project: 'Pakviesti %{principal} į %{project}'
+      project:
+        label: 'Projektas'
+        required: 'Pasirinkite projektą'
+        lacking_permission: 'Prašome pasirinkti kitą projektą, nes dabar pasirinktame jūs neturite teisių priskirti vartotojus.'
+        lacking_permission_info: 'Jums trūksta teisių priskirti vartotojus projekte, kuriame dabar esate. Turėtumėte pasirinkti kitą projektą.'
+        next_button: 'Kitas'
+        no_results: 'Nerasta jokių projektų'
+        no_invite_rights: 'Jums neleidžiama kviesti narius į projektą'
+      type:
+        required: 'Prašome pasirinkti kokio tipo dalyvį kviesti'
+        user:
+          title: 'Vartotojas'
+          description: 'Teisės, suteiktos pagal pasirinktame projekte turimą rolę'
+        group:
+          title: 'Grupė'
+          description: 'Teisės, suteiktos pagal pasirinktame projekte turimą rolę'
+        placeholder:
+          title: 'Statytinis vartotojas'
+          title_no_ee: 'Statytiniai vartotojai (galimybė pasiekiama tik Enterprise Edition)'
+          description: 'Neturi prieigos prie projekto ir jokie el. pašto laiškai nebuvo išsiųsti.'
+          description_no_ee: 'Neturi prieigos prie projekto ir jokie el. pašto laiškai nebuvo išsiųsti. <br>Patikrinkite <a href="%{eeHref}" target="_blank">Enterprise Edition</a>'
+      principal:
+        label:
+          name_or_email: 'Vardas arba elektroninio pašto adresas'
+          name: 'Vardas'
+        already_member_message: 'Jau yra %{project} narys'
+        no_results_user: 'Nerasta jokių vartotojų.'
+        invite_user: 'Pakviesti:'
+        change_user_selection: 'Pakeiskite el. pašto adresą arba pasirinkite jau esamą vartotoją'
+        no_results_placeholder: 'Nerasta jokių statytinių vartotojų.'
+        change_placeholder_selection: 'Pakeiskite vardą arba pasirinkite jau esamą statytinį vartotoją'
+        create_new_placeholder: 'Sukurkite naują statytinį vartotoją:'
+        no_results_group: 'Nerasta jokių grupių.'
+        change_group_selection: 'Pakeiskite vardą arba pasirinkite jau esamą grupę'
+        next_button: 'Kitas'
+        required:
+          user: 'Pasirinkite naudotoją'
+          placeholder: 'Prašome pasirinkti statytinį vartotoją'
+          group: 'Prašome pasirinkti grupę'
+      role:
+        label: 'Rolė projekte %{project}'
+        no_roles_found: 'Nerasta jokių rolių'
+        description: 'Tai yra rolė, kurią %{principal} gaus, kai prisijungs prie projekto. Ši rolė nurodo, kokius veiksmus galės atlikti ir kokią informaciją matyti. <a href="<a href="https://docs.openproject.org/system-admin-guide/users-permissions/roles-permissions/#roles-and-permissions" target="_blank">" target="_blank">Sužinokite daugiau apie roles ir teises. </a>'
+        required: 'Prašome pasirinkti rolę'
+        next_button: 'Kitas'
+      message:
+        label: 'Kvietimo pranešimas'
+        description: 'Mes siųsime el. pašto laišką %{principal}, į kurį jūs galite pridėti asmeninį pranešimą. Paaiškinimas, kodėl šis pranešimas buvo atsiųstas galėtų būti naudingas gavėjui. Arba šiek tiek informacijos apie projektą galbūt galėtų padėti pradėti darbą su projektu.'
+        next_button: 'Peržiūrėti kvietimą'
+      summary:
+        next_button: 'Siųsti pakvietimą'
+      success:
+        title: '%{principal} buvo pakviestas!'
+        description:
+          user: 'Vartotojas gali prisijungti ir pasiekti %{project}. Tuo pačiu, jūs jau galite planuoti darbus su šiuo vartotoju ir pavyzdžiui priskirti jam darbo užduotis.'
+          placeholder: 'Statytinis vartotojas gali prisijungti ir pasiekti %{project}. Tuo pačiu, jūs jau galite planuoti darbus su šiuo vartotoju ir pavyzdžiui priskirti jam darbo užduotis.'
+          group: 'Grupė jau tapo %{project} dalimi. Tuo pačiu, jūs jau galite planuoti darbus su šia grupe ir pavyzdžiui priskirti jai darbo užduotis.'
+        next_button: 'Tęsti'
+    forms:
+      submit_success_message: 'Forma buvo sėkmingai nusiųsta'
+      load_error_message: 'Įkeliant formą įvyko klaida'
+      validation_error_message: 'Prašome ištaisyti klaidas formoje'
+      advanced_settings: 'Išplėstiniai nustatymai'
+
+

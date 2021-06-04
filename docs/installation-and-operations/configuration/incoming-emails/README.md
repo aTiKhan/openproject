@@ -2,11 +2,15 @@
 sidebar_navigation:
   title: Configuring inbound emails
   priority: 7
+description: Configuring inbound emails in OpenProject.
+robots: index, follow
+keywords: incoming, e-mail, inbound, mail
 ---
 
 # Configuring inbound emails
 
 OpenProject is able to receive incoming emails and create and update work packages and reply in forums depending on the content of the email.
+If you're using the Enterprise cloud you can skip the Setup section, as the settings are already configured.
 
 ## Setup
 
@@ -22,7 +26,7 @@ openproject run bundle exec rake redmine:email:receive_imap host='imap.gmail.com
 
 **Docker installation**
 
-The docker installation has a ["cron-like" daemon](https://github.com/opf/openproject/blob/dev/docker/cron) that will immitate the above cron job. You need to specify the following ENV variables (e.g., to your env list file)
+The docker installation has a ["cron-like" daemon](https://github.com/opf/openproject/blob/dev/docker/cron) that will imitate the above cron job. You need to specify the following ENV variables (e.g., to your env list file)
 
 - `IMAP_SSL` set to true or false depending on whether the ActionMailer IMAP connection requires implicit TLS/SSL
 - `IMAP_PORT` `IMAP_HOST` set to the IMAP host and port of your connection
@@ -58,10 +62,12 @@ Available arguments that change how the work packages are handled:
 | `version` | name of the target version |
 | `type` | name of the target type |
 | `priority` | name of the target priority |
-| `unknown_user`| ignore: email is ignored (default), accept: accept as anonymous user,                           create: create a user account |
+| `unknown_user`| ignore: email is ignored (default), accept: accept as anonymous user, create: create a user account |
 | `allow_override` | specifies which attributes may be overwritten though specified by previous options. Comma separated list |
 
 ## Format of the emails
+
+Please note: It's important to use the plain text editor of your email client (instead of the HTML editor) to avoid misinterpretations (e.g. for the project name). 
 
 ### Work packages
 
@@ -77,7 +83,7 @@ to create work packages, set the option `no_permission_check=1` and specify with
 
 **Users with mail suffixes**
 
-If you're used to using mail accounts with suffix support such as Google Mail, where you can specify `account+suffix@googlemail.com`, you will receive mails to that account but respond with your regular account `account@googlemail.com` . To mitigiate this, OpenProject by default will expand searching for mail ddresses `account@domain` to accounts `account+suffix@domain`  through regex searching the mail column. If you do not wish that behavior or want to customize the prefix, alter the setting `mail_suffix_separators` by running `bundle exec rails runner "Setting.mail_suffix_separators = ''"`
+If you're used to using mail accounts with suffix support such as Google Mail, where you can specify `account+suffix@googlemail.com`, you will receive mails to that account but respond with your regular account `account@googlemail.com` . To mitigate this, OpenProject by default will expand searching for mail addresses `account@domain` to accounts `account+suffix@domain`  through regex searching the mail column. If you do not wish that behavior or want to customize the prefix, alter the setting `mail_suffix_separators` by running `bundle exec rails runner "Setting.mail_suffix_separators = ''"`
 
 
 
@@ -120,4 +126,4 @@ If you create a work package via email and sent it to another email (to or bcc) 
 
 ### Truncate Emails
 
-In the administator's setting you can specify lines after which an email will not be parsed anymore. That is useful if you want to reply to an email automatically sent to you from OpenProject. E.g. you could set it to `--Truncate here--` and insert this line into your email below the updates you want to perform.
+In the administrator's setting you can specify lines after which an email will not be parsed anymore. That is useful if you want to reply to an email automatically sent to you from OpenProject. E.g. you could set it to `--Truncate here--` and insert this line into your email below the updates you want to perform. Find out more [here](../../../system-admin-guide/email/#incoming-emails-settings).

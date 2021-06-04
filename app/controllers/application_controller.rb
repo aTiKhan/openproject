@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -30,6 +31,8 @@
 require 'uri'
 require 'cgi'
 
+require 'doorkeeper/dashboard_helper'
+
 class ApplicationController < ActionController::Base
   class_attribute :_model_object
   class_attribute :_model_scope
@@ -43,6 +46,7 @@ class ApplicationController < ActionController::Base
   include Redmine::I18n
   include HookHelper
   include ErrorsHelper
+  include Accounts::CurrentUser
   include ::OpenProject::Authentication::SessionExpiry
   include AdditionalUrlHelpers
   include OpenProjectErrorHelper
@@ -117,7 +121,7 @@ class ApplicationController < ActionController::Base
   end
 
   rescue_from ActionController::ParameterMissing do |exception|
-    render body:   "Required parameter missing: #{exception.param}",
+    render body: "Required parameter missing: #{exception.param}",
            status: :bad_request
   end
 
@@ -127,10 +131,10 @@ class ApplicationController < ActionController::Base
   end
 
   before_action :user_setup,
+                :set_localization,
                 :check_if_login_required,
                 :log_requesting_user,
                 :reset_i18n_fallbacks,
-                :set_localization,
                 :check_session_lifetime,
                 :stop_if_feeds_disabled,
                 :set_cache_buster,
@@ -167,72 +171,12 @@ class ApplicationController < ActionController::Base
     OpenProject::Configuration.reload_mailer_configuration!
   end
 
-  # The current user is a per-session kind of thing and session stuff is controller responsibility.
-  # A globally accessible User.current is a big code smell. When used incorrectly it allows getting
-  # the current user outside of a session scope, i.e. in the model layer, from mailers or
-  # in the console which doesn't make any sense. For model code that needs to be aware of the
-  # current user, i.e. when returning all visible projects for <somebody>, the controller should
-  # pass the current user to the model, instead of letting it fetch it by itself through
-  # `User.current`. This method acts as a reminder and wants to encourage you to use it.
-  # Project.visible_by actually allows the controller to pass in a user but it falls back
-  # to `User.current` and there are other places in the session-unaware codebase,
-  # that rely on `User.current`.
-  def current_user
-    User.current
-  end
-  helper_method :current_user
-
-  def user_setup
-    # Find the current user
-    User.current = find_current_user
-  end
-
-  # Returns the current user or nil if no user is logged in
-  # and starts a session if needed
-  def find_current_user
-    if session[:user_id]
-      # existing session
-      User.active.find_by(id: session[:user_id])
-    elsif cookies[OpenProject::Configuration['autologin_cookie_name']] && Setting.autologin?
-      # auto-login feature starts a new session
-      user = User.try_to_autologin(cookies[OpenProject::Configuration['autologin_cookie_name']])
-      session[:user_id] = user.id if user
-      user
-    elsif params[:format] == 'atom' && params[:key] && accept_key_auth_actions.include?(params[:action])
-      # RSS key authentication does not start a session
-      User.find_by_rss_key(params[:key])
-    elsif Setting.rest_api_enabled? && api_request?
-      if (key = api_key_from_request) && accept_key_auth_actions.include?(params[:action])
-        # Use API key
-        User.find_by_api_key(key)
-      end
-    end
-  end
-
-  # Sets the logged in user
-  def logged_user=(user)
-    reset_session
-
-    if user&.is_a?(User)
-      User.current = user
-      Sessions::InitializeSessionService.call(user, session)
-    else
-      User.current = User.anonymous
-    end
-  end
-
-  # check if login is globally required to access the application
-  def check_if_login_required
-    # no check needed if user is already logged in
-    return true if User.current.logged?
-    require_login if Setting.login_required?
-  end
-
   # Checks if the session cookie is missing.
   # This is useful only on a second request
   def openproject_cookie_missing?
     request.cookies[OpenProject::Configuration['session_cookie_name']].nil?
   end
+
   helper_method :openproject_cookie_missing?
 
   ##
@@ -246,8 +190,11 @@ class ApplicationController < ActionController::Base
 
   def log_requesting_user
     return unless Setting.log_requesting_user?
-    login_and_mail = " (#{escape_for_logging(User.current.login)} ID: #{User.current.id} " \
-                     "<#{escape_for_logging(User.current.mail)}>)" unless User.current.anonymous?
+
+    unless User.current.anonymous?
+      login_and_mail = " (#{escape_for_logging(User.current.login)} ID: #{User.current.id} " \
+                       "<#{escape_for_logging(User.current.mail)}>)"
+    end
     logger.info "OpenProject User: #{escape_for_logging(User.current.name)}#{login_and_mail}"
   end
 
@@ -256,7 +203,7 @@ class ApplicationController < ActionController::Base
   # replaces all invalid characters with #
   def escape_for_logging(string)
     # only allow numbers, ASCII letters, space and the following characters: @.-"'!?=/
-    string.gsub(/[^0-9a-zA-Z@._\-"\'!\?=\/ ]{1}/, '#')
+    string.gsub(/[^0-9a-zA-Z@._\-"'!?=\/ ]{1}/, '#')
   end
 
   def reset_i18n_fallbacks
@@ -268,39 +215,6 @@ class ApplicationController < ActionController::Base
 
   def set_localization
     SetLocalizationService.new(User.current, request.env['HTTP_ACCEPT_LANGUAGE']).call
-  end
-
-  def require_login
-    unless User.current.logged?
-
-      respond_to do |format|
-        format.any(:html, :atom) do
-          # Ensure we reset the session to terminate any old session objects
-          # but ONLY for html requests to avoid double-resetting sessions
-          reset_session
-
-          redirect_to main_app.signin_path(back_url: login_back_url)
-        end
-
-        auth_header = OpenProject::Authentication::WWWAuthenticate.response_header(request_headers: request.headers)
-
-        format.any(:xml, :js, :json) do
-          head :unauthorized,
-               'X-Reason' => 'login needed',
-               'WWW-Authenticate' => auth_header
-        end
-
-        format.all { head :not_acceptable }
-      end
-      return false
-    end
-    true
-  end
-
-  def require_admin
-    return unless require_login
-
-    render_403 unless User.current.admin?
   end
 
   def deny_access(not_found: false)
@@ -405,7 +319,6 @@ class ApplicationController < ActionController::Base
     associated.each do |a|
       instance_variable_set('@' + a.class.to_s.downcase, a)
     end
-
   rescue ActiveRecord::RecordNotFound
     render_404
   end
@@ -417,29 +330,35 @@ class ApplicationController < ActionController::Base
   # then message.forum and board.project
   def find_belongs_to_chained_objects(associations, start_object = nil)
     associations.inject([start_object].compact) do |instances, association|
-      scope_name, scope_association = association.is_a?(Hash) ?
-                                        [association.keys.first.to_s.downcase, association.values.first] :
-                                        [association.to_s.downcase, association.to_s.downcase]
+      scope_name, scope_association = if association.is_a?(Hash)
+        [association.keys.first.to_s.downcase, association.values.first]
+      else
+        [association.to_s.downcase, association.to_s.downcase]
+      end
 
       # TODO: Remove this hidden dependency on params
-      instances << (instances.last.nil? ?
-                      scope_name.camelize.constantize.find(params[:"#{scope_name}_id"]) :
-                      instances.last.send(scope_association.to_sym))
+      instances << (
+        if instances.last.nil?
+          scope_name.camelize.constantize.find(params[:"#{scope_name}_id"])
+        else
+          instances.last.send(scope_association.to_sym)
+        end)
       instances
     end
   end
 
   def self.model_object(model, options = {})
     self._model_object = model
-    self._model_scope  = Array(options[:scope]) if options[:scope]
+    self._model_scope = Array(options[:scope]) if options[:scope]
   end
 
   # Filter for bulk work package operations
   def find_work_packages
     @work_packages = WorkPackage.includes(:project)
-                     .where(id: params[:work_package_id] || params[:ids])
-                     .order('id ASC')
+                                .where(id: params[:work_package_id] || params[:ids])
+                                .order('id ASC')
     fail ActiveRecord::RecordNotFound if @work_packages.empty?
+
     @projects = @work_packages.map(&:project).compact.uniq
     @project = @projects.first if @projects.size == 1
   rescue ActiveRecord::RecordNotFound
@@ -535,13 +454,13 @@ class ApplicationController < ActionController::Base
   def render_validation_errors(object)
     options = { status: :unprocessable_entity, layout: false }
     errors = case params[:format]
-             when 'xml'
-               { xml:  object.errors }
-             when 'json'
-               { json: { 'errors' => object.errors } } # ActiveResource client compliance
-             else
-               fail "Unknown format #{params[:format]} in #render_validation_errors"
-             end
+    when 'xml'
+      { xml: object.errors }
+    when 'json'
+      { json: { 'errors' => object.errors } } # ActiveResource client compliance
+    else
+      fail "Unknown format #{params[:format]} in #render_validation_errors"
+    end
     options.merge! errors
     render options
   end
@@ -567,23 +486,25 @@ class ApplicationController < ActionController::Base
   end
 
   def default_breadcrumb
-    name = l('label_' + self.class.name.gsub('Controller', '').underscore.singularize + '_plural')
-    if name =~ /translation missing/i
-      name = l('label_' + self.class.name.gsub('Controller', '').underscore.singularize)
-    end
-    name
+    label = "label_#{self.class.name.gsub('Controller', '').underscore.singularize}"
+
+    I18n.t(label + '_plural',
+           default: label.to_sym)
   end
+
   helper_method :default_breadcrumb
 
   def show_local_breadcrumb
     false
   end
+
   helper_method :show_local_breadcrumb
 
   def admin_first_level_menu_entry
     menu_item = admin_menu_item(current_menu_item)
     menu_item.parent
   end
+
   helper_method :admin_first_level_menu_entry
 
   def check_session_lifetime

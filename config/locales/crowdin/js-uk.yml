@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -33,10 +33,24 @@ uk:
         single: "Виберіть %{name}"
       remove: "Видалити %{name}"
       active: "Активувати %{label} %{name}"
+    backup:
+      attachments_disabled: Attachments may not be included since they exceed the maximum overall size allowed. You can change this via the configuration (requires a server restart).
+      info: >
+        You can trigger a backup here. The process can take some time depending on the amount of data (especially attachments) you have. You will receive an email once it's ready.
+      note: >
+        A new backup will override any previous one. Only a limited number of backups per day can be requested.
+      last_backup: Last backup
+      last_backup_from: Last backup from
+      title: Backup OpenProject
+      options: Опції
+      include_attachments: Include attachments
+      download_backup: Download backup
+      request_backup: Request backup
     close_popup_title: "Закрити вспливаюче вікно"
     close_filter_title: "Закрити фільтр"
     close_form_title: "Закрити форму"
     button_add_watcher: "Додати спостерігача"
+    button_add: "Додати"
     button_back: "Назад"
     button_back_to_list_view: "Повернутися до списку"
     button_cancel: "Скасувати"
@@ -54,6 +68,8 @@ uk:
     button_duplicate: "Дублювати"
     button_edit: "Редагувати"
     button_filter: "Фільтр"
+    button_collapse_all: "Згорнути все"
+    button_expand_all: "Розгорнути все"
     button_advanced_filter: "Розширений фільтр"
     button_list_view: "Подання списком"
     button_show_view: "Повноекранний режим"
@@ -71,6 +87,7 @@ uk:
     button_update: "Оновити"
     button_export-pdf: "Завантажити PDF"
     button_export-atom: "Завантажити Atom"
+    button_create: "Створити"
     calendar:
       title: 'Календар'
       too_many: 'There are %{count} work packages in total, but only %{max} can be shown.'
@@ -83,7 +100,7 @@ uk:
     caption_rate_history: "Історія рейтингу"
     clipboard:
       browser_error: "Ваш браузер не підтримує копіювання до буфера обміну. Потрібно скопіювати виділений текст вручну."
-      copied_successful: "Успішно скопійовано до буфера обміну!"
+      copied_successful: "Successfully copied to clipboard!"
     chart:
       type: 'Тип графіка'
       axis_criteria: 'Умови осі'
@@ -115,6 +132,11 @@ uk:
         manual: 'Перейдіть до джерела Markdown'
         wysiwyg: 'Перейти до редактора WYSIWYG'
       macro:
+        error: 'Cannot expand macro: %{message}'
+        attribute_reference:
+          macro_help_tooltip: 'This text segment is being dynamically rendered by a macro.'
+          not_found: 'Requested resource could not be found'
+          invalid_attribute: "The selected attribute '%{name}' does not exist."
         child_pages:
           button: 'Посилання на дочірні сторінки'
           include_parent: 'Включити джерела'
@@ -166,7 +188,8 @@ uk:
       enterprise:
         trial:
           confirmation: "Confirmation of email address"
-          confirmation_info: "We sent you an email. Please check your emails and click the confirmation link provided to start your 14 days trial."
+          confirmation_info: >
+            We sent you an email on %{date} to %{email}. Please check your inbox and click the confirmation link provided to start your 14 days trial.
           form:
             general_consent: >
               I agree with the <a target="_blank" href="%{link_terms}">terms of service</a> and the <a target="_blank" href="%{link_privacy}">privacy policy</a>.
@@ -181,9 +204,10 @@ uk:
             label_starts_at: "Starts at"
             label_expires_at: "Закінчується о"
             receive_newsletter: I want to receive the OpenProject <a target="_blank" href="%{link}">newsletter</a>.
+            taken_domain: There can only be one active trial per domain.
+            taken_email: Each user can only create one trial.
           email_not_received: "You did not receive an email? You can resend the email with the link on the right."
           try_another_email: "Or try it with another email address."
-          try_another_email_hint: "Please be aware that your previous email address gets invalid if you try again with a new one."
           next_steps: "Next steps"
           resend_link: "Повторно надіслати"
           resend_success: "Email has been resent. Please check your emails and click the confirmation link provided."
@@ -197,7 +221,7 @@ uk:
         upsale:
           become_hero: "Стань героєм!"
           benefits:
-            description: "Які переваги?"
+            description: "What are the benefits of the Enterprise on-premises Edition?"
             high_security: "Security features"
             high_security_text: "Single sign on (SAML, OpenID Connect, CAS), two-factor authentication and automatic sync of LDAP groups."
             installation: "Installation support"
@@ -248,7 +272,6 @@ uk:
     general_text_yes: "так"
     general_text_No: "Ні"
     general_text_Yes: "Так"
-    global_roles: Глобальні ролі
     hal:
       error:
         update_conflict_refresh: "Click here to refresh the resource and update to the newest version."
@@ -262,13 +285,13 @@ uk:
           text_new_features: "Читайте про нові функції та оновлення продуктів."
           learn_about: "Learn more about the new features"
           standard:
-            learn_about_link: https://www.openproject.org/openproject-10-4
+            learn_about_link: https://www.openproject.org/openproject-11-3-release
             current_new_feature_html: >
-              The release contains various new features and improvements: <br><br> <ul> <li>Default <b>design templates</b> to select a light or dark theme (premium feature).</li> <li>New <b>time tracking widget</b> for <i>My page</i> to show spent time in a bar chart.</li> <li><b>XLS-exports for cost reports</b> and formatted text in PDF export of work packages.</li> <li><b>Improved design and usability</b>, i.e. tabs and more in project settings and administration.</li> </ul>
+              The release contains various new features and improvements: <br> <ul class="%{list_styling_class}"> <li>New button in header navigation to create projects, users and work packages.</li> <li>A new invite modal for users, groups and placeholder users allows to easily add or invite new users and assign them to work packages.</li> <li>GitHub integration into OpenProject.</li> <li>API v3 extensions for groups and more, i.e. create, read, update and delete groups and group members through the API.</li> <li>Multi-selection for project custom fields of type list.</li> <li>Creation of backup from the web interface.</li> </ul>
           bim:
-            learn_about_link: https://www.openproject.org/openproject-bim-10-4
+            learn_about_link: https://www.openproject.org/openproject-11-3-release
             current_new_feature_html: >
-              OpenProject contains a <b>new IFC module to integrate 3D models</b> into your project management application and to work collaboratively with these files with your team without installation of separate costly software or licenses. <br><br> <ul> <li><b>Import IFC files</b> of building models into your OpenProject application.</li> <li><b>Open 3D models and visualize building models</b> in your browser.</li> <li> Easily <b>work on multiple IFC files</b> with your team directly in OpenProject without installation of separate costly software. </li> </ul>
+              The release contains various new features and improvements: <br> <ul class="%{list_styling_class}"> <li>BIM: Improved performance of the IFC model viewer.</li> <li>BIM: The IFC viewer now supports double precision models, which is great for large construction sites such as bridges, roads etc.</li> <li>BIM: Toggle button for switching between perspective and orthogonal mode.</li> <li>BIM: A menu for editing, deleting or flipping section planes.</li> <li>New button in header navigation to create projects, users and work packages.</li> <li>A new invite modal for users, groups and placeholder users allows to easily add or invite new users and assign them to work packages.</li> <li>API v3 extensions for groups and more, i.e. create, read, update and delete groups and group members through the API.</li> <li>Multi-selection for project custom fields of type list.</li> <li>Creation of backup from the web interface.</li> </ul>
     label_activate: "Активувати"
     label_add_column_after: "Додати стовпець після"
     label_add_column_before: "Додати стовпець перед"
@@ -279,7 +302,7 @@ uk:
     label_add_row_before: "Додати рядок перед"
     label_add_selected_columns: "Додати вибрані стовпці"
     label_added_by: "додав(-ла)"
-    label_added_time_by: "Додав(-ла) %{author} %{age}"
+    label_added_time_by: "Added by <a href=%{authorLink}>%{author}</a> at %{age}"
     label_ago: "днів тому"
     label_all: "всі"
     label_all_work_packages: "всі пакети в роботі"
@@ -320,9 +343,11 @@ uk:
     label_expand_all: "Розгорнути все"
     label_expand_project_menu: "Розгорніть меню проекту"
     label_export: "Експорт"
+    label_export_preparing: "The export is being prepared and will be downloaded shortly."
     label_filename: "Файл"
     label_filesize: "Розмір"
     label_general: "Загальні"
+    label_global_roles: "Глобальні ролі"
     label_greater_or_equal: ">="
     label_group: 'Група'
     label_group_by: "Групувати за"
@@ -352,7 +377,7 @@ uk:
     label_next: "Далі"
     label_no_color: "Без кольору"
     label_no_data: "Немає даних для відображення"
-    label_no_due_date: "немає дати завершення"
+    label_no_due_date: "no finish date"
     label_no_start_date: "немає дати початку"
     label_no_value: "Значення відсутнє"
     label_none: "нічого"
@@ -371,6 +396,7 @@ uk:
     label_quote_comment: "Цитувати цей коментар"
     label_recent: "Recent"
     label_reset: "Скинути"
+    label_remove: "Видалити"
     label_remove_column: "Видалити стовпець"
     label_remove_columns: "Видалити вибрані стовпці"
     label_remove_row: "Видалити рядок"
@@ -392,9 +418,10 @@ uk:
     label_public_query: "Публічний"
     label_sum: "Сума"
     label_sum_for: "Сума для"
+    label_total_sum: "Total sum"
     label_subject: "Тема"
     label_this_week: "цього тижня"
-    label_today: "сьогодні"
+    label_today: "Today"
     label_time_entry_plural: "Трудовитрати"
     label_up: "Вгору"
     label_user_plural: "Користувачі"
@@ -404,8 +431,10 @@ uk:
     label_total_amount: "Всього: %{amount}"
     label_updated_on: "оновлено"
     label_value_derived_from_children: "(значення, отримане від дітей)"
+    label_children_derived_duration: "Work package's children derived duration"
     label_warning: "Попередження"
     label_work_package: "Пакет робіт"
+    label_work_package_parent: "Parent work package"
     label_work_package_plural: "Пакет робіт"
     label_watch: "Спостерігати"
     label_watch_work_package: "Спостерігати за робочим пакетом"
@@ -452,6 +481,7 @@ uk:
         help_menu: 'У меню <b>Довідка</b> ви знайдете посібник користувача та додаткові довідкові ресурси. <br> Насолоджуйтесь роботою з OpenProject!'
         members: 'Запросити нових <b>Членів</b> приєднатися до вашого проекту.'
         project_selection: 'Натисніть один з проектів з корисними демонстраційними даними, щоб розпочати роботу. <br> <b> Демо-проект </b> найкраще підходить для класичного управління проектами, в той час як <b> Scrum-проект </b> є кращим для Agile управління проектами.'
+        quick_add_button: 'Create a new project or invite coworkers.'
         sidebar_arrow: "За допомогою стрілки ви можете перейти назад до проекту <b> Головне меню </b>."
         welcome: 'Здійсніть трихвилинний ознайомчий огляд для вивчення <b>найважливішого функціоналу</b>. <br> Ми рекомендуємо пройти всі кроки до завершення огляду. Ви можете повернутися до цього огляду повторно в будь-який час.'
         wiki: 'У межах <b>Wiki</b> ви можете документувати та обмінюватися знаннями разом з вашою командою.'
@@ -467,7 +497,7 @@ uk:
           drag: "113/5000\nПеретягніть ваші карти в список, щоб змінити порядок або на інший список. Подвійний клік відкриє вікно деталізації."
         wp:
           toggler: "Тепер давайте подивимося на розділ <b>Робочий пакет</b>, який надає більш детальне уявлення про вашу роботу."
-          list: 'Це список <b>Робочий пакет</b> з важливою роботою у вашому проекті, наприклад завданнями, функціями, віхами, помилками тощо. <br> Можна створювати або редагувати робочий пакет безпосередньо в цьому списку. Щоб побачити його деталі, можна двічі клацнути по рядку.'
+          list: 'This is the <b>Work package</b> list with the important work within your project, such as tasks, milestones, phases, and more. <br> You can create or edit a work package directly within this list. To see its details you can double click on a row.'
           full_view: 'У межах  <b>Work package details</b> ви знайдете всю відповідну інформацію, таку як опис, статус і пріоритет, заходи, залежності або коментарі.'
           back_button: 'За допомогою стрілки можна повернутися до списку робочих пакетів.'
           create_button: 'Кнопка <b>Створити</b> додасть новий робочий пакет до вашого проекту.'
@@ -492,6 +522,11 @@ uk:
       context: 'Контекст проекту'
       work_package_belongs_to: 'Цей робочий пакет належить до проекту %{projectname}'
       click_to_switch_context: 'Відкрийте цей робочий пакет у цьому проекті.'
+      confirm_template_load: 'Switching the template will reload the page and you will lose all input to this form. Continue?'
+      use_template: "Use template"
+      no_template_selected: "(None)"
+      copy:
+        copy_options: "Copy options"
       autocompleter:
         label: 'Автозавершення проекту'
     text_are_you_sure: "Ви впевненені?"
@@ -502,7 +537,7 @@ uk:
         reset_title: "Скидання конфігурації форми"
         confirm_reset: >
           Попередження: Справді скинути конфігурацію форми? Це призведе до скидання атрибутів до групи за замовчуванням і вимкнення всіх користувацьких полів.
-        upgrade_to_ee: "Оновлення до Enterprise Edition"
+        upgrade_to_ee: "Upgrade to Enterprise on-premises Edition"
         upgrade_to_ee_text: "Оце Так! Якщо вам потрібна ця функція, ви супер-про! Чи не могли б ви підтримати розробників OpenSource, ставши клієнтом Enterprise Edition?"
         more_information: "Більше інформації"
         nevermind: "Nevermind"
@@ -519,7 +554,7 @@ uk:
       duration: 'Тривалість'
       spent_on: 'Дата'
       hours: 'Години'
-      label: 'Time entry'
+      title: 'Час журналу'
     two_factor_authentication:
       label_two_factor_authentication: 'Двофакторна аутентифікація'
     watchers:
@@ -575,11 +610,18 @@ uk:
     relations_autocomplete:
       placeholder: "Введіть для пошуку"
       parent_placeholder: "Виберіть нові джерела або натисніть клавішу Escape, щоб скасувати."
+    autocompleter:
+      placeholder: "Введіть для пошуку"
+      notFoundText: "No items found"
+      typeToSearchText: "Введіть для пошуку"
     repositories:
       select_tag: 'Виберіть мітку'
       select_branch: 'Виберіть гілку'
     field_value_enter_prompt: "Введіть значення для «%{field}»"
     project_menu_details: "Детальніше"
+    scheduling:
+      manual: 'Manual scheduling'
+      automatic: 'Automatic scheduling'
     sort:
       sorted_asc: 'Застосовується сортування за зростанням,'
       sorted_dsc: 'Застосовується сортування за спаданням,'
@@ -745,6 +787,7 @@ uk:
         startDate: "Початок"
         status: "Статус"
         subject: "Тема"
+        subproject: "Підпроект"
         title: "Назва"
         type: "Тип"
         updatedAt: "Оновлене"
@@ -790,6 +833,9 @@ uk:
           not_found: "Такого погляду немає"
           duplicate_query_title: "Ім'я цього перегляду вже існує. Змінити все одно?"
         text_no_results: "Не знайдено відповідних переглядів."
+      scheduling:
+        is_parent: "The dates of this work package are automatically deduced from its children. Activate 'Manual scheduling' to set the dates."
+        is_switched_from_manual_to_automatic: "The dates of this work package may need to be recalculated after switching from manual to automatic scheduling due to relationships with other work packages."
       table:
         configure_button: 'Налаштуйте таблицю робочих пакетів'
         summary: "Таблиця з рядками пакетів робіт і стовпцями атрибутів пакетів робіт."
@@ -823,7 +869,7 @@ uk:
           automatic: 'Автоматично'
           manually: 'Вручну'
           warning: 'Ви втратите попереднє сортування при активації автоматичного сортування.'
-        columns_help_text: "Use the input above to add columns to your table view. You can drag and drop the columns to reorder them."
+        columns_help_text: "Use the input field above to add columns to your table view. You can drag and drop the columns to reorder them."
         upsale:
           attribute_highlighting: 'Потрібні певні робочі пакети, щоб виділитися зі скупчення?'
           relation_columns: 'Потрібно бачити відносини у списку робочих пакетів?'
@@ -878,10 +924,14 @@ uk:
         has_children: "Робочий пакет має %{childUnits}"
         confirm_deletion_children: "Я визнаю, що <b>ВСІ</b> нащадки перерахованих робочих пакетів будуть рекурсивно видалені."
         deletes_children: "Всі дочірні робочі пакети та їх нащадки також будуть рекурсивно видалені."
+      destroy_time_entry:
+        title: "Confirm deletion of time entry"
+        text: "Are you sure you want to delete the following time entry?"
     notice_no_results_to_display: "Не відображаються видимі результати."
     notice_successful_create: "Створення успішно завершене."
     notice_successful_delete: "Видалення успішно завершене."
     notice_successful_update: "Успішно оновлено."
+    notice_job_started: "job started."
     notice_bad_request: "Неправильний Запит."
     relations:
       empty: Немає жодних зв'язків
@@ -919,11 +969,9 @@ uk:
         many: "%{count} робочий пакет дітей"
         other: "%{count} робочий пакет дітей"
       hour:
+        one: "1 h"
+        other: "%{count} h"
         zero: "0 h"
-        one: "1 год"
-        few: "%{count} год"
-        many: "%{count} год"
-        other: "%{count} год"
     zen_mode:
       button_activate: 'Активуйте режим дзен'
       button_deactivate: 'Деактивуйте режим дзен'
@@ -941,3 +989,78 @@ uk:
       card: 'Картки'
       list: 'Таблиця'
       timeline: 'Гантт'
+    invite_user_modal:
+      back: 'Назад'
+      invite: 'Invite'
+      title:
+        invite: 'Запросити користувача'
+        invite_to_project: 'Invite %{type} to %{project}'
+        User: 'user'
+        Group: 'group'
+        PlaceholderUser: 'placeholder user'
+        invite_principal_to_project: 'Invite %{principal} to %{project}'
+      project:
+        label: 'Проект'
+        required: 'Please select a project'
+        lacking_permission: 'Please select a different project since you lack permissions to assign users to the currently selected.'
+        lacking_permission_info: 'You lack the permission to assign users to the project you are currently in. You need to select a different one.'
+        next_button: 'Далі'
+        no_results: 'No projects were found'
+        no_invite_rights: 'You are not allowed to invite members to this project'
+      type:
+        required: 'Please select the type to be invited'
+        user:
+          title: 'Користувач'
+          description: 'Permissions based on the assigned role in the selected project'
+        group:
+          title: 'Група'
+          description: 'Permissions based on the assigned role in the selected project'
+        placeholder:
+          title: 'Placeholder user'
+          title_no_ee: 'Placeholder user (Enterprise Edition only feature)'
+          description: 'Has no access to the project and no emails are sent out.'
+          description_no_ee: 'Has no access to the project and no emails are sent out. <br>Check out the <a href="%{eeHref}" target="_blank">Enterprise Edition</a>'
+      principal:
+        label:
+          name_or_email: 'Name or email address'
+          name: 'Ім’я'
+        already_member_message: 'Already a member of %{project}'
+        no_results_user: 'No users were found'
+        invite_user: 'Invite:'
+        change_user_selection: 'Change e-mail-address or select an existing user'
+        no_results_placeholder: 'No placeholders were found'
+        change_placeholder_selection: 'Change name or select an existing placeholder'
+        create_new_placeholder: 'Create new placeholder:'
+        no_results_group: 'No groups were found'
+        change_group_selection: 'Change name or select an existing group'
+        next_button: 'Далі'
+        required:
+          user: 'Please select a user'
+          placeholder: 'Please select a placeholder'
+          group: 'Please select a group'
+      role:
+        label: 'Role in %{project}'
+        no_roles_found: 'No roles were found'
+        description: 'This is the role that %{principal} will receive when they join your project. The role defines which actions they are allowed to take and which information they are allowed to see. <a href="https://docs.openproject.org/system-admin-guide/users-permissions/roles-permissions/#roles-and-permissions" target="_blank"> Learn more about roles and permissions. </a>'
+        required: 'Please select a role'
+        next_button: 'Далі'
+      message:
+        label: 'Invitation message'
+        description: 'We will send an email to %{principal}, to which you can add a personal message here. An explanation for the invitation could be useful, or perhaps a bit of information regarding the project to help them get started.'
+        next_button: 'Review invitation'
+      summary:
+        next_button: 'Надіслати запрошення'
+      success:
+        title: '%{principal} was invited!'
+        description:
+          user: 'The user can now log in to access %{project}. Meanwhile you can already plan with that user and assign work packages for instance.'
+          placeholder: 'The placeholder can now be used in %{project}. Meanwhile you can already plan with that user and assign work packages for instance.'
+          group: 'The group is now a part of %{project}. Meanwhile you can already plan with that group and assign work packages for instance.'
+        next_button: 'Продовжити'
+    forms:
+      submit_success_message: 'The form was successfully submitted'
+      load_error_message: 'There was an error loading the form'
+      validation_error_message: 'Please fix the errors present in the form'
+      advanced_settings: 'Розширені налаштування'
+
+

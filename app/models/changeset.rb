@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -33,12 +34,21 @@ class Changeset < ApplicationRecord
   has_many :file_changes, class_name: 'Change', dependent: :delete_all
   has_and_belongs_to_many :work_packages
 
-  acts_as_journalized
+  acts_as_journalized timestamp: :committed_on
 
-  acts_as_event title: Proc.new { |o| "#{l(:label_revision)} #{o.format_identifier}" + (o.short_comments.blank? ? '' : (': ' + o.short_comments)) },
+  acts_as_event title: Proc.new { |o|
+                         "#{I18n.t(:label_revision)} #{o.format_identifier}" + (o.short_comments.blank? ? '' : (': ' + o.short_comments))
+                       },
                 description: :long_comments,
                 datetime: :committed_on,
-                url: Proc.new { |o| { controller: '/repositories', action: 'revision', project_id: o.repository.project_id, rev: o.identifier } },
+                url: Proc.new { |o|
+                  {
+                    controller: '/repositories',
+                    action: 'revision',
+                    project_id: o.repository.project_id,
+                    rev: o.identifier
+                  }
+                },
                 author: Proc.new { |o| o.author }
 
   acts_as_searchable columns: 'comments',
@@ -51,7 +61,7 @@ class Changeset < ApplicationRecord
   validates_uniqueness_of :revision, scope: :repository_id
   validates_uniqueness_of :scmid, scope: :repository_id, allow_nil: true
 
-  scope :visible, -> (*args) {
+  scope :visible, ->(*args) {
     includes(repository: :project)
       .references(:projects)
       .merge(Project.allowed_to(args.first || User.current, :view_changesets))
@@ -119,12 +129,13 @@ class Changeset < ApplicationRecord
     |
     (\d+):(\d+)
     |
-    (\d+([\.,]\d+)?)h?
+    (\d+([.,]\d+)?)h?
     )
     /x
 
   def scan_comment_for_work_package_ids
     return if comments.blank?
+
     # keywords used to reference work packages
     ref_keywords = Setting.commit_ref_keywords.downcase.split(',').map(&:strip)
     ref_keywords_any = ref_keywords.delete('*')
@@ -135,7 +146,7 @@ class Changeset < ApplicationRecord
 
     referenced_work_packages = []
 
-    comments.scan(/([\s\(\[,-]|^)((#{kw_regexp})[\s:]+)?(#\d+(\s+@#{TIMELOG_RE})?([\s,;&]+#\d+(\s+@#{TIMELOG_RE})?)*)(?=[[:punct:]]|\s|<|$)/i) do |match|
+    comments.scan(/([\s(\[,-]|^)((#{kw_regexp})[\s:]+)?(#\d+(\s+@#{TIMELOG_RE})?([\s,;&]+#\d+(\s+@#{TIMELOG_RE})?)*)(?=[[:punct:]]|\s|<|$)/i) do |match|
       action = match[2]
       refs = match[3]
       next unless action.present? || ref_keywords_any
@@ -230,10 +241,10 @@ class Changeset < ApplicationRecord
     unless Setting.commit_fix_done_ratio.blank?
       work_package.done_ratio = Setting.commit_fix_done_ratio.to_i
     end
-    Redmine::Hook.call_hook(:model_changeset_scan_commit_for_issue_ids_pre_issue_update,
-                            changeset: self, issue: work_package)
-    unless work_package.save(validate: false)
-      logger.warn("Work package ##{work_package.id} could not be saved by changeset #{id}: #{work_package.errors.full_messages}") if logger
+    OpenProject::Hook.call_hook(:model_changeset_scan_commit_for_issue_ids_pre_issue_update,
+                                changeset: self, issue: work_package)
+    if !work_package.save(validate: false) && logger
+      logger.warn("Work package ##{work_package.id} could not be saved by changeset #{id}: #{work_package.errors.full_messages}")
     end
 
     work_package
@@ -258,14 +269,10 @@ class Changeset < ApplicationRecord
     [@short_comments, @long_comments]
   end
 
-  public
-
   # Strips and reencodes a commit log before insertion into the database
   def self.normalize_comments(str, encoding)
     Changeset.to_utf8(str.to_s.strip, encoding)
   end
-
-  private
 
   def sanitize_attributes
     self.committer = self.class.to_utf8(committer, repository.repo_log_encoding)
@@ -280,6 +287,7 @@ class Changeset < ApplicationRecord
   # TODO: refactor to a standard helper method
   def self.to_utf8(str, encoding)
     return str if str.nil?
+
     str.force_encoding('ASCII-8BIT') if str.respond_to?(:force_encoding)
     if str.empty?
       str.force_encoding('UTF-8') if str.respond_to?(:force_encoding)
@@ -307,7 +315,7 @@ class Changeset < ApplicationRecord
         txtar += $!.success
         str = '?' + $!.failed[1, $!.failed.length]
         retry
-      rescue
+      rescue StandardError
         txtar += $!.success
       end
       str = txtar

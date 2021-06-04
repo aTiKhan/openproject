@@ -26,8 +26,9 @@ The package will:
 
 The package is available for the following Linux distributions:
 
-| Distribution (**64 bits only**)             |
+| Distribution (64 bits only)                 |
 | ------------------------------------------- |
+| [Ubuntu 20.04 Focal](#ubuntu-2004)          |
 | [Ubuntu 18.04 Bionic Beaver](#ubuntu-1804)  |
 | [Ubuntu 16.04 Xenial Xerus](#ubuntu-1604)   |
 | [Debian 10 Buster](#debian-10)              |
@@ -50,6 +51,32 @@ x86_64
 
 ## Ubuntu Installation
 
+### Ubuntu 20.04
+
+Import the PGP key used to sign our packages:
+
+```bash
+wget -qO- https://dl.packager.io/srv/opf/openproject/key | sudo apt-key add -
+```
+
+Add the OpenProject package source:
+
+```bash
+sudo wget -O /etc/apt/sources.list.d/openproject.list \
+  https://dl.packager.io/srv/opf/openproject/stable/11/installer/ubuntu/20.04.repo
+```
+
+Download the OpenProject package:
+
+```bash
+sudo apt-get update
+sudo apt-get install openproject
+```
+
+Then finish the installation by reading the [*Initial configuration*][initial-config] section.
+
+<video src="https://www.openproject.org/wp-content/uploads/2020/12/openproject-installation-ubuntu.mp4" type="video/mp4" controls="" style="width:100%"></video>
+
 ### Ubuntu 18.04
 
 Import the PGP key used to sign our packages:
@@ -62,7 +89,7 @@ Add the OpenProject package source:
 
 ```bash
 sudo wget -O /etc/apt/sources.list.d/openproject.list \
-  https://dl.packager.io/srv/opf/openproject/stable/10/installer/ubuntu/18.04.repo
+  https://dl.packager.io/srv/opf/openproject/stable/11/installer/ubuntu/18.04.repo
 ```
 
 Download the OpenProject package:
@@ -86,7 +113,7 @@ Add the OpenProject package source:
 
 ```bash
 sudo wget -O /etc/apt/sources.list.d/openproject.list \
-  https://dl.packager.io/srv/opf/openproject/stable/10/installer/ubuntu/16.04.repo
+  https://dl.packager.io/srv/opf/openproject/stable/11/installer/ubuntu/16.04.repo
 ```
 
 Download the OpenProject package:
@@ -112,7 +139,7 @@ Add the OpenProject package source:
 
 ```bash
 sudo wget -O /etc/apt/sources.list.d/openproject.list \
-  https://dl.packager.io/srv/opf/openproject/stable/10/installer/debian/10.repo
+  https://dl.packager.io/srv/opf/openproject/stable/11/installer/debian/10.repo
 ```
 
 Download the OpenProject package:
@@ -136,7 +163,7 @@ Add the OpenProject package source:
 
 ```bash
 sudo wget -O /etc/apt/sources.list.d/openproject.list \
-  https://dl.packager.io/srv/opf/openproject/stable/10/installer/debian/9.repo
+  https://dl.packager.io/srv/opf/openproject/stable/11/installer/debian/9.repo
 ```
 
 Download the OpenProject package:
@@ -158,7 +185,7 @@ Add the OpenProject package source:
 
 ```bash
 sudo wget -O /etc/yum.repos.d/openproject.repo \
-  https://dl.packager.io/srv/opf/openproject/stable/10/installer/el/8.repo
+  https://dl.packager.io/srv/opf/openproject/stable/11/installer/el/8.repo
 ```
 
 Download the OpenProject package:
@@ -184,7 +211,7 @@ Add the OpenProject package source:
 
 ```bash
 sudo wget -O /etc/yum.repos.d/openproject.repo \
-  https://dl.packager.io/srv/opf/openproject/stable/10/installer/el/7.repo
+  https://dl.packager.io/srv/opf/openproject/stable/11/installer/el/7.repo
 ```
 
 Download the OpenProject package:
@@ -203,7 +230,7 @@ Add the OpenProject package source:
 
 ```bash
 wget -O /etc/zypp/repos.d/openproject.repo \
-  https://dl.packager.io/srv/opf/openproject/stable/10/installer/sles/12.repo
+  https://dl.packager.io/srv/opf/openproject/stable/11/installer/sles/12.repo
 ```
 
 Download the OpenProject package:
@@ -213,6 +240,8 @@ sudo zypper install openproject
 ```
 
 Then finish the installation by reading the [*Initial configuration*][initial-config] section.
+
+**Note:** For SLES12, we do not provide required dependencies for full-text extraction of attachments. If you need this feature, please install the required dependencies (`catdoc unrtf poppler-utils tesseract-ocr`) manually. For more information, [please see the plaintext gem](https://github.com/planio-gmbh/plaintext). Once installed, check `Administration > Information` to see if OpenProject is able to pick up these dependencies.
 
 [initial-config]: #initial-configuration
 
@@ -226,7 +255,7 @@ After you have successfully installed the OpenProject package, you can now perfo
 
 - If you want to enable HTTPS, then you will need to provide the path (on the server) to your certificate file, private key file, and CA bundle file.
 
-## Step 0: start the wizard
+## Step 0: Start the wizard
 
 To start the configuration wizard, please run the following command  with `sudo`, or as root:
 
@@ -236,15 +265,38 @@ sudo openproject configure
 
 **Notes:**
 
-* In case you mistype or need to correct a configuratin option, you can always safely cancel the configuration wizard by pressing `CTRL+C` and restart it by running `sudo openproject reconfigure`.
+* In case you mistype or need to correct a configuration option, you can always safely cancel the configuration wizard by pressing `CTRL+C` and restart it by running `sudo openproject reconfigure`.
 
-* Every time you will run the OpenProject wizard, your choices will be persisted in a configuration file at `/etc/openproject/installer.dat` and subsequent executions of `sudo openproject configure` will re-use these values, only showing you wizard steps for options you have not yet selected an option for.
+* Every time you will run the OpenProject wizard, your choices will be persisted in a configuration file at `/etc/openproject/installer.dat` and subsequent executions of `sudo openproject configure` will re-use these values, only showing you the wizard steps for options you have not yet been asked for.
 
-* In case you want to run through all wizard options again, you can do so by executing `sudo openproject reconfigure`. This will show all wizard steps, but again keep values you entered before showing in the input fields. You can skip dialogs you do not want to change simply by confirming them with `ENTER`.
+* In case you want to run through all the wizard options again, you can do so by executing `sudo openproject reconfigure`. This will show all wizard steps, but again keep values you entered before showing in the input fields. You can skip dialogs you do not want to change simply by confirming them with `ENTER`.
 
-## Step 1: PostgreSQL database configuration
+## Step 1: Select your OpenProject Edition
 
-The first dialog in the wizard allows you to choose an option for the PostgreSQL database connection: 
+OpenProject comes in two editions:
+
+* the default edition, which is targeted at general project management.
+
+* the BIM edition, which is specifically target at the construction industry.
+
+![select-edition](https://github.com/opf/openproject/raw/dev/docs/installation-and-operations/installation/packaged/select-edition.png)
+
+You can find more about the BIM edition on [this page](https://www.openproject.org/bim-project-management/).
+
+<div class="alert alert-info" role="alert">
+This wizard step is only available on the following distributions:
+
+* RHEL/CentOS 8
+* Ubuntu 20.04
+* Ubuntu 18.04
+* Debian 10
+
+On older distributions, this wizard step won't be displayed, and the installation will default to the default edition.
+</div>
+
+## Step 2: PostgreSQL database configuration
+
+OpenProject requires a PostgreSQL database to store your data. This wizard step allows you to choose an option for the PostgreSQL database connection: 
 
 ![01-postgres](https://github.com/opf/openproject/raw/dev/docs/installation-and-operations/installation/packaged/01-postgres.png)
 
@@ -252,7 +304,7 @@ The dialog allows you to choose from three options:
 
 ### Install a new PostgreSQL server and database locally (default)
 
-Choose this option if you want OpenProject to set up and configure a local database server manually. This is the best choice if you are unfamiliar with adminstering databases, or do not have a separate PostgreSQL database server installed that you want to connect to.
+Choose this option if you want OpenProject to set up and configure a local database server manually. This is the best choice if you are unfamiliar with administering databases, or do not have a separate PostgreSQL database server installed that you want to connect to.
 
 ### Use an existing PostgreSQL database
 
@@ -262,7 +314,7 @@ The wizard will show you multiple additional steps in this case to enter the hos
 
 ### Skip (not recommended)
 
-The wizard will not try to connect to any database. You will have to specify a database manually thorugh the `DATABASE_URL` environment variable. If you choose skip and did not set a `DATABASE_URL`, the configuration process will fail.
+The wizard will not try to connect to any database. You will have to specify a database manually through the `DATABASE_URL` environment variable. If you choose skip and did not set a `DATABASE_URL`, the configuration process will fail.
 
 You can set this `DATABASE_URL` parameter yourself to a PostgreSQL database URL.
 
@@ -270,7 +322,7 @@ You can set this `DATABASE_URL` parameter yourself to a PostgreSQL database URL.
 sudo openproject config:set DATABASE_URL="postgresql://[user[:password]@][host][:port][/dbname][?param1=value1&...]
 ```
 
-## Step 2: Apache2 web server
+## Step 3: Apache2 web server
 
 OpenProject comes with an internal ruby application server, but this server only listens on a local interface. To receive connections from the outside world, it needs a web server that will act as a proxy to forward incoming connections to the OpenProject application server.
 
@@ -335,13 +387,17 @@ If you have a separate server that is terminating SSL and only forwarding/proxyi
 
 ### Skip (not recommended)
 
-The installer will not set up an external web server for accessing. You will need to either install and set up a web server such as Apache2 or Nginx to function as the web server forwarding to our internal server listeing at `localhost:6000` by proxying.
+The installer will not set up an external web server for accessing. You will need to either install and set up a web server such as Apache2 or Nginx to function as the web server forwarding to our internal server listening at `localhost:6000` by proxying.
 
 Only choose this option if you have a local Apache2 installed that the OpenProject package may not control, or need to use a different web server such as Nginx. Please note that not all functionality (especially regarding Repositories) are supported on Nginx. 
 
-When installing with an existing Apache2, you can use our [installation wizard templates](https://github.com/pkgr/addon-apache2/tree/master/conf) for guidance on how to set up the integration. [For a minimal nginx config, please see this gist](https://gist.github.com/seLain/375d16ccd4542e3727e97a7478187d3a) as as starting point.
+When installing with an existing Apache2, you can take a look at the source of our [installation  templates](https://github.com/pkgr/addon-apache2/tree/master/conf) for guidance on how to set up the integration. 
 
-## Step 3: SVN/Git integration server
+[Here's an exemplary configuration](./openproject-apache-example.conf) that might work for you.
+
+[For a minimal nginx config, please see this gist](https://gist.github.com/seLain/375d16ccd4542e3727e97a7478187d3a) as as starting point.
+
+## Step 4: SVN/Git integration server
 
 If you have selected to auto-install an Apache2 web server, you will be asked whether you want to install Git and Subversion repository support. In case you do not need it or when in doubt, choose **Skip** for both options.
 
@@ -349,7 +405,7 @@ For more information, [see our help on repositories](https://www.openproject.org
 
 ![03-repos](https://github.com/opf/openproject/raw/dev/docs/installation-and-operations/installation/packaged/03-repos.png)
 
-## Step 4: Outgoing email configuration
+## Step 5: Outgoing email configuration
 
 OpenProject requires a setup for sending outgoing emails for notifications, such as updates on work packages, password resets, or other notifications you and your users receive.
 
@@ -371,13 +427,13 @@ Allows you to connect to a SMTP host through authentication types `NONE`,  `PLAI
 
 Does not set up mail configuration. You can configure the mail setup in OpenProject by visiting `openproject.example.com/settings?tab=notifications` in your installation. For more information, [visit our help page on this topic](https://www.openproject.org/help/system-settings/email-notification-settings/).
 
-## Step 5: Administrator email
+## Step 6: Administrator email
 
 The wizard will ask you for an administrative email address so that it can create the administrator account with that email for the initial login. Enter your email address to have it tied to the admin account.
 
 ![05-admin](https://github.com/opf/openproject/raw/dev/docs/installation-and-operations/installation/packaged/05-admin.png)
 
-## Step 6: Memcached server
+## Step 7: Memcached server
 
 OpenProject heavily relies on caching, which is why the wizard suggests you to install a local memcached server the OpenProject instances can connect to. You should always set this to `install` unless you have a reason to configure another caching mechanism - for example when configuring multiple shared instances of OpenProject.
 

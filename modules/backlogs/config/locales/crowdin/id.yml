@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -19,7 +19,6 @@
 #Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #See docs/COPYRIGHT.rdoc for more details.
 #++
-#---
 id:
   activerecord:
     attributes:
@@ -37,22 +36,16 @@ id:
               can_only_contain_work_packages_of_current_sprint: "hanya bisa berisi ID paket kerja dalam sprint saat ini."
               must_block_at_least_one_work_package: "harus berisi ID minimal satu tiket."
             parent_id:
+              parent_child_relationship_across_projects: "tidak valid karena paket kerja '%{work_package_name}' adalah tugas backlog dan oleh karena itu tidak dapat memiliki orang tua di luar proyek saat ini."
               type_must_be_one_of_the_following: "Jenis harus menjadi salah satu dari berikut ini:%{type_names}."
-        sprint:
-          cannot_end_before_it_starts: "Sprint tidak bisa berakhir sebelum mulai."
-  activemodel:
-    errors:
-      models:
-        work_package:
-          attributes:
             version_id:
               task_version_must_be_the_same_as_story_version: "harus sama seperti versi kisah orang tua."
-            parent_id:
-              parent_child_relationship_across_projects: "tidak valid karena paket kerja '%{work_package_name}' adalah tugas backlog dan oleh karena itu tidak dapat memiliki orang tua di luar proyek saat ini."
+        sprint:
+          cannot_end_before_it_starts: "Sprint tidak bisa berakhir sebelum mulai."
   backlogs:
     add_new_story: "Cerita baru "
     any: "apapun"
-    backlog_settings: "Backlogs settings"
+    backlog_settings: "Pengaturan Backlog"
     burndown_graph: "Grafik Burndown"
     card_paper_size: "Ukuran kertas untuk pencetakan kartu"
     chart_options: "Bagan pilihan"
@@ -106,6 +99,7 @@ id:
   backlogs_empty_title: "Ada versi yang didefinisikan untuk digunakan dalam backlogs"
   backlogs_empty_action_text: "Untuk memulai dengan backlogs, membuat versi baru, dan menetapkannya ke kolom backlogs."
   button_edit_wiki: "Edit halaman wiki"
+  error_backlogs_task_cannot_be_story: "The settings are invalid. The selected task type can not also be a story type."
   error_intro_plural: "Kesalahan berikut ini ditemui:"
   error_intro_singular: "Kesalahan berikut ini ditemui:"
   error_outro: "Perbaiki kesalahan di atas sebelum mengirimkannya lagi."

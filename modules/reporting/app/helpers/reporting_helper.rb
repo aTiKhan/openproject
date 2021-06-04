@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -35,7 +35,8 @@ module ReportingHelper
 
   def with_project(project)
     project = Project.find(project) unless project.is_a? Project
-    project_was, @project = @project, project
+    project_was = @project
+    @project = project
     yield
     @project = project_was
   end
@@ -52,6 +53,7 @@ module ReportingHelper
     if name.starts_with?('label')
       return I18n.t(field)
     end
+
     name = name.camelcase
     if CostQuery::Filter.const_defined? name
       CostQuery::Filter.const_get(name).label
@@ -86,39 +88,52 @@ module ReportingHelper
     @raw_row[key][value] ||= field_sort_map(key, value)
   end
 
-  def cost_object_link(cost_object_id)
-    co = CostObject.find(cost_object_id)
-    if User.current.allowed_to?(:view_cost_objects, co.project)
-      link_to_cost_object(co)
+  def budget_link(budget_id)
+    budget = Budget.find(budget_id)
+    if User.current.allowed_to?(:view_budgets, budget.project)
+      link_to budget.subject,
+              budget_path(budget),
+              class: budget.css_classes,
+              title: budget.subject
     else
-      co.subject
+      budget.subject
     end
   end
 
   def field_representation_map(key, value)
-    return I18n.t(:label_none) if value.blank?
+    return I18n.t(:'placeholders.default') if value.blank?
 
     case key.to_sym
-    when :activity_id                           then mapped value, Enumeration, "<i>#{l(:caption_material_costs)}</i>"
+    when :activity_id                           then mapped value, Enumeration, "<i>#{I18n.t(:caption_material_costs)}</i>"
     when :project_id                            then link_to_project Project.find(value.to_i)
     when :user_id, :assigned_to_id, :author_id  then link_to_user(User.find_by_id(value.to_i) || DeletedUser.first)
     when :tyear, :units                         then h(value.to_s)
-    when :tweek                                 then "#{l(:label_week)} ##{h value}"
+    when :tweek                                 then "#{I18n.t(:label_week)} ##{h value}"
     when :tmonth                                then month_name(value.to_i)
     when :category_id                           then h(Category.find(value.to_i).name)
-    when :cost_type_id                          then mapped value, CostType, l(:caption_labor)
-    when :cost_object_id                        then cost_object_link value
+    when :cost_type_id                          then mapped value, CostType, I18n.t(:caption_labor)
+    when :budget_id                             then budget_link value
     when :work_package_id                       then link_to_work_package(WorkPackage.find(value.to_i))
     when :spent_on                              then format_date(value.to_date)
     when :type_id                               then h(Type.find(value.to_i).name)
-    when :week                                  then "#{l(:label_week)} #%s" % value.to_i.modulo(100)
+    when :week                                  then "#{I18n.t(:label_week)} #%s" % value.to_i.modulo(100)
     when :priority_id                           then h(IssuePriority.find(value.to_i).name)
-    when :version_id                      then h(Version.find(value.to_i).name)
+    when :version_id                            then h(Version.find(value.to_i).name)
     when :singleton_value                       then ''
     when :status_id                             then h(Status.find(value.to_i).name)
-    when /custom_field\d+/                      then CustomOption.find_by(id: value)&.value || value.to_s
+    when /custom_field\d+/                      then custom_value(key, value)
     else h(value.to_s)
     end
+  end
+
+  def custom_value(cf_identifier, value)
+    cf_id = cf_identifier.gsub('custom_field', '').to_i
+
+    # Reuses rails cache to locate the custom field
+    # and then properly cast the value
+    CustomValue
+      .new(custom_field_id: cf_id, value: value)
+      .typed_value
   end
 
   def field_sort_map(key, value)
@@ -155,8 +170,8 @@ module ReportingHelper
 
   def cost_type_label(cost_type_id, cost_type_inst = nil, _plural = true)
     case cost_type_id
-    when -1 then l(:caption_labor)
-    when 0  then l(:label_money)
+    when -1 then I18n.t(:caption_labor)
+    when 0  then I18n.t(:label_money)
     else (cost_type_inst || CostType.find(cost_type_id)).name
     end
   end
@@ -179,13 +194,17 @@ module ReportingHelper
       struct
     end
     options = { fields: filters[:operators].keys, set_filter: 1, action: :drill_down }
-    link_to '[+]', filters.merge(options), class: 'drill_down', title: l(:description_drill_down)
+    link_to '[+]', filters.merge(options), class: 'drill_down', title: I18n.t(:description_drill_down)
   end
 
   ##
   # Create the appropriate action for an entry with the type of log to use
   def action_for(result, options = {})
-    options.merge controller: result.fields['type'] == 'TimeEntry' ? 'timelog' : 'costlog', id: result.fields['id'].to_i
+    options.merge controller: controller_for(result.fields['type']), id: result.fields['id'].to_i
+  end
+
+  def controller_for(type)
+    type == 'TimeEntry' ? 'timelog' : 'costlog'
   end
 
   ##
@@ -222,6 +241,7 @@ module ReportingHelper
   def filter_class(filter_name)
     klass = CostQuery::Filter.const_get(filter_name.to_s.camelize)
     return klass if klass.is_a? Class
+
     nil
   rescue NameError
     nil

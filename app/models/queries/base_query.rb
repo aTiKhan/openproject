@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -53,21 +53,11 @@ class Queries::BaseQuery
   end
 
   def results
-    scope = default_scope
-
     if valid?
-      filters.each do |filter|
-        scope = scope.merge(filter.scope)
-      end
-
-      orders.each do |order|
-        scope = scope.merge(order.scope)
-      end
+      apply_orders(apply_filters(default_scope))
     else
-      scope = empty_scope
+      empty_scope
     end
-
-    scope
   end
 
   def where(attribute, operator, values)
@@ -101,6 +91,10 @@ class Queries::BaseQuery
 
   def find_available_filter(name)
     available_filters.detect { |f| f.name == name }
+  end
+
+  def ordered?
+    orders.any?
   end
 
   protected
@@ -140,5 +134,33 @@ class Queries::BaseQuery
 
   def context
     nil
+  end
+
+  def apply_filters(scope)
+    filters.each do |filter|
+      scope = scope.merge(filter.scope)
+    end
+
+    scope
+  end
+
+  def apply_orders(scope)
+    orders.each do |order|
+      scope = scope.merge(order.scope)
+    end
+
+    # To get deterministic results, especially when paginating (limit + offset)
+    # an order needs to be prepended that is ensured to be
+    # different between all elements.
+    # Without such a criteria, results can occur on multiple pages.
+    already_ordered_by_id?(scope) ? scope : scope.order(id: :desc)
+  end
+
+  def already_ordered_by_id?(scope)
+    scope.order_values.any? do |order|
+      order.respond_to?(:value) && order.value.respond_to?(:relation) &&
+        order.value.relation.name == self.class.model.table_name &&
+        order.value.name == 'id'
+    end
   end
 end

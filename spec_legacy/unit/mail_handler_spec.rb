@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@ describe MailHandler, type: :model do
   FIXTURES_PATH = File.dirname(__FILE__) + '/../fixtures/mail_handler'
 
   before do
-    allow(Setting).to receive(:notified_events).and_return(Redmine::Notifiable.all.map(&:name))
+    allow(Setting).to receive(:notified_events).and_return(OpenProject::Notifiable.all.map(&:name))
   end
 
   it 'should add work package with attributes override' do
@@ -52,17 +52,14 @@ describe MailHandler, type: :model do
     assert issue.description.include?('Lorem ipsum dolor sit amet, consectetuer adipiscing elit.')
   end
 
-  context 'with group assignment set',
-          with_settings: { work_package_group_assignment: 1 } do
-    it 'should add work package with group assignment' do
-      work_package = submit_email('ticket_on_given_project.eml') do |email|
-        email.gsub!('Assigned to: John Smith', 'Assigned to: B Team')
-      end
-      assert work_package.is_a?(WorkPackage)
-      assert !work_package.new_record?
-      work_package.reload
-      assert_equal Group.find(11), work_package.assigned_to
+  it 'should add work package with group assignment' do
+    work_package = submit_email('ticket_on_given_project.eml') do |email|
+      email.gsub!('Assigned to: John Smith', 'Assigned to: B Team')
     end
+    assert work_package.is_a?(WorkPackage)
+    assert !work_package.new_record?
+    work_package.reload
+    assert_equal Group.find(11), work_package.assigned_to
   end
 
   it 'should add work package with partial attributes override' do
@@ -303,8 +300,7 @@ describe MailHandler, type: :model do
 
   specify 'reply to issue update (Journal) by message_id' do
     Journal.delete_all
-    issue = WorkPackage.find(2)
-    j = FactoryBot.create :work_package_journal, id: 3, journable_id: issue.id
+    FactoryBot.create :work_package_journal, id: 3, version: 1, journable_id: 2
     journal = submit_email('ticket_reply_by_message_id.eml')
     assert journal.data.is_a?(Journal::WorkPackageJournal), "Email was a #{journal.data.class}"
     assert_equal User.find_by_login('jsmith'), journal.user
@@ -314,7 +310,6 @@ describe MailHandler, type: :model do
   end
 
   it 'should add work package note with attribute changes' do
-    WorkPackage.find(2).recreate_initial_journal!
     # This email contains: 'Status: Resolved'
     journal = submit_email('ticket_reply_with_status.eml')
     assert journal.data.is_a?(Journal::WorkPackageJournal)
@@ -334,7 +329,6 @@ describe MailHandler, type: :model do
   end
 
   it 'should add work package note should send email notification' do
-    WorkPackage.find(2).recreate_initial_journal!
     journal = submit_email('ticket_reply.eml')
     assert journal.is_a?(Journal)
     assert_equal 3, ActionMailer::Base.deliveries.size
@@ -379,7 +373,9 @@ describe MailHandler, type: :model do
   it 'should email with long subject line' do
     issue = submit_email('ticket_with_long_subject.eml')
     assert issue.is_a?(WorkPackage)
-    assert_equal issue.subject, 'New ticket on a given project with a very long subject line which exceeds 255 chars and should not be ignored but chopped off. And if the subject line is still not long enough, we just add more text. And more text. Wow, this is really annoying. Especially, if you have nothing to say...'[0, 255]
+    assert_equal issue.subject,
+                 'New ticket on a given project with a very long subject line which exceeds 255 chars and should not be ignored but chopped off. And if the subject line is still not long enough, we just add more text. And more text. Wow, this is really annoying. Especially, if you have nothing to say...'[
+0, 255]
   end
 
   it 'should new user from attributes should return valid user' do
@@ -389,11 +385,12 @@ describe MailHandler, type: :model do
       ['jsmith@example.net', 'John'] => ['jsmith@example.net', 'John', '-'],
       ['jsmith@example.net', 'John Smith'] => ['jsmith@example.net', 'John', 'Smith'],
       ['jsmith@example.net', 'John Paul Smith'] => ['jsmith@example.net', 'John', 'Paul Smith'],
-      # TODO: implement https://github.com/redmine/redmine/commit/a00f04886fac78e489bb030d20414ebdf10841e3
-      # ['jsmith@example.net', 'AVeryLongFirstnameThatExceedsTheMaximumLength Smith'] => ['jsmith@example.net', 'AVeryLongFirstnameThatExceedsT', 'Smith'],
-      # ['jsmith@example.net', 'John AVeryLongLastnameThatExceedsTheMaximumLength'] => ['jsmith@example.net', 'John', 'AVeryLongLastnameThatExceedsTh']
-      ['jsmith@example.net', 'AVeryLongFirstnameThatExceedsTheMaximumLength Smith'] => ['jsmith@example.net', '-', 'Smith'],
-      ['jsmith@example.net', 'John AVeryLongLastnameThatExceedsTheMaximumLength'] => ['jsmith@example.net', 'John', '-']
+      ['jsmith@example.net',
+       'AVeryLongFirstnameThatNoLongerExceedsTheMaximumLength Smith'] => ['jsmith@example.net',
+                                                                          'AVeryLongFirstnameThatNoLongerExceedsTheMaximumLength', 'Smith'],
+      ['jsmith@example.net',
+       'John AVeryLongLastnameThatNoLongerExceedsTheMaximumLength'] => ['jsmith@example.net', 'John',
+                                                                        'AVeryLongLastnameThatNoLongerExceedsTheMaximumLength']
     }
 
     to_test.each do |attrs, expected|

@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -54,7 +54,7 @@ fi:
   label_meeting_agenda: "Esityslista"
   label_meeting_minutes: "Pöytäkirja"
   label_meeting_close: "Sulje"
-  label_meeting_open: "Avoinna"
+  label_meeting_open: "Avoin"
   label_meeting_agenda_close: "Sulje esityslista aloittaaksesi pöytäkirjan"
   label_meeting_date_time: "Päivämäärä/aika"
   label_meeting_diff: "Erot"
@@ -74,6 +74,8 @@ fi:
   permission_send_meeting_agendas_notification: "Lähetä esityslistoja hyväksyttäväksi"
   permission_create_meeting_minutes: "Hallitse pöytäkirjoja"
   permission_send_meeting_minutes_notification: "Lähetä pyötäkirjoja hyväksyttäväksi"
+  permission_meetings_send_invite: "Invite users to meetings"
+  permission_send_meeting_agendas_icalendar: "Send meeting agenda as calendar entry"
   project_module_meetings: "Kokoukset"
   text_duration_in_hours: "Keston tunteina"
   text_in_hours: "tuntia"

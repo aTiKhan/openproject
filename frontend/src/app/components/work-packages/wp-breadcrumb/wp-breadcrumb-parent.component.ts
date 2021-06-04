@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,14 +24,13 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {Component, Input, EventEmitter, Output} from '@angular/core';
-import {WorkPackageResource} from 'core-app/modules/hal/resources/work-package-resource';
-import {WorkPackageRelationsHierarchyService} from 'core-app/components/wp-relations/wp-relations-hierarchy/wp-relations-hierarchy.service';
-import {HalResourceNotificationService} from "core-app/modules/hal/services/hal-resource-notification.service";
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
-import {WorkPackageNotificationService} from "core-app/modules/work_packages/notifications/work-package-notification.service";
+import { Component, Input, EventEmitter, Output } from '@angular/core';
+import { WorkPackageResource } from 'core-app/modules/hal/resources/work-package-resource';
+import { WorkPackageRelationsHierarchyService } from 'core-app/components/wp-relations/wp-relations-hierarchy/wp-relations-hierarchy.service';
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
+import { WorkPackageNotificationService } from "core-app/modules/work_packages/notifications/work-package-notification.service";
 
 @Component({
   templateUrl: './wp-breadcrumb-parent.html',
@@ -55,7 +54,7 @@ export class WorkPackageBreadcrumbParentComponent {
     protected readonly I18n:I18nService,
     protected readonly wpRelationsHierarchy:WorkPackageRelationsHierarchyService,
     protected readonly notificationService:WorkPackageNotificationService
-    ) {
+  ) {
   }
 
   public canModifyParent():boolean {
@@ -80,7 +79,7 @@ export class WorkPackageBreadcrumbParentComponent {
 
   public updateParent(newParent:WorkPackageResource|null) {
     this.close();
-    let newParentId = newParent ? newParent.id : null;
+    const newParentId = newParent ? newParent.id : null;
     if (_.get(this.parent, 'id', null) === newParentId) {
       return;
     }

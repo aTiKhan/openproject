@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -32,35 +32,32 @@ module OpenProject::Reporting
 
     include OpenProject::Plugins::ActsAsOpEngine
 
+    config.eager_load_paths += Dir["#{config.root}/lib/"]
+
     register 'openproject-reporting',
-             author_url: 'https://www.openproject.org',
+             author_url: 'https://www.openproject.com',
              bundled: true do
+      view_actions = %i[index show drill_down available_values display_report_list]
+      edit_actions = %i[create update rename destroy]
 
-      view_actions = [:index, :show, :drill_down, :available_values, :display_report_list]
-      edit_actions = [:create, :update, :rename, :destroy]
-
-      #register reporting_module including permissions
-      project_module :reporting_module do
+      # register reporting_module including permissions
+      project_module :costs do
         permission :save_cost_reports, { cost_reports: edit_actions }
         permission :save_private_cost_reports, { cost_reports: edit_actions }
       end
 
-      #register additional permissions for viewing time and cost entries through the CostReportsController
+      # register additional permissions for viewing time and cost entries through the CostReportsController
       view_actions.each do |action|
-        OpenProject::AccessControl.permission(:view_time_entries).actions << "cost_reports/#{action}"
-        OpenProject::AccessControl.permission(:view_own_time_entries).actions << "cost_reports/#{action}"
-        OpenProject::AccessControl.permission(:view_cost_entries).actions << "cost_reports/#{action}"
-        OpenProject::AccessControl.permission(:view_own_cost_entries).actions << "cost_reports/#{action}"
+        OpenProject::AccessControl.permission(:view_time_entries).controller_actions << "cost_reports/#{action}"
+        OpenProject::AccessControl.permission(:view_own_time_entries).controller_actions << "cost_reports/#{action}"
+        OpenProject::AccessControl.permission(:view_cost_entries).controller_actions << "cost_reports/#{action}"
+        OpenProject::AccessControl.permission(:view_own_cost_entries).controller_actions << "cost_reports/#{action}"
       end
 
-      # register additional permissions for the work package costlog controller
-      OpenProject::AccessControl.permission(:view_time_entries).actions << "work_package_costlog/index"
-      OpenProject::AccessControl.permission(:view_own_time_entries).actions << "work_package_costlog/index"
-      OpenProject::AccessControl.permission(:view_cost_entries).actions << "work_package_costlog/index"
-      OpenProject::AccessControl.permission(:view_own_cost_entries).actions << "work_package_costlog/index"
-
-      #menu extensions
-      menu :top_menu, :cost_reports_global, { controller: '/cost_reports', action: 'index', project_id: nil },
+      # menu extensions
+      menu :top_menu,
+           :cost_reports_global,
+           { controller: '/cost_reports', action: 'index', project_id: nil },
            caption: :cost_reports_title,
            if: Proc.new {
              (User.current.logged? || !Setting.login_required?) &&
@@ -69,24 +66,25 @@ module OpenProject::Reporting
                  User.current.allowed_to?(:view_own_time_entries, nil, global: true) ||
                  User.current.allowed_to?(:view_cost_entries, nil, global: true) ||
                  User.current.allowed_to?(:view_own_cost_entries, nil, global: true)
-               )
+             )
            }
 
-      menu :project_menu, :cost_reports,
+      menu :project_menu,
+           :costs,
            { controller: '/cost_reports', action: 'index' },
            param: :project_id,
-           after: :time_entries,
+           after: :news,
            caption: :cost_reports_title,
-           if: Proc.new { |project| project.module_enabled?(:reporting_module) },
+           if: Proc.new { |project| project.module_enabled?(:costs) },
            icon: 'icon2 icon-cost-reports'
 
-      # Cost reports should remove the default time entries menu item
-      hide_menu_item :project_menu,
-                     :time_entries,
-                     hide_if: -> (project) { project.module_enabled?(:reporting_module) }
-
-      hide_menu_item :top_menu,
-                     :time_sheet
+      menu :project_menu,
+           :costs_menu,
+           { controller: '/cost_reports', action: 'index' },
+           param: :project_id,
+           if: Proc.new { |project| project.module_enabled?(:costs) },
+           partial: '/cost_reports/report_menu',
+           parent: :costs
     end
 
     initializer "reporting.register_hooks" do
@@ -94,14 +92,9 @@ module OpenProject::Reporting
       require 'open_project/reporting/hooks'
     end
 
-    initializer 'reporting.precompile_assets' do
-      Rails.application.config.assets.precompile += %w(
-        reporting_engine/reporting_engine.js
-      )
-
-      # Without this, tablesorter's assets are not found.
-      # This should actually be done by rails itself when one adds the gem to the gemspec.
-      Rails.application.config.assets.paths << Gem.loaded_specs['jquery-tablesorter'].full_gem_path + '/vendor/assets/javascripts'
+    initializer 'reporting.load_patches' do
+      require_relative 'patches/big_decimal_patch'
+      require_relative 'patches/to_date_patch'
     end
 
     config.to_prepare do
@@ -112,10 +105,7 @@ module OpenProject::Reporting
       require_dependency 'cost_query/group_by'
     end
 
-    assets %w(reporting/reporting_styles.css
-              reporting/reporting.js)
-
-    patches %i[TimelogController CustomFieldsController OpenProject::Configuration]
+    patches %i[CustomFieldsController OpenProject::Configuration]
     patch_with_namespace :BasicData, :RoleSeeder
     patch_with_namespace :BasicData, :SettingSeeder
   end

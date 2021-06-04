@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -86,7 +86,7 @@ describe 'My page time entries current user widget spec', type: :feature, js: tr
                       hours: 4
   end
   let!(:custom_field) do
-    FactoryBot.create :time_entry_custom_field, field_format: 'string'
+    FactoryBot.create :time_entry_custom_field, field_format: 'text'
   end
   let(:other_user) do
     FactoryBot.create(:user)
@@ -99,12 +99,8 @@ describe 'My page time entries current user widget spec', type: :feature, js: tr
   let(:my_page) do
     Pages::My::Page.new
   end
-  let(:comments_field) { ::EditField.new(page, 'comment') }
-  let(:activity_field) { ::EditField.new(page, 'activity') }
-  let(:hours_field) { ::EditField.new(page, 'hours') }
-  let(:spent_on_field) { ::EditField.new(page, 'spentOn') }
-  let(:wp_field) { ::EditField.new(page, 'workPackage') }
-  let(:cf_field) { ::EditField.new(page, "customField#{custom_field.id}") }
+  let(:cf_field) { ::TextEditorField.new(page, "customField#{custom_field.id}") }
+  let(:time_logging_modal) { ::Components::TimeLoggingModal.new }
 
   before do
     login_as user
@@ -128,12 +124,12 @@ describe 'My page time entries current user widget spec', type: :feature, js: tr
     expect(page)
       .to have_content visible_time_entry.spent_on.strftime('%-m/%-d')
     expect(page)
-      .to have_selector('.fc-event .fc-title', text: "#{project.name} - ##{work_package.id}: #{work_package.subject}")
+      .to have_selector('.fc-event .fc-event-title', text: "#{project.name} - ##{work_package.id}: #{work_package.subject}")
 
     expect(page)
       .to have_content(other_visible_time_entry.spent_on.strftime('%-m/%-d'))
     expect(page)
-      .to have_selector('.fc-event .fc-title', text: "#{project.name} - ##{work_package.id}: #{work_package.subject}")
+      .to have_selector('.fc-event .fc-event-title', text: "#{project.name} - ##{work_package.id}: #{work_package.subject}")
 
     # go to last week
     within entries_area.area do
@@ -146,7 +142,7 @@ describe 'My page time entries current user widget spec', type: :feature, js: tr
     expect(page)
       .to have_content(last_week_visible_time_entry.spent_on.strftime('%-m/%-d'))
     expect(page)
-      .to have_selector('.fc-event .fc-title', text: "#{project.name} - ##{work_package.id}: #{work_package.subject}")
+      .to have_selector('.fc-event .fc-event-title', text: "#{project.name} - ##{work_package.id}: #{work_package.subject}")
 
     # go to today again
     within entries_area.area do
@@ -157,7 +153,7 @@ describe 'My page time entries current user widget spec', type: :feature, js: tr
       .to have_content "Total: 5.00"
 
     within entries_area.area do
-      find(".fc-content-skeleton td:nth-of-type(3) .fc-event-container .te-calendar--time-entry").hover
+      find(".te-calendar--time-entry", match: :first).hover
     end
 
     expect(page)
@@ -167,39 +163,38 @@ describe 'My page time entries current user widget spec', type: :feature, js: tr
 
     # The add time entry event is invisible
     within entries_area.area do
-      find(".fc-content-skeleton td:nth-of-type(5) .te-calendar--add-entry", visible: false).click
+      find("td.fc-timegrid-col:nth-of-type(5) .te-calendar--add-entry", visible: false).click
     end
 
-    expect(page)
-      .to have_content(I18n.t('js.time_entry.work_package_required'))
+    time_logging_modal.is_visible true
 
-    spent_on_field.expect_value((Date.today.beginning_of_week(:sunday) + 3.days).strftime)
+    time_logging_modal.work_package_is_missing true
+
+    time_logging_modal.has_field_with_value 'spentOn', (Date.today.beginning_of_week(:sunday) + 3.days).strftime
 
     expect(page)
       .not_to have_selector('.ng-spinner-loader')
 
-    wp_field.input_element.click
-    wp_field.set_value(other_work_package.subject)
+    time_logging_modal.update_work_package_field other_work_package.subject
 
-    expect(page)
-      .to have_no_content(I18n.t('js.time_entry.work_package_required'))
+    time_logging_modal.work_package_is_missing false
 
-    comments_field.set_value('Comment for new entry')
+    time_logging_modal.update_field 'comment', 'Comment for new entry'
 
-    activity_field.input_element.click
-    activity_field.set_value(activity.name)
+    time_logging_modal.update_field 'activity', activity.name
 
-    hours_field.set_value('4')
+    time_logging_modal.update_field 'hours', 4
 
     sleep(0.1)
 
-    click_button I18n.t('js.label_create')
+    time_logging_modal.perform_action 'Create'
+    time_logging_modal.is_visible false
 
     my_page.expect_and_dismiss_notification message: I18n.t(:notice_successful_create)
 
     within entries_area.area do
       expect(page)
-        .to have_selector(".fc-content-skeleton td:nth-of-type(5) .fc-event-container .te-calendar--time-entry",
+        .to have_selector("td.fc-timegrid-col:nth-of-type(5) .te-calendar--time-entry",
                           text: other_work_package.subject)
     end
 
@@ -212,36 +207,31 @@ describe 'My page time entries current user widget spec', type: :feature, js: tr
     ## Editing an entry
 
     within entries_area.area do
-      find(".fc-content-skeleton td:nth-of-type(3) .fc-event-container .te-calendar--time-entry").click
+      find("td.fc-timegrid-col:nth-of-type(3) .te-calendar--time-entry").click
     end
 
-    expect(page)
-      .to have_content(I18n.t('js.time_entry.label'))
+    time_logging_modal.is_visible true
 
-    activity_field.input_element.click
-    activity_field.set_value(other_activity.name)
+    time_logging_modal.update_field 'activity', other_activity.name
 
-    wp_field.input_element.click
     # As the other_work_package now has time logged, it is now considered to be a
     # recent work package.
-    within('.ng-dropdown-header') do
-      click_link(I18n.t('js.label_recent'))
-    end
-    wp_field.set_value(other_work_package.subject)
+    time_logging_modal.update_work_package_field other_work_package.subject, true
 
-    hours_field.set_value('6')
+    time_logging_modal.update_field 'hours', 6
 
-    comments_field.set_value('Some comment')
+    time_logging_modal.update_field 'comment', 'Some comment'
 
     cf_field.set_value('Cf text value')
 
-    click_button 'Save'
+    time_logging_modal.perform_action 'Save'
+    time_logging_modal.is_visible false
 
     sleep(0.1)
     my_page.expect_and_dismiss_notification message: I18n.t(:notice_successful_update)
 
     within entries_area.area do
-      find(".fc-content-skeleton td:nth-of-type(3) .fc-event-container .te-calendar--time-entry").hover
+      find("td.fc-timegrid-col:nth-of-type(3) .te-calendar--time-entry").hover
     end
 
     expect(page)
@@ -259,35 +249,66 @@ describe 'My page time entries current user widget spec', type: :feature, js: tr
     expect(page)
       .to have_content "Total: 12.00"
 
-    ## Removing the time entry
+    ## Hiding weekdays
+    entries_area.click_menu_item I18n.t('js.grid.configure')
 
-    within entries_area.area do
-      find(".fc-content-skeleton td:nth-of-type(6) .fc-event-container .te-calendar--time-entry").click
-    end
+    uncheck 'Monday' # the day visible_time_entry is logged for
 
-    click_button 'Delete'
-    page.driver.browser.switch_to.alert.accept
+    click_button 'Apply'
 
     within entries_area.area do
       expect(page)
-       .not_to have_selector(".fc-content-skeleton td:nth-of-type(6) .fc-event-container .te-calendar--time-entry")
+        .not_to have_selector('.fc-day-header', text: 'Mon')
+      expect(page)
+        .not_to have_selector('.fc-duration', text: "6 h")
     end
 
-    expect(page)
-      .to have_content "Total: 10.00"
+    ## Removing the time entry
+
+    within entries_area.area do
+      # to place the tooltip at a different spot
+      find("td.fc-timegrid-col:nth-of-type(5) .te-calendar--time-entry").hover
+      find("td.fc-timegrid-col:nth-of-type(5) .te-calendar--time-entry").click
+    end
+
+    time_logging_modal.is_visible true
+    time_logging_modal.perform_action 'Delete'
+
+    page.driver.browser.switch_to.alert.accept
+    time_logging_modal.is_visible false
+
+    within entries_area.area do
+      expect(page)
+       .not_to have_selector("td.fc-timegrid-col:nth-of-type(5) .te-calendar--time-entry")
+    end
 
     expect(TimeEntry.where(id: other_visible_time_entry.id))
       .not_to be_exist
+
+    ## Reloading keeps the configuration
+    visit root_path
+    my_page.visit!
+
+    within entries_area.area do
+      expect(page)
+        .to have_content(/#{Regexp.escape(I18n.t('js.grid.widgets.time_entries_current_user.title'))}/i)
+
+      expect(page)
+        .to have_selector(".te-calendar--time-entry", count: 1)
+
+      expect(page)
+        .not_to have_selector('.fc-col-header-cell', text: 'Mon')
+    end
 
     # Removing the widget
 
     entries_area.remove
 
     # as the last widget has been removed, the add button is always displayed
-    nucleous_area = Components::Grids::GridArea.of(2, 2)
-    nucleous_area.expect_to_exist
+    nucleus_area = Components::Grids::GridArea.of(2, 2)
+    nucleus_area.expect_to_exist
 
-    within nucleous_area.area do
+    within nucleus_area.area do
       expect(page)
         .to have_selector(".grid--widget-add")
     end

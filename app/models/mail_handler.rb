@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -32,6 +33,7 @@ class MailHandler < ActionMailer::Base
   include Redmine::I18n
 
   class UnauthorizedAction < StandardError; end
+
   class MissingInformation < StandardError; end
 
   attr_reader :email, :user, :options
@@ -96,10 +98,10 @@ class MailHandler < ActionMailer::Base
       when 'accept'
         @user = User.anonymous
       when 'create'
-        @user = MailHandler.create_user_from_email(email)
+        @user, password = MailHandler.create_user_from_email(email)
         if @user
           log "[#{@user.login}] account created"
-          UserMailer.account_information(@user, @user.password).deliver_later
+          UserMailer.account_information(@user, password).deliver_later
         else
           log "could not create account for [#{sender_email}]", :error
           return false
@@ -123,27 +125,27 @@ class MailHandler < ActionMailer::Base
     options[:allow_override] << :project unless options[:issue].has_key?(:project)
     # Status overridable by default
     options[:allow_override] << :status unless options[:issue].has_key?(:status)
+    # Version overridable by default
+    options[:allow_override] << :version unless options[:issue].has_key?(:version)
+    # Type overridable by default
+    options[:allow_override] << :type unless options[:issue].has_key?(:type)
+    # Priority overridable by default
+    options[:allow_override] << :priority unless options[:issue].has_key?(:priority)
     options[:no_permission_check] = options[:no_permission_check].to_s == '1'
   end
 
   private
 
-  MESSAGE_ID_RE = %r{^<?openproject\.([a-z0-9_]+)\-(\d+)\.\d+@}
+  MESSAGE_ID_RE = %r{^<?openproject\.([a-z0-9_]+)-(\d+)-(\d+)\.\d+@}
   ISSUE_REPLY_SUBJECT_RE = %r{.+? - .+ #(\d+):}
   MESSAGE_REPLY_SUBJECT_RE = %r{\[[^\]]*msg(\d+)\]}
 
   def dispatch
-    headers = [email.in_reply_to, email.references].flatten.compact
-    if headers.detect { |h| h.to_s =~ MESSAGE_ID_RE }
-      klass = $1
-      object_id = $2.to_i
-      method_name = "receive_#{klass}_reply"
-      if self.class.private_instance_methods.map(&:to_s).include?(method_name)
-        send method_name, object_id
-      end
-    elsif m = email.subject.match(ISSUE_REPLY_SUBJECT_RE)
+    if (m, object_id = dispatch_target_from_message_id)
+      m.call(object_id)
+    elsif (m = email.subject.match(ISSUE_REPLY_SUBJECT_RE))
       receive_work_package_reply(m[1].to_i)
-    elsif m = email.subject.match(MESSAGE_REPLY_SUBJECT_RE)
+    elsif (m = email.subject.match(MESSAGE_REPLY_SUBJECT_RE))
       receive_message_reply(m[1].to_i)
     else
       dispatch_to_default
@@ -168,6 +170,20 @@ class MailHandler < ActionMailer::Base
     receive_work_package
   end
 
+  ##
+  # Find a matching method to dispatch to given the mail's message ID
+  def dispatch_target_from_message_id
+    headers = [email.references, email.in_reply_to].flatten.compact
+    if headers.detect { |h| h.to_s =~ MESSAGE_ID_RE }
+      klass = $1
+      object_id = $3.to_i
+      method_name = :"receive_#{klass}_reply"
+      if self.class.private_instance_methods.include?(method_name)
+        return method(method_name), object_id
+      end
+    end
+  end
+
   # Creates a new work package
   def receive_work_package
     project = target_project
@@ -189,6 +205,7 @@ class MailHandler < ActionMailer::Base
   def receive_work_package_reply(work_package_id)
     work_package = WorkPackage.find_by(id: work_package_id)
     return unless work_package
+
     # ignore CLI-supplied defaults for new work_packages
     options[:issue].clear
 
@@ -271,7 +288,7 @@ class MailHandler < ActionMailer::Base
   # appropriate permission
   def add_watchers(obj)
     if user.allowed_to?("add_#{obj.class.name.underscore}_watchers".to_sym, obj.project) ||
-      user.allowed_to?("add_#{obj.class.lookup_ancestors.last.name.underscore}_watchers".to_sym, obj.project)
+       user.allowed_to?("add_#{obj.class.lookup_ancestors.last.name.underscore}_watchers".to_sym, obj.project)
       addresses = [email.to, email.cc].flatten.compact.uniq.map { |a| a.strip.downcase }
       unless addresses.empty?
         watchers = User.active.where(['LOWER(mail) IN (?)', addresses])
@@ -326,6 +343,7 @@ class MailHandler < ActionMailer::Base
     # * specific project (eg. Setting.mail_handler_target_project)
     target = Project.find_by(identifier: get_keyword(:project))
     raise MissingInformation.new('Unable to determine target project') if target.nil?
+
     target
   end
 
@@ -428,8 +446,9 @@ class MailHandler < ActionMailer::Base
     end
     if addr.present?
       user = new_user_from_attributes(addr, name)
+      password = user.password
       if user.save
-        user
+        [user, password]
       else
         log "failed to create User: #{user.errors.full_messages}", :error
         nil
@@ -439,8 +458,6 @@ class MailHandler < ActionMailer::Base
       nil
     end
   end
-
-  private
 
   def allow_override_option(options)
     if options[:allow_override].is_a?(String)
@@ -479,15 +496,15 @@ class MailHandler < ActionMailer::Base
     end
   end
 
-  def find_assignee_from_keyword(keyword, issue)
+  def find_assignee_from_keyword(keyword, work_package)
     keyword = keyword.to_s.downcase
-    assignable = issue.assignable_assignees
+    assignable = Principal.possible_assignee(work_package.project)
     assignee = nil
     assignee ||= assignable.detect do |a|
       [a.mail.to_s.downcase, a.login.to_s.downcase].include?(keyword)
     end
     if assignee.nil? && keyword.match(/ /)
-      firstname, lastname = *(keyword.split) # "First Last Throwaway"
+      firstname, lastname = *keyword.split # "First Last Throwaway"
       assignee ||= assignable.detect do |a|
         a.is_a?(User) && a.firstname.to_s.downcase == firstname &&
           a.lastname.to_s.downcase == lastname
@@ -507,7 +524,7 @@ class MailHandler < ActionMailer::Base
     service_call = WorkPackages::CreateService
                    .new(user: user,
                         contract_class: work_package_create_contract_class)
-                   .call(attributes.merge(work_package: work_package).symbolize_keys)
+                   .call(**attributes.merge(work_package: work_package).symbolize_keys)
 
     if service_call.success?
       work_package = service_call.result
@@ -537,7 +554,7 @@ class MailHandler < ActionMailer::Base
                    .new(user: user,
                         model: work_package,
                         contract_class: work_package_update_contract_class)
-                   .call(attributes.symbolize_keys)
+                   .call(**attributes.symbolize_keys)
 
     if service_call.success?
       service_call.result

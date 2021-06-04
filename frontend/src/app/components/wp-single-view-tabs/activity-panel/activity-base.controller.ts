@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,17 +24,17 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {ChangeDetectorRef, Directive, OnInit} from '@angular/core';
-import {WorkPackageResource} from 'core-app/modules/hal/resources/work-package-resource';
-import {HalResource} from 'core-app/modules/hal/resources/hal-resource';
-import {ActivityEntryInfo} from 'core-components/wp-single-view-tabs/activity-panel/activity-entry-info';
-import {WorkPackagesActivityService} from 'core-components/wp-single-view-tabs/activity-panel/wp-activity.service';
-import {WorkPackageCacheService} from '../../work-packages/work-package-cache.service';
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
-import {Transition} from "@uirouter/core";
-import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
+import { ChangeDetectorRef, Directive, OnInit } from '@angular/core';
+import { WorkPackageResource } from 'core-app/modules/hal/resources/work-package-resource';
+import { HalResource } from 'core-app/modules/hal/resources/hal-resource';
+import { ActivityEntryInfo } from 'core-components/wp-single-view-tabs/activity-panel/activity-entry-info';
+import { WorkPackagesActivityService } from 'core-components/wp-single-view-tabs/activity-panel/wp-activity.service';
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
+import { Transition } from "@uirouter/core";
+import { UntilDestroyedMixin } from "core-app/helpers/angular/until-destroyed.mixin";
+import { APIV3Service } from "core-app/modules/apiv3/api-v3.service";
 
 @Directive()
 export class ActivityPanelBaseController extends UntilDestroyedMixin implements OnInit {
@@ -50,14 +50,14 @@ export class ActivityPanelBaseController extends UntilDestroyedMixin implements 
   public reverse:boolean;
   public showToggler:boolean;
 
-  public onlyComments:boolean = false;
+  public onlyComments = false;
   public togglerText:string;
   public text = {
     commentsOnly: this.I18n.t('js.label_activity_show_only_comments'),
     showAll: this.I18n.t('js.label_activity_show_all')
   };
 
-  constructor(readonly wpCacheService:WorkPackageCacheService,
+  constructor(readonly apiV3Service:APIV3Service,
               readonly I18n:I18nService,
               readonly cdRef:ChangeDetectorRef,
               readonly $transition:Transition,
@@ -69,8 +69,11 @@ export class ActivityPanelBaseController extends UntilDestroyedMixin implements 
   }
 
   ngOnInit() {
-    this.wpCacheService
-      .observe(this.workPackageId)
+    this
+      .apiV3Service
+      .work_packages
+      .id(this.workPackageId)
+      .requireAndStream()
       .pipe(
         this.untilDestroyed()
       )

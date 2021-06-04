@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,9 +26,9 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {HalResource} from 'core-app/modules/hal/resources/hal-resource';
-import {GridWidgetResource} from "core-app/modules/hal/resources/grid-widget-resource";
-import {Attachable} from "core-app/modules/hal/resources/mixins/attachable-mixin";
+import { HalResource } from 'core-app/modules/hal/resources/hal-resource';
+import { GridWidgetResource } from "core-app/modules/hal/resources/grid-widget-resource";
+import { Attachable } from "core-app/modules/hal/resources/mixins/attachable-mixin";
 
 export interface GridResourceLinks {
   update(payload:unknown):Promise<unknown>;
@@ -38,7 +38,6 @@ export interface GridResourceLinks {
 
 export class GridBaseResource extends HalResource {
   public widgets:GridWidgetResource[];
-  public name:string;
   public options:{[key:string]:unknown};
   public rowCount:number;
   public columnCount:number;
@@ -49,12 +48,12 @@ export class GridBaseResource extends HalResource {
     this.widgets = this
       .widgets
       .map((widget:Object) => {
-        let widgetResource = new GridWidgetResource( this.injector,
-                                                     widget,
-                                                     true,
-                                                     this.halInitializer,
-                                                     'GridWidget'
-                                                   );
+        const widgetResource = new GridWidgetResource( this.injector,
+          widget,
+          true,
+          this.halInitializer,
+          'GridWidget'
+        );
 
         widgetResource.grid = this;
 

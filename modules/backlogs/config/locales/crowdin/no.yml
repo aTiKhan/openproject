@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -19,13 +19,12 @@
 #Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #See docs/COPYRIGHT.rdoc for more details.
 #++
-#---
 "no":
   activerecord:
     attributes:
       work_package:
         position: "Plassering"
-        remaining_hours: "Remaining Hours"
+        remaining_hours: "Remaining hours"
         remaining_time: "Remaining hours"
         story_points: "Story Points"
         backlogs_work_package_type: "Backlog type"
@@ -37,18 +36,12 @@
               can_only_contain_work_packages_of_current_sprint: "can only contain IDs of work packages in the current sprint."
               must_block_at_least_one_work_package: "must contain the ID of at least one ticket."
             parent_id:
+              parent_child_relationship_across_projects: "is invalid because the work package '%{work_package_name}' is a backlog task and therefore cannot have a parent outside of the current project."
               type_must_be_one_of_the_following: "Type must be one of the following: %{type_names}."
-        sprint:
-          cannot_end_before_it_starts: "Sprint cannot end before it starts."
-  activemodel:
-    errors:
-      models:
-        work_package:
-          attributes:
             version_id:
               task_version_must_be_the_same_as_story_version: "must be the same as the parent story's version."
-            parent_id:
-              parent_child_relationship_across_projects: "is invalid because the work package '%{work_package_name}' is a backlog task and therefore cannot have a parent outside of the current project."
+        sprint:
+          cannot_end_before_it_starts: "Sprint cannot end before it starts."
   backlogs:
     add_new_story: "New Story"
     any: "any"
@@ -58,29 +51,29 @@
     chart_options: "Chart options"
     close: "Lukk"
     column_width: "Column width:"
-    date: "Day"
-    definition_of_done: "Definition of Done"
-    generating_chart: "Generating Graph..."
+    date: "Dag"
+    definition_of_done: "Definisjon av ferdig"
+    generating_chart: "Genererer graf..."
     hours: "Timer"
     impediment: "Impediment"
     label_versions_default_fold_state: "Show versions folded"
     work_package_is_closed: "Work package is done, when"
     label_is_done_status: "Status %{status_name} means done"
     no_burndown_data: "No burndown data available. It is necessary to have the sprint start- and end dates set."
-    points: "Points"
+    points: "Poeng"
     positions_could_not_be_rebuilt: "Positions could not be rebuilt."
     positions_rebuilt_successfully: "Positions rebuilt successfully."
     properties: "Egenskaper"
-    rebuild: "Rebuild"
-    rebuild_positions: "Rebuild positions"
+    rebuild: "Gjenoppbygg"
+    rebuild_positions: "Gjenoppbygg posisjoner"
     remaining_hours: "Remaining hours"
-    remaining_hours_ideal: "Remaining hours (ideal)"
+    remaining_hours_ideal: "Gjenstående timer (ideell)"
     show_burndown_chart: "Burndown Chart"
-    story: "Story"
+    story: "Historie"
     story_points: "Story Points"
     story_points_ideal: "Story Points (ideal)"
     task: "Oppgave"
-    task_color: "Task color"
+    task_color: "Farge på oppgave"
     unassigned: "Unassigned"
     x_more: "%{count} more..."
   backlogs_active: "aktiv"
@@ -96,7 +89,7 @@
   backlogs_sprint_unestimated: "Closed or active sprints with unestimated stories"
   backlogs_sprint_unsized: "Project has stories on active or recently closed sprints that were not sized"
   backlogs_sprints: "Sprints"
-  backlogs_story: "Story"
+  backlogs_story: "Historie"
   backlogs_story_type: "Story types"
   backlogs_task: "Oppgave"
   backlogs_task_type: "Task type"
@@ -106,6 +99,7 @@
   backlogs_empty_title: "No versions are defined to be used in backlogs"
   backlogs_empty_action_text: "To get started with backlogs, create a new version and assign it to a backlogs column."
   button_edit_wiki: "Edit wiki page"
+  error_backlogs_task_cannot_be_story: "The settings are invalid. The selected task type can not also be a story type."
   error_intro_plural: "The following errors were encountered:"
   error_intro_singular: "The following error was encountered:"
   error_outro: "Please correct the above errors before submitting again."

@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -44,11 +44,12 @@ FactoryBot.define do
       RequestStore.clear!
     end
 
-    factory :project_custom_field, class: ProjectCustomField do
+    factory :project_custom_field, class: 'ProjectCustomField' do
       sequence(:name) { |n| "Project custom field #{n}" }
 
       factory :list_project_custom_field do
         sequence(:name) { |n| "List project custom field #{n}" }
+        multi_value { false }
         field_format { 'list' }
         possible_values { ['A', 'B', 'C', 'D', 'E', 'F', 'G'] }
       end
@@ -94,7 +95,7 @@ FactoryBot.define do
       end
     end
 
-    factory :user_custom_field, class: UserCustomField do
+    factory :user_custom_field, class: 'UserCustomField' do
       sequence(:name) { |n| "User Custom Field #{n}" }
       type { 'UserCustomField' }
 
@@ -135,7 +136,7 @@ FactoryBot.define do
       end
     end
 
-    factory :wp_custom_field, class: WorkPackageCustomField do
+    factory :wp_custom_field, class: 'WorkPackageCustomField' do
       sequence(:name) { |n| "Work package custom field #{n}" }
       type { 'WorkPackageCustomField' }
 
@@ -146,7 +147,7 @@ FactoryBot.define do
       end
 
       factory :version_wp_custom_field do
-        sequence(:name) { |n| "Version work package custom field #{n}" }
+        sequence(:name) { |n| "Version WP custom field #{n}" }
         field_format { 'version' }
       end
 
@@ -186,7 +187,7 @@ FactoryBot.define do
       end
     end
 
-    factory :issue_custom_field, class: WorkPackageCustomField do
+    factory :issue_custom_field, class: 'WorkPackageCustomField' do
       sequence(:name) { |n| "Issue Custom Field #{n}" }
 
       factory :user_issue_custom_field do
@@ -205,12 +206,12 @@ FactoryBot.define do
       end
     end
 
-    factory :time_entry_custom_field, class: TimeEntryCustomField do
+    factory :time_entry_custom_field, class: 'TimeEntryCustomField' do
       field_format { 'text' }
       sequence(:name) { |n| "TimeEntryCustomField #{n}" }
     end
 
-    factory :version_custom_field, class: VersionCustomField do
+    factory :version_custom_field, class: 'VersionCustomField' do
       field_format { 'text' }
       sequence(:name) { |n| "Version Custom Field #{n}" }
 

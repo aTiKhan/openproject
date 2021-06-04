@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -19,15 +19,14 @@
 #Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #See docs/COPYRIGHT.rdoc for more details.
 #++
-#---
 bg:
   activerecord:
     attributes:
       work_package:
         position: "Position"
-        remaining_hours: "Remaining Hours"
+        remaining_hours: "Remaining hours"
         remaining_time: "Remaining hours"
-        story_points: "Story Points"
+        story_points: "Точки на история"
         backlogs_work_package_type: "Backlog type"
     errors:
       models:
@@ -37,20 +36,14 @@ bg:
               can_only_contain_work_packages_of_current_sprint: "can only contain IDs of work packages in the current sprint."
               must_block_at_least_one_work_package: "must contain the ID of at least one ticket."
             parent_id:
+              parent_child_relationship_across_projects: "is invalid because the work package '%{work_package_name}' is a backlog task and therefore cannot have a parent outside of the current project."
               type_must_be_one_of_the_following: "Type must be one of the following: %{type_names}."
+            version_id:
+              task_version_must_be_the_same_as_story_version: "трябва да бъде същата като версията на родителската история."
         sprint:
           cannot_end_before_it_starts: "Sprint cannot end before it starts."
-  activemodel:
-    errors:
-      models:
-        work_package:
-          attributes:
-            version_id:
-              task_version_must_be_the_same_as_story_version: "must be the same as the parent story's version."
-            parent_id:
-              parent_child_relationship_across_projects: "is invalid because the work package '%{work_package_name}' is a backlog task and therefore cannot have a parent outside of the current project."
   backlogs:
-    add_new_story: "New Story"
+    add_new_story: "Нова история"
     any: "any"
     backlog_settings: "Настройки за закъснения"
     burndown_graph: "Burndown Graph"
@@ -76,9 +69,9 @@ bg:
     remaining_hours: "Remaining hours"
     remaining_hours_ideal: "Remaining hours (ideal)"
     show_burndown_chart: "Burndown Chart"
-    story: "Story"
-    story_points: "Story Points"
-    story_points_ideal: "Story Points (ideal)"
+    story: "История"
+    story_points: "Точки на история"
+    story_points_ideal: "Исторически точки (идеално)"
     task: "Задачата"
     task_color: "Task color"
     unassigned: "Unassigned"
@@ -88,16 +81,16 @@ bg:
   backlogs_card_specification: "Label types for card printing"
   backlogs_inactive: "Project shows no activity"
   backlogs_points_burn_direction: "Points burn up/down"
-  backlogs_product_backlog: "Product backlog"
-  backlogs_product_backlog_is_empty: "Product backlog is empty"
-  backlogs_product_backlog_unsized: "The top of the product backlog has unsized stories"
-  backlogs_sizing_inconsistent: "Story sizes vary against their estimates"
+  backlogs_product_backlog: "Натрупване на продукти"
+  backlogs_product_backlog_is_empty: "Натрупването на продукти е празно"
+  backlogs_product_backlog_unsized: "в горната част на изоставането на продукта има неразмерени материали."
+  backlogs_sizing_inconsistent: "Размерите на историите се различават спрямо техните оценки"
   backlogs_sprint_notes_missing: "Closed sprints without retrospective/review notes"
   backlogs_sprint_unestimated: "Closed or active sprints with unestimated stories"
   backlogs_sprint_unsized: "Project has stories on active or recently closed sprints that were not sized"
   backlogs_sprints: "Sprints"
-  backlogs_story: "Story"
-  backlogs_story_type: "Story types"
+  backlogs_story: "История"
+  backlogs_story_type: "Типове истории"
   backlogs_task: "Задачата"
   backlogs_task_type: "Task type"
   backlogs_velocity_missing: "No velocity could be calculated for this project"
@@ -106,6 +99,7 @@ bg:
   backlogs_empty_title: "No versions are defined to be used in backlogs"
   backlogs_empty_action_text: "To get started with backlogs, create a new version and assign it to a backlogs column."
   button_edit_wiki: "Edit wiki page"
+  error_backlogs_task_cannot_be_story: "Настройките са невалидни. Избраният тип задача също не може да бъде тип история."
   error_intro_plural: "The following errors were encountered:"
   error_intro_singular: "The following error was encountered:"
   error_outro: "Please correct the above errors before submitting again."
@@ -127,7 +121,7 @@ bg:
   label_points: "points"
   label_points_burn_down: "Down"
   label_points_burn_up: "Up"
-  label_product_backlog: "product backlog"
+  label_product_backlog: "Натрупване на продукти"
   label_select_all: "Select all"
   label_sprint_backlog: "sprint backlog"
   label_sprint_cards: "Export cards"
@@ -154,7 +148,7 @@ bg:
   rb_label_copy_tasks_all: "All"
   rb_label_copy_tasks_none: "None"
   rb_label_copy_tasks_open: "Open"
-  rb_label_link_to_original: "Include link to original story"
+  rb_label_link_to_original: "Включете връзка към оригиналната история"
   remaining_hours: "remaining hours"
   required_burn_rate_hours: "required burn rate (hours)"
   required_burn_rate_points: "required burn rate (points)"

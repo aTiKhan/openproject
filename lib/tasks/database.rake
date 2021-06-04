@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -41,7 +41,22 @@ end
 namespace 'openproject' do
   namespace 'db' do
     desc 'Ensure database version compatibility'
-    task ensure_database_compatibility: ['environment', 'db:load_config'] do
+    task check_connection: %w[environment db:load_config] do
+      begin
+        ActiveRecord::Base.establish_connection
+        ActiveRecord::Base.connection.execute "SELECT 1;"
+        unless ActiveRecord::Base.connected?
+          puts "Database connection failed"
+          Kernel.exit 1
+        end
+      rescue StandardError => e
+        puts "Database connection failed with error: #{e}"
+        Kernel.exit 1
+      end
+    end
+
+    desc 'Ensure database version compatibility'
+    task ensure_database_compatibility: %w[openproject:db:check_connection] do
       ##
       # Ensure database server version is compatible
       OpenProject::Database::check!

@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -26,6 +26,10 @@
 # See docs/COPYRIGHT.rdoc for more details.
 #++
 
+# This now only seems to be used when rendering atom responses.
+# Search as well as activities do not rely on it.
+# Thus, whenever an atom link is removed for a resource, acts_as_event within that model can also be removed.
+
 module Redmine
   module Acts
     module Event
@@ -36,6 +40,7 @@ module Redmine
       module ClassMethods
         def acts_as_event(options = {})
           return if included_modules.include?(Redmine::Acts::Event::InstanceMethods)
+
           default_options = { datetime: :created_at,
                               title: :title,
                               description: :description,

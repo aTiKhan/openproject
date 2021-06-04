@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -29,19 +29,19 @@
 #++
 
 module BaseServices
-  class SetAttributes
+  class SetAttributes < BaseCallable
     include Contracted
 
     def initialize(user:, model:, contract_class:, contract_options: {})
       self.user = user
-      self.model = model
+      self.model = prepare_model(model)
 
       self.contract_class = contract_class
       self.contract_options = contract_options
     end
 
-    def call(params)
-      set_attributes(params)
+    def perform(params = nil)
+      set_attributes(params || {})
 
       validate_and_result
     end
@@ -68,6 +68,11 @@ module BaseServices
       ServiceResult.new(success: success,
                         errors: errors,
                         result: model)
+    end
+
+    def prepare_model(model)
+      model.extend(OpenProject::ChangedBySystem)
+      model
     end
   end
 end

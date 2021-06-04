@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,12 +26,13 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {InputState} from "reactivestates";
-import {HalLinkInterface} from 'core-app/modules/hal/hal-link/hal-link';
-import {Injector} from '@angular/core';
-import {States} from 'core-components/states.service';
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
-import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
+import { InputState } from "reactivestates";
+import { HalLinkInterface } from 'core-app/modules/hal/hal-link/hal-link';
+import { Injector } from '@angular/core';
+import { States } from 'core-components/states.service';
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
+import { InjectField } from "core-app/helpers/angular/inject-field.decorator";
+import { ICKEditorContext } from "core-app/modules/common/ckeditor/ckeditor-setup.service";
 
 export interface HalResourceClass<T extends HalResource = HalResource> {
   new(injector:Injector,
@@ -40,6 +41,17 @@ export interface HalResourceClass<T extends HalResource = HalResource> {
       halInitializer:(halResource:T) => void,
       $halType:string):T;
 }
+
+export type HalSourceLink = { href:string|null };
+
+export type HalSourceLinks = {
+  [key:string]:HalSourceLink
+};
+
+export type HalSource = {
+  [key:string]:string|number|null|HalSourceLinks,
+  _links:HalSourceLinks
+};
 
 export class HalResource {
   // TODO this is the source of many issues in the frontend
@@ -53,7 +65,7 @@ export class HalResource {
 
   // Internal initialization time for objects
   // created in the frontend
-  public __initialized_at:Number;
+  public __initialized_at:number;
 
   // The HalResource that this type maps to
   // This will almost always be equal to _type, however may be different for dynamic types
@@ -63,7 +75,7 @@ export class HalResource {
   public $halType:string;
 
   @InjectField() states:States;
-  @InjectField() I18n:I18nService;
+  @InjectField() I18n!:I18nService;
 
   /**
    * Constructs and initializes the HalResource. For this, the halResoureFactory is required.
@@ -87,8 +99,8 @@ export class HalResource {
     this.$initialize($source);
   }
 
-  public static getEmptyResource(self:{ href:string|null } = {href: null}):any {
-    return {_links: {self: self}};
+  public static getEmptyResource(self:{ href:string|null } = { href: null }):any {
+    return { _links: { self: self } };
   }
 
   public $links:any = {};
@@ -102,8 +114,8 @@ export class HalResource {
   }
 
   public get idFromLink():string {
-    if (this.$href) {
-      return HalResource.idFromLink(this.$href);
+    if (this.href) {
+      return HalResource.idFromLink(this.href);
     }
 
     return '';
@@ -119,8 +131,8 @@ export class HalResource {
    * be printed nicely on console and in errors
    */
   public toString() {
-    if (this.$href) {
-      return `[HalResource href=${this.$href}]`;
+    if (this.href) {
+      return `[HalResource href=${this.href}]`;
     } else {
       return `[HalResource id=${this.id}]`;
     }
@@ -150,24 +162,11 @@ export class HalResource {
   }
 
   public get isNew():boolean {
-    return this.id === 'new';
+    return !this.id || this.id === 'new';
   }
 
   public get persisted() {
     return !!(this.id && this.id !== 'new');
-  }
-
-  /**
-   * Return whether the resource is editable with the user's permission
-   * on the given resource package attribute.
-   * In order to be editable, there needs to be an update link on the resource and the schema for
-   * the attribute needs to indicate the writability.
-   *
-   * @param property
-   */
-  public isAttributeEditable(property:string):boolean {
-    const fieldSchema = this.schema[property];
-    return this.$links.update && fieldSchema && fieldSchema.writable;
   }
 
   /**
@@ -189,7 +188,7 @@ export class HalResource {
    * @returns A HalResource with the identitical copied source of other.
    */
   public $copy<T extends HalResource = HalResource>(source:Object = {}):T {
-    let clone:HalResourceClass<T> = this.constructor as any;
+    const clone:HalResourceClass<T> = this.constructor as any;
 
     return new clone(this.injector, _.merge(this.$plain(), source), this.$loaded, this.halInitializer, this.$halType);
   }
@@ -214,14 +213,7 @@ export class HalResource {
     this._name = name;
   }
 
-  /**
-   * Alias for $href.
-   */
   public get href():string|null {
-    return this.$link.href;
-  }
-
-  public get $href():string|null {
     return this.$link.href;
   }
 
@@ -235,10 +227,12 @@ export class HalResource {
   /**
    * Update the state
    */
-  public push(newValue:this):void {
+  public push(newValue:this):Promise<unknown> {
     if (this.state) {
       this.state.putValue(newValue);
     }
+
+    return Promise.resolve();
   }
 
   public previewPath():string|undefined {
@@ -249,8 +243,8 @@ export class HalResource {
     return undefined;
   }
 
-  public getEditorTypeFor(_fieldName:string):'full'|'constrained' {
-    return 'constrained';
+  public getEditorContext(fieldName:string):ICKEditorContext {
+    return { type: 'constrained' };
   }
 
   public $load(force = false):Promise<this> {

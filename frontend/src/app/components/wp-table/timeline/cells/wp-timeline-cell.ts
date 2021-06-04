@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,23 +24,22 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
-import {WorkPackageResource} from 'core-app/modules/hal/resources/work-package-resource';
-import {States} from '../../../states.service';
-import {WorkPackageCacheService} from '../../../work-packages/work-package-cache.service';
-import {HalResourceNotificationService} from "core-app/modules/hal/services/hal-resource-notification.service";
-import {WorkPackageTimelineTableController} from '../container/wp-timeline-container.directive';
-import {RenderInfo} from '../wp-timeline';
-import {TimelineCellRenderer} from './timeline-cell-renderer';
-import {TimelineMilestoneCellRenderer} from './timeline-milestone-cell-renderer';
-import {registerWorkPackageMouseHandler} from './wp-timeline-cell-mouse-handler';
-import {Injector} from '@angular/core';
-import {LoadingIndicatorService} from "core-app/modules/common/loading-indicator/loading-indicator.service";
+//++
+import { WorkPackageResource } from 'core-app/modules/hal/resources/work-package-resource';
+import { States } from '../../../states.service';
+import { WorkPackageTimelineTableController } from '../container/wp-timeline-container.directive';
+import { RenderInfo } from '../wp-timeline';
+import { TimelineCellRenderer } from './timeline-cell-renderer';
+import { TimelineMilestoneCellRenderer } from './timeline-milestone-cell-renderer';
+import { registerWorkPackageMouseHandler } from './wp-timeline-cell-mouse-handler';
+import { Injector } from '@angular/core';
+import { LoadingIndicatorService } from "core-app/modules/common/loading-indicator/loading-indicator.service";
 
-import {HalResourceEditingService} from "core-app/modules/fields/edit/services/hal-resource-editing.service";
-import {HalEventsService} from "core-app/modules/hal/services/hal-events.service";
-import {WorkPackageNotificationService} from "core-app/modules/work_packages/notifications/work-package-notification.service";
-import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
+import { HalResourceEditingService } from "core-app/modules/fields/edit/services/hal-resource-editing.service";
+import { HalEventsService } from "core-app/modules/hal/services/hal-events.service";
+import { WorkPackageNotificationService } from "core-app/modules/work_packages/notifications/work-package-notification.service";
+import { InjectField } from "core-app/helpers/angular/inject-field.decorator";
+import { SchemaCacheService } from "core-components/schemas/schema-cache.service";
 
 export const classNameLeftLabel = 'labelLeft';
 export const classNameRightContainer = 'containerRight';
@@ -59,24 +58,24 @@ export class WorkPackageCellLabels {
               public readonly leftHover:HTMLDivElement|null,
               public readonly right:HTMLDivElement,
               public readonly rightHover:HTMLDivElement|null,
-              public readonly farRight:HTMLDivElement) {
+              public readonly farRight:HTMLDivElement,
+              public readonly withAlternativeLabels?:boolean) {
   }
 
 }
 
 export class WorkPackageTimelineCell {
-  @InjectField() wpCacheService:WorkPackageCacheService;
   @InjectField() halEditing:HalResourceEditingService;
   @InjectField() halEvents:HalEventsService;
   @InjectField() notificationService:WorkPackageNotificationService;
   @InjectField() states:States;
   @InjectField() loadingIndicator:LoadingIndicatorService;
+  @InjectField() schemaCache:SchemaCacheService;
 
   private wpElement:HTMLDivElement|null = null;
 
   private elementShape:string;
 
-  private timelineCell:JQuery;
   private labels:WorkPackageCellLabels;
 
   constructor(public readonly injector:Injector,
@@ -109,7 +108,7 @@ export class WorkPackageTimelineCell {
 
   canConnectRelations():boolean {
     const wp = this.latestRenderInfo.workPackage;
-    if (wp.isMilestone) {
+    if (this.schemaCache.of(wp).isMilestone) {
       return !_.isNil(wp.date);
     }
 
@@ -140,12 +139,14 @@ export class WorkPackageTimelineCell {
     const wasRendered = this.wpElement !== null && body.contains(this.wpElement);
 
     // If already rendered with correct shape, ignore
-    if (wasRendered && (this.elementShape === renderer.type)) {
+    if (wasRendered && this.elementShape === renderer.type) {
       return Promise.resolve();
     }
 
     // Remove the element first if we're redrawing
-    this.clear();
+    if (!renderInfo.isDuplicatedCell) {
+      this.clear();
+    }
 
     // Render the given element
     this.wpElement = renderer.render(renderInfo);
@@ -163,7 +164,6 @@ export class WorkPackageTimelineCell {
         this.injector,
         () => this.latestRenderInfo,
         this.workPackageTimeline,
-        this.wpCacheService,
         this.halEditing,
         this.halEvents,
         this.notificationService,
@@ -179,7 +179,7 @@ export class WorkPackageTimelineCell {
   }
 
   private cellRenderer(workPackage:WorkPackageResource):TimelineCellRenderer {
-    if (workPackage.isMilestone) {
+    if (this.schemaCache.of(workPackage).isMilestone) {
       return this.renderers.milestone;
     }
 
@@ -188,6 +188,7 @@ export class WorkPackageTimelineCell {
 
   public refreshView(renderInfo:RenderInfo) {
     this.latestRenderInfo = renderInfo;
+
     const renderer = this.cellRenderer(renderInfo.workPackage);
 
     // Render initial element if necessary

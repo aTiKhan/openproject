@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,18 +26,17 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {Directive, ElementRef, Injector, Input} from '@angular/core';
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
-import {OpContextMenuTrigger} from 'core-components/op-context-menu/handlers/op-context-menu-trigger.directive';
-import {OPContextMenuService} from 'core-components/op-context-menu/op-context-menu.service';
-import {OpModalService} from "core-components/op-modals/op-modal.service";
-import {Board} from "core-app/modules/boards/board/board";
-import {BoardConfigurationModal} from "core-app/modules/boards/board/configuration-modal/board-configuration.modal";
-import {BoardService} from "core-app/modules/boards/board/board.service";
-import {StateService} from "@uirouter/core";
-import {NotificationsService} from "core-app/modules/common/notifications/notifications.service";
-import {BoardCacheService} from "core-app/modules/boards/board/board-cache.service";
-import {triggerEditingEvent} from "core-app/modules/common/editable-toolbar-title/editable-toolbar-title.component";
+import { Directive, ElementRef, Injector, Input } from '@angular/core';
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
+import { OpContextMenuTrigger } from 'core-components/op-context-menu/handlers/op-context-menu-trigger.directive';
+import { OPContextMenuService } from 'core-components/op-context-menu/op-context-menu.service';
+import { OpModalService } from "core-app/modules/modal/modal.service";
+import { Board } from "core-app/modules/boards/board/board";
+import { BoardConfigurationModal } from "core-app/modules/boards/board/configuration-modal/board-configuration.modal";
+import { BoardService } from "core-app/modules/boards/board/board.service";
+import { StateService } from "@uirouter/core";
+import { NotificationsService } from "core-app/modules/common/notifications/notifications.service";
+import { triggerEditingEvent } from "core-app/modules/common/editable-toolbar-title/editable-toolbar-title.component";
 
 @Directive({
   selector: '[boardsToolbarMenu]'
@@ -53,7 +52,6 @@ export class BoardsToolbarMenuDirective extends OpContextMenuTrigger {
               readonly opContextMenu:OPContextMenuService,
               readonly opModalService:OpModalService,
               readonly boardService:BoardService,
-              readonly BoardCache:BoardCacheService,
               readonly Notifications:NotificationsService,
               readonly State:StateService,
               readonly injector:Injector,
@@ -92,8 +90,8 @@ export class BoardsToolbarMenuDirective extends OpContextMenuTrigger {
         linkText: this.I18n.t('js.toolbar.settings.page_settings'),
         icon: 'icon-edit',
         onClick: ($event:JQuery.TriggeredEvent) => {
-          if (!!this.board.grid.updateImmediately) {
-            jQuery(`.board--header-container .editable-toolbar-title--input`).trigger(triggerEditingEvent);
+          if (this.board.grid.updateImmediately) {
+            jQuery(`.toolbar-container .editable-toolbar-title--input`).trigger(triggerEditingEvent);
           }
 
           return true;
@@ -109,8 +107,7 @@ export class BoardsToolbarMenuDirective extends OpContextMenuTrigger {
             this.boardService
               .delete(this.board)
               .then(() => {
-                this.BoardCache.clearSome(this.board.id!);
-                this.State.go('^', { flash_message: { type: 'success', message: this.text.deleteSuccessful } });
+                this.State.go('boards.list', { flash_message: { type: 'success', message: this.text.deleteSuccessful } });
               });
           }
 

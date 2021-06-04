@@ -1,17 +1,15 @@
-import {concat, Observable, of, Subject} from "rxjs";
-import {HalResource} from "core-app/modules/hal/resources/hal-resource";
+import { concat, Observable, of, Subject } from "rxjs";
+import { HalResource } from "core-app/modules/hal/resources/hal-resource";
 import {
   catchError,
   debounceTime,
-  distinctUntilChanged,
-  filter,
-  startWith,
+  distinctUntilChanged, filter, share, shareReplay,
   switchMap,
   takeUntil,
   tap
 } from "rxjs/operators";
-import {RequestSwitchmapHandler} from "core-app/helpers/rxjs/request-switchmap";
-import {HalResourceNotificationService} from "core-app/modules/hal/services/hal-resource-notification.service";
+import { RequestSwitchmapHandler } from "core-app/helpers/rxjs/request-switchmap";
+import { HalResourceNotificationService } from "core-app/modules/hal/services/hal-resource-notification.service";
 
 export type RequestErrorHandler = (error:unknown) => void;
 
@@ -39,16 +37,19 @@ export class DebouncedRequestSwitchmap<T, R = HalResource> {
   /**
    * @param handler switch map handler function to output a response observable
    * @param debounceTime {number} Time to debounce in ms.
+   * @param preFilterNull {boolean} Whether to exclude null and undefined searches
    * @param emptyValue {R} The empty fall back value before first response or on errors
    */
   constructor(readonly requestHandler:RequestSwitchmapHandler<T, R[]>,
               readonly errorHandler:RequestErrorHandler,
+              readonly preFilterNull:boolean = false,
               readonly debounceMs = 250) {
 
     /** Output switchmap observable */
     this.output$ = concat(
       of([]),
       this.input$.pipe(
+        filter(val => !preFilterNull || (val !== undefined && val !== null)),
         distinctUntilChanged(),
         debounceTime(debounceMs),
         tap((val:T) => {
@@ -68,7 +69,8 @@ export class DebouncedRequestSwitchmap<T, R = HalResource> {
                 this.lastResult = results;
               })
             )
-        )
+        ),
+        shareReplay(1)
       )
     );
   }

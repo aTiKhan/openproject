@@ -1,4 +1,3 @@
-<%= stylesheet_link_tag 'bim/bcf.css' %>
 <link rel="stylesheet" href="/highlighting/styles.css" />
 
 <%= toolbar title: t('bcf.issues'), html: {class: '-with-dropdown'} do %>
@@ -10,7 +9,7 @@
                 title: I18n.t(:label_import),
                 class: 'button import-bcf-button') do %>
         <%= op_icon('button--icon icon-import') %>
-        <span class="button--text"><%= l(:label_import) %></span>
+        <span class="button--text"><%= t(:label_import) %></span>
       <% end %>
     </li>
     <li class="toolbar-item">

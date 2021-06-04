@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -19,12 +19,12 @@
 #Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #See docs/COPYRIGHT.rdoc for more details.
 #++
-#---
 el:
   button_save_as: "Αποθήκευση αναφοράς ως..."
   comments: "Σχόλιο"
-  cost_reports_title: "Αναφορές κόστους"
+  cost_reports_title: "Χρόνος και κόστος"
   label_cost_report: "Αναφορά κόστους"
+  label_cost_report_plural: "Αναφορές κόστους"
   description_drill_down: "Εμφάνιση λεπτομερειών"
   description_filter_selection: "Επιλογή"
   description_multi_select: "Εμφάνιση πολλαπλής επιλογής"
@@ -60,6 +60,18 @@ el:
   label_units: "Μονάδες"
   label_week_reporting: "Εβδομάδα (Δαπανήθηκε)"
   label_year_reporting: "Έτος (Δαπανήθηκε)"
+  label_count: "Πλήθος"
+  label_filter: "Φίλτρο"
+  label_filter_add: "Προσθήκη Φίλτρου"
+  label_filter_plural: "Φίλτρα"
+  label_group_by: "Ομαδοποίηση κατά"
+  label_group_by_add: "Προσθήκη χαρακτηριστικού Ομαδοποίησης-κατά"
+  label_inactive: "«αδρανές»"
+  label_no: "Όχι"
+  label_none: "(δεν υπάρχουν δεδομένα)"
+  label_no_reports: "Δεν υπάρχουν ακόμη αναφορές κόστους."
+  label_report: "Αναφορά"
+  label_yes: "Ναι"
   load_query_question: "Η αναφορά θα έχει %{size} κελιά πίνακα και μπορεί να πάρει κάποιο χρόνο για να γίνει. Θέλετε ακόμα να δοκιμάσετε την απόδοση;"
   permission_save_cost_reports: "Αποθήκευση δημόσιων αναφορών κόστους"
   permission_save_private_cost_reports: "Αποθήκευση ιδιωτικών αναφορών κόστους"
@@ -69,3 +81,7 @@ el:
   units: "Μονάδες"
   validation_failure_date: "δεν είναι έγκυρη ημερομηνία"
   validation_failure_integer: "δεν είναι έγκυρος ακέραιος αριθμός"
+  reporting:
+    group_by:
+      selected_columns: "Επιλεγμένες στήλες"
+      selected_rows: "Επιλεγμένες σειρές"

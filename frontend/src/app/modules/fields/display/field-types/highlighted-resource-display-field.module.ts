@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,11 +24,11 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {Highlighting} from "core-components/wp-fast-table/builders/highlighting/highlighting.functions";
-import {HighlightableDisplayField} from "core-app/modules/fields/display/field-types/highlightable-display-field.module";
-import {HalResource} from "core-app/modules/hal/resources/hal-resource";
+import { Highlighting } from "core-components/wp-fast-table/builders/highlighting/highlighting.functions";
+import { HighlightableDisplayField } from "core-app/modules/fields/display/field-types/highlightable-display-field.module";
+import { HalResource } from "core-app/modules/hal/resources/hal-resource";
 
 export class HighlightedResourceDisplayField extends HighlightableDisplayField {
 
@@ -43,8 +43,7 @@ export class HighlightedResourceDisplayField extends HighlightableDisplayField {
   public get value() {
     if (this.schema) {
       return this.attribute && this.attribute.name;
-    }
-    else {
+    } else {
       return null;
     }
   }

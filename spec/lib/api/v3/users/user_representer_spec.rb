@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -29,7 +29,7 @@
 require 'spec_helper'
 
 describe ::API::V3::Users::UserRepresenter do
-  let(:status) { Principal::STATUSES[:active] }
+  let(:status) { Principal.statuses[:active] }
   let(:user) { FactoryBot.build_stubbed(:user, status: status) }
   let(:current_user) { FactoryBot.build_stubbed(:user) }
   let(:representer) { described_class.new(user, current_user: current_user) }
@@ -54,6 +54,7 @@ describe ::API::V3::Users::UserRepresenter do
         is_expected.not_to have_json_path('createdAt')
         is_expected.not_to have_json_path('status')
         is_expected.not_to have_json_path('email')
+        is_expected.not_to have_json_path('language')
       end
     end
 
@@ -70,6 +71,7 @@ describe ::API::V3::Users::UserRepresenter do
         is_expected.to have_json_path('createdAt')
         is_expected.to have_json_path('status')
         is_expected.to have_json_path('email')
+        is_expected.to have_json_path('language')
 
         is_expected.not_to have_json_path('admin')
       end
@@ -87,15 +89,16 @@ describe ::API::V3::Users::UserRepresenter do
         is_expected.to have_json_path('status')
         is_expected.to have_json_path('email')
         is_expected.to have_json_path('admin')
+        is_expected.to have_json_path('language')
       end
 
       it_behaves_like 'has UTC ISO 8601 date and time' do
-        let(:date) { user.created_on }
+        let(:date) { user.created_at }
         let(:json_path) { 'createdAt' }
       end
 
       it_behaves_like 'has UTC ISO 8601 date and time' do
-        let(:date) { user.updated_on }
+        let(:date) { user.updated_at }
         let(:json_path) { 'updatedAt' }
       end
     end
@@ -158,7 +161,7 @@ describe ::API::V3::Users::UserRepresenter do
         end
 
         context 'with a locked user' do
-          let(:status) { Principal::STATUSES[:locked] }
+          let(:status) { Principal.statuses[:locked] }
 
           it_behaves_like 'has no link' do
             let(:link) { 'showUser' }
@@ -188,11 +191,23 @@ describe ::API::V3::Users::UserRepresenter do
             expect(subject).to have_json_path('_links/unlock/href')
           end
         end
+
+        context 'when deletion is allowed' do
+          before do
+            allow(Users::DeleteContract).to receive(:deletion_allowed?)
+                                             .with(user, current_user)
+                                             .and_return(true)
+          end
+
+          it 'should link to delete' do
+            expect(subject).to have_json_path('_links/delete/href')
+          end
+        end
       end
 
       context 'when deletion is allowed' do
         before do
-          allow(Users::DeleteService).to receive(:deletion_allowed?)
+          allow(Users::DeleteContract).to receive(:deletion_allowed?)
             .with(user, current_user)
             .and_return(true)
         end
@@ -204,7 +219,7 @@ describe ::API::V3::Users::UserRepresenter do
 
       context 'when deletion is not allowed' do
         before do
-          allow(Users::DeleteService).to receive(:deletion_allowed?)
+          allow(Users::DeleteContract).to receive(:deletion_allowed?)
             .with(user, current_user)
             .and_return(false)
         end
@@ -217,8 +232,8 @@ describe ::API::V3::Users::UserRepresenter do
       describe 'memberships' do
         before do
           allow(current_user)
-            .to receive(:allowed_to?) do |action, _project, options|
-            permissions.include?(action) && options[:global]
+            .to receive(:allowed_to_globally?) do |action|
+            permissions.include?(action)
           end
         end
 
@@ -271,11 +286,13 @@ describe ::API::V3::Users::UserRepresenter do
 
       describe '#json_cache_key' do
         let(:auth_source) { FactoryBot.build_stubbed(:auth_source) }
+        let(:former_cache_key) { representer.json_cache_key }
 
         before do
           user.auth_source = auth_source
+
+          former_cache_key
         end
-        let!(:former_cache_key) { representer.json_cache_key }
 
         it 'includes the name of the representer class' do
           expect(representer.json_cache_key)
@@ -290,7 +307,34 @@ describe ::API::V3::Users::UserRepresenter do
         end
 
         it 'changes when the user is updated' do
-          user.updated_on = Time.now + 20.seconds
+          user.updated_at = Time.now + 20.seconds
+
+          expect(representer.json_cache_key)
+            .not_to eql former_cache_key
+        end
+
+        it 'changes when user format setting changes' do
+          allow(Setting)
+            .to receive(:user_format)
+                  .and_return 'something else'
+
+          expect(representer.json_cache_key)
+            .not_to eql former_cache_key
+        end
+
+        it 'changes when the avatars plugin settings change' do
+          allow(Setting)
+            .to receive(:plugin_openproject_avatars)
+                  .and_return 'something else'
+
+          expect(representer.json_cache_key)
+            .not_to eql former_cache_key
+        end
+
+        it 'changes when the protocol settings change' do
+          allow(Setting)
+            .to receive(:protocol)
+                  .and_return 'something else'
 
           expect(representer.json_cache_key)
             .not_to eql former_cache_key

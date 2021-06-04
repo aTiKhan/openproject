@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -61,7 +61,7 @@ describe 'Work package with relation query group', js: true, selenium: true do
   let(:full_wp) { ::Pages::FullWorkPackage.new(work_package) }
   let(:relations) { ::Components::WorkPackages::Relations.new(work_package) }
   let(:tabs) { ::Components::WorkPackages::Tabs.new(work_package) }
-  let(:relations_tab) { find('.tabrow li', text: 'RELATIONS') }
+  let(:relations_tab) { find('.op-tab-row--link', text: 'RELATIONS') }
   let(:embedded_table) { Pages::EmbeddedWorkPackagesTable.new(first('wp-single-view .work-packages-embedded-view--container')) }
 
   let(:visit) { true }
@@ -141,11 +141,11 @@ describe 'Work package with relation query group', js: true, selenium: true do
                           member_in_project: project,
                           member_through_role: role)
       end
-      let!(:project2_member) {
+      let!(:project2_member) do
         member = FactoryBot.build(:member, user: user, project: project2)
         member.roles = [role]
         member.save!
-      }
+      end
 
       it 'can load the query and inline create' do
         full_wp.visit!
@@ -241,7 +241,7 @@ describe 'Work package with relation query group', js: true, selenium: true do
 
       # Check that deletion of relations still work after a page reload
       full_wp.visit!
-      relations_tab = find('.tabrow li', text: 'RELATIONS')
+      relations_tab = find('.op-tab-row--link', text: 'RELATIONS')
       relations = Components::WorkPackages::Relations.new(work_package)
       embedded_table = Pages::EmbeddedWorkPackagesTable.new(first('wp-single-view .work-packages-embedded-view--container'))
 

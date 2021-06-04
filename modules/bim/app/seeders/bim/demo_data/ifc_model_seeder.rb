@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -41,7 +41,7 @@ module Bim
         models = project_data_for(key, 'ifc_models')
         return unless models.present?
 
-        print '    ↳ Import IFC Models'
+        print_status '    ↳ Import IFC Models'
 
         models.each do |model|
           seed_model model
@@ -54,20 +54,18 @@ module Bim
         user = User.admin.first
 
         xkt_data = get_file model[:file], '.xkt'
-        meta_data = get_file model[:file], '.json'
 
-        if xkt_data.nil? || meta_data.nil?
-          print "\n    ↳ Missing converted data for ifc model"
+        if xkt_data.nil?
+          print_status "\n    ↳ Missing converted data for ifc model"
         else
-          create_model(model, user, xkt_data, meta_data)
+          create_model(model, user, xkt_data)
         end
       end
 
-      def create_model(model, user, xkt_data, meta_data)
+      def create_model(model, user, xkt_data)
         model_container = create_model_container project, user, model[:name], model[:default]
 
         add_ifc_model_attachment model_container, user, xkt_data, 'xkt'
-        add_ifc_model_attachment model_container, user, meta_data, 'metadata'
       end
 
       def create_model_container(project, user, title, default)

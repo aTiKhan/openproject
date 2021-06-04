@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -33,12 +34,28 @@ module OpenProject
     # To be included into OpenProject::Configuration in order to provide
     # helper methods for easier access to certain configuration options.
     module Helpers
-
       ##
       # Carrierwave storage type. Possible values are, among others, :file and :fog.
       # The latter requires further configuration.
       def attachments_storage
         (self['attachments_storage'] || 'file').to_sym
+      end
+
+      ##
+      # We only allow direct uploads to S3 as we are using the carrierwave_direct
+      # gem which only supports S3 for the time being.
+      #
+      # Do not allow direct uploads when using IAM-profile-based authorization rather
+      # than access-key-based ones since carrierwave_direct does not support that.
+      def direct_uploads
+        return false unless remote_storage? && remote_storage_aws?
+        return false if use_iam_profile?
+
+        self['direct_uploads']
+      end
+
+      def direct_uploads?
+        direct_uploads
       end
 
       # Augur connect host
@@ -54,8 +71,36 @@ module OpenProject
         attachments_storage == :file
       end
 
+      def remote_storage?
+        attachments_storage == :fog
+      end
+
+      def remote_storage_aws?
+        fog_credentials[:provider] == "AWS"
+      end
+
+      def remote_storage_upload_host
+        if remote_storage_aws?
+          "#{fog_directory}.s3.amazonaws.com"
+        end
+      end
+
+      def remote_storage_download_host
+        if remote_storage_aws?
+          "#{fog_directory}.s3.#{fog_credentials[:region]}.amazonaws.com"
+        end
+      end
+
+      def remote_storage_hosts
+        [remote_storage_upload_host, remote_storage_download_host].compact
+      end
+
       def attachments_storage_path
         Rails.root.join(self['attachments_storage_path'] || 'files')
+      end
+
+      def use_iam_profile?
+        fog_credentials[:use_iam_profile]
       end
 
       def fog_credentials
@@ -71,9 +116,9 @@ module OpenProject
       end
 
       def hidden_menu_items
-        menus = self['hidden_menu_items'].map { |label, nodes|
+        menus = self['hidden_menu_items'].map do |label, nodes|
           [label, array(nodes)]
-        }
+        end
 
         Hash[menus]
       end
@@ -92,13 +137,6 @@ module OpenProject
         self['edition'] == 'bim'
       end
 
-      ##
-      # Whether we want to report to sentry
-      def frontend_sentry?
-        self['sentry_dsn'].present? && sentry_report_js?
-      end
-
-
       def available_file_uploaders
         uploaders = {
           file: ::LocalFileUploader
@@ -113,6 +151,11 @@ module OpenProject
         uploaders
       end
 
+      def ldap_tls_options
+        val = self['ldap_tls_options']
+        val.presence || {}
+      end
+
       private
 
       ##
@@ -120,7 +163,7 @@ module OpenProject
       # Either the value already is an array or a string with values separated by spaces.
       # In the latter case the string will be split and the values returned as an array.
       def array(value)
-        if value =~ / /
+        if value.is_a?(String) && value =~ / /
           value.split ' '
         else
           Array(value)

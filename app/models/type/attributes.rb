@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -30,6 +30,17 @@
 
 module Type::Attributes
   extend ActiveSupport::Concern
+
+  EXCLUDED = %w[_type
+                _dependencies
+                attribute_groups
+                links parent_id
+                parent
+                description
+                schedule_manually
+                derived_start_date
+                derived_due_date
+                derived_estimated_time].freeze
 
   included do
     # Allow plugins to define constraints
@@ -111,10 +122,16 @@ module Type::Attributes
       #  * directly in other envs, e.g. test
       definitions = representable_config.key?(:definitions) ? representable_config[:definitions] : representable_config
 
-      skip = ['_type', '_dependencies', 'attribute_groups', 'links', 'parent_id', 'parent', 'description']
       definitions.keys
-                 .reject { |key| skip.include?(key) || definitions[key][:required] }
+                 .reject { |key| skipped_attribute?(key, definitions[key]) }
                  .map { |key| [key, JSON::parse(definitions[key].to_json)] }.to_h
+    end
+
+    def skipped_attribute?(key, definition)
+      # We always want to include the priority even if its required
+      return false if key == 'priority'
+
+      EXCLUDED.include?(key) || definition[:required]
     end
 
     def merge_date_for_form_attributes(attributes)

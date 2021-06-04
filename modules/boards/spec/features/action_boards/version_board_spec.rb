@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -109,8 +109,8 @@ describe 'Version action board', type: :feature, js: true do
         queries = board.contained_queries
         expect(queries.count).to eq(2)
 
-        open = queries.detect { |q| q.name == 'Open version'}
-        second_open = queries.detect { |q| q.name == 'A second version'}
+        open = queries.detect { |q| q.name == 'Open version' }
+        second_open = queries.detect { |q| q.name == 'A second version' }
 
         expect(open.name).to eq 'Open version'
         expect(second_open.name).to eq 'A second version'
@@ -124,6 +124,7 @@ describe 'Version action board', type: :feature, js: true do
 
       # Add item
       board_page.add_list option: 'Shared version'
+      board_page.expect_list 'Shared version'
       board_page.add_card 'Open version', 'Task 1'
       sleep 2
 
@@ -204,6 +205,20 @@ describe 'Version action board', type: :feature, js: true do
 
       subjects = WorkPackage.where(id: second.ordered_work_packages.pluck(:work_package_id)).pluck(:subject, :version_id)
       expect(subjects).to match_array [['Task 1', other_version.id]]
+
+      # Open remaining in split view
+      work_package = second.ordered_work_packages.first.work_package
+      card = board_page.card_for(work_package)
+      split_view = card.open_details_view
+      split_view.expect_subject
+      split_view.edit_field(:version).update('Open version')
+      split_view.expect_and_dismiss_notification message: 'Successful update.'
+
+      work_package.reload
+      expect(work_package.version).to eq(open_version)
+
+      board_page.expect_card('Open version', 'Task 1', present: true)
+      board_page.expect_card('A second version', 'Task 1', present: false)
     end
 
     it 'allows adding new and closed versions from within the board' do
@@ -278,6 +293,13 @@ describe 'Version action board', type: :feature, js: true do
       board_page.expect_card('Open version', 'Closed', present: true)
       board_page.expect_card('Closed version', 'Closed', present: false)
       board_page.expect_card('Closed version', 'Foo', present: false)
+
+      # We can reference the work package back
+      board_page.reference('A second version', work_package)
+
+      board_page.expect_card('A second version', 'Foo', present: true)
+      board_page.expect_card('Open version', 'Foo', present: false)
+      board_page.expect_card('Closed version', 'Foo', present: false)
     end
   end
 
@@ -290,7 +312,7 @@ describe 'Version action board', type: :feature, js: true do
     let(:no_version_edit_role) { FactoryBot.create(:role, permissions: no_version_edit_permissions) }
     let(:no_version_edit_permissions) do
       %i[show_board_views manage_board_views add_work_packages manage_versions
-       edit_work_packages view_work_packages manage_public_queries]
+         edit_work_packages view_work_packages manage_public_queries]
     end
 
     it 'can not move cards or add cards' do

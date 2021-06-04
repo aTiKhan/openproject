@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,11 +24,12 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {WorkPackageResource} from 'core-app/modules/hal/resources/work-package-resource';
-import {input, InputState} from 'reactivestates';
-import {take} from 'rxjs/operators';
+import { WorkPackageResource } from 'core-app/modules/hal/resources/work-package-resource';
+import { input, InputState } from 'reactivestates';
+import { take } from 'rxjs/operators';
+import { Observable, of } from "rxjs";
 
 export abstract class WorkPackageLinkedResourceCache<T> {
 
@@ -50,7 +51,7 @@ export abstract class WorkPackageLinkedResourceCache<T> {
    * @param {WorkPackageResource} workPackage
    * @returns {Promise<T>}
    */
-  public require(workPackage:WorkPackageResource, force:boolean = false):Promise<T> {
+  public requireAndStream(workPackage:WorkPackageResource, force = false):Observable<T> {
     const id = workPackage.id!;
     const state = this.cache.state;
 
@@ -61,16 +62,22 @@ export abstract class WorkPackageLinkedResourceCache<T> {
 
     // Return cached value if id matches and value is present
     if (this.isCached(id)) {
-      return Promise.resolve(state.value!);
+      return of(state.value!);
     }
 
     // Ensure value is loaded only once
     this.cache.id = id;
     this.cache.state.putFromPromiseIfPristine(() => this.load(workPackage));
 
-    return this.cache.state
-      .values$()
-      .pipe(take(1))
+    return this.cache.state.values$();
+  }
+
+  public require(workPackage:WorkPackageResource, force = false):Promise<T> {
+    return this
+      .requireAndStream(workPackage, force)
+      .pipe(
+        take(1)
+      )
       .toPromise();
   }
 

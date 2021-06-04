@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -25,6 +25,8 @@
 #
 # See docs/COPYRIGHT.rdoc for more details.
 #++
+
+require_relative '../ng_select_autocomplete_helpers'
 
 module Components
   module WorkPackages
@@ -67,14 +69,25 @@ module Components
         close_autocompleter
       end
 
-      def add(name, save_changes: true)
+      def add(name, save_changes: true, finicky: false)
         modal_open? or open_modal
 
         select_autocomplete column_autocompleter,
                             results_selector: '.ng-dropdown-panel-items',
                             query: name
 
-        apply if save_changes
+        if save_changes
+          apply
+          within ".work-package-table" do
+            # for some reason these columns (e.g. 'Overall costs') don't have a proper link
+            if finicky
+              SeleniumHubWaiter.wait
+              expect(page).to have_selector("a", text: /#{name}/i, visible: :all)
+            else
+              expect(page).to have_link(name)
+            end
+          end
+        end
       end
 
       def remove(name, save_changes: true)
@@ -94,6 +107,12 @@ module Components
         end
       end
 
+      def expect_unchecked(name)
+        within_modal do
+          expect(page).to have_no_selector('.draggable-autocomplete--item', text: name)
+        end
+      end
+
       def uncheck_all(save_changes: true)
         modal_open? or open_modal
 
@@ -101,7 +120,7 @@ module Components
           expect(page).to have_selector('.draggable-autocomplete--item', minimum: 1)
           page.all('.draggable-autocomplete--remove-item').each do |el|
             el.click
-            sleep 1
+            sleep 0.2
           end
         end
 
@@ -111,6 +130,7 @@ module Components
       def apply
         @opened = false
 
+        # SeleniumHubWaiter.wait
         click_button('Apply')
       end
 
@@ -125,10 +145,8 @@ module Components
 
       private
 
-      def within_modal
-        page.within('.wp-table--configuration-modal') do
-          yield
-        end
+      def within_modal(&block)
+        page.within('.wp-table--configuration-modal', &block)
       end
 
       def modal_open?

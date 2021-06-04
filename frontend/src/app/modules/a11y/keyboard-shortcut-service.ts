@@ -1,12 +1,12 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
 //
 // OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-// Copyright (C) 2006-2017 Jean-Philippe Lang
+// Copyright (C) 2006-2013 Jean-Philippe Lang
 // Copyright (C) 2010-2013 the ChiliProject Team
 //
 // This program is free software; you can redistribute it and/or
@@ -26,10 +26,11 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {Injectable} from "@angular/core";
-import {PathHelperService} from "../common/path-helper/path-helper.service";
-import {CurrentProjectService} from "../../components/projects/current-project.service";
-import {FocusHelperService} from "../common/focus/focus-helper";
+import { Injectable } from "@angular/core";
+import { FocusHelperService } from "core-app/modules/focus/focus-helper";
+import { PathHelperService } from "core-app/modules/common/path-helper/path-helper.service";
+import { CurrentProjectService } from "core-app/components/projects/current-project.service";
+
 
 const accessKeys = {
   preview: 1,
@@ -62,7 +63,6 @@ export class KeyboardShortcutService {
     'g a': this.projectScoped('projectActivityPath'),
     'g c': this.projectScoped('projectCalendarPath'),
     'g n': this.projectScoped('projectNewsPath'),
-    'g t': this.projectScoped('projectTimelinesPath'),
     'n w p': this.projectScoped('projectWorkPackageNewPath'),
 
     'g e': this.accessKey('edit'),
@@ -123,18 +123,12 @@ export class KeyboardShortcutService {
   }
 
   clickLink(link:any) {
-    var cancelled = false;
-
-    if (!!document.createEvent) {
-      var event = new MouseEvent('click', {
-        view: window,
-        bubbles: true,
-        cancelable: true
-      });
-      cancelled = !link.dispatchEvent(event);
-    } else if (link.fireEvent) {
-      cancelled = !link.fireEvent('onclick');
-    }
+    const event = new MouseEvent('click', {
+      view: window,
+      bubbles: true,
+      cancelable: true
+    });
+    const cancelled = !link.dispatchEvent(event);
 
     if (!cancelled) {
       window.location.href = link.href;

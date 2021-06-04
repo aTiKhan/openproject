@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,24 +24,21 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {Subject} from 'rxjs';
-import {HalResource} from "core-app/modules/hal/resources/hal-resource";
-import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
+import { Subject } from 'rxjs';
+import { HalResource } from "core-app/modules/hal/resources/hal-resource";
+import { UntilDestroyedMixin } from "core-app/helpers/angular/until-destroyed.mixin";
 
 export abstract class EditFieldHandler extends UntilDestroyedMixin {
   /**
    * Whether the handler belongs to a larger edit mode form
    * e.g., WP-create
    */
-  inEditMode:boolean;
-
-  /** Whether the field is currently active */
-  active:boolean;
+  abstract get inEditMode():boolean;
 
   /** Whether the field is being saved */
-  inFlight:boolean;
+  abstract get inFlight():boolean;
 
   /**
    * Return a unique ID for this edit field
@@ -66,7 +63,9 @@ export abstract class EditFieldHandler extends UntilDestroyedMixin {
   /**
    * Error messages on the field, if any.
    */
-  errorMessageOnLabel?:string;
+  public errorMessageOnLabel():string|undefined {
+    return undefined;
+  }
 
   /**
    * On destroy observable
@@ -75,6 +74,9 @@ export abstract class EditFieldHandler extends UntilDestroyedMixin {
 
   // OnSubmit callbacks that may register from fields
   protected _onSubmitHandlers:Array<() => Promise<void>> = [];
+
+  // OnPreSubmit callbacks that may register from fields
+  protected _onBeforeSubmitHandlers:Array<() => void> = [];
 
   /**
    * Call field submission callback handlers
@@ -85,6 +87,17 @@ export abstract class EditFieldHandler extends UntilDestroyedMixin {
 
   public registerOnSubmit(callback:() => Promise<void>) {
     this._onSubmitHandlers.push(callback);
+  }
+
+  /**
+   * Call field before-submission callback handlers
+   */
+  public onBeforeSubmit():any {
+    return this._onBeforeSubmitHandlers.map((cb) => cb());
+  }
+
+  public registerOnBeforeSubmit(callback:() => void) {
+    this._onBeforeSubmitHandlers.push(callback);
   }
 
   /**

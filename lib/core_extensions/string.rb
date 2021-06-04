@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -32,6 +32,21 @@ module CoreExtensions
   module String
     def to_bool
       ActiveRecord::Type::Boolean.new.deserialize downcase.strip
+    end
+
+    ##
+    # Use Stringex#to_url to create a localizable slug
+    # that is not dynamically supported in the upstream to_url.
+    def to_localized_slug(locale: I18n.locale, **options)
+      previous_locale = Stringex::Localization.locale
+
+      begin
+        Stringex::Localization.locale = locale
+
+        to_url(options)
+      ensure
+        Stringex::Localization.locale = previous_locale
+      end
     end
   end
 end

@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,16 +26,16 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {OPContextMenuService} from "core-components/op-context-menu/op-context-menu.service";
-import {Directive, ElementRef} from "@angular/core";
-import {OpContextMenuTrigger} from "core-components/op-context-menu/handlers/op-context-menu-trigger.directive";
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
+import { OPContextMenuService } from "core-components/op-context-menu/op-context-menu.service";
+import { Directive, ElementRef } from "@angular/core";
+import { OpContextMenuTrigger } from "core-components/op-context-menu/handlers/op-context-menu-trigger.directive";
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
 import {
   WorkPackageViewDisplayRepresentationService,
   wpDisplayCardRepresentation,
   wpDisplayListRepresentation
 } from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-display-representation.service";
-import {WorkPackageViewTimelineService} from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-timeline.service";
+import { WorkPackageViewTimelineService } from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-timeline.service";
 
 @Directive({
   selector: '[wpViewDropdown]'
@@ -64,7 +64,7 @@ export class WorkPackageViewDropdownMenuDirective extends OpContextMenuTrigger {
 
   private buildItems() {
     this.items = [];
-    
+
     if (this.wpDisplayRepresentationService.current !== wpDisplayCardRepresentation) {
       this.items.push(
         {
@@ -104,7 +104,7 @@ export class WorkPackageViewDropdownMenuDirective extends OpContextMenuTrigger {
           // List View with enabled Gantt
           linkText: this.I18n.t('js.views.timeline'),
           icon: 'icon-view-timeline',
-          onClick: (evt: any) => {
+          onClick: (evt:any) => {
             if (!this.wpTableTimeline.isVisible) {
               this.wpTableTimeline.toggle();
             }

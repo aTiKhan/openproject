@@ -1,14 +1,4 @@
-# OpenProject API
-
-Please note that we intend to keep this specification as accurate and stable as possible, however work on the API *v3* is still ongoing
-and not all resources and actions in OpenProject are yet accessible through the API.
-
-This document will be subject to changes as we add more endpoints and functionality to the API. The development version of this document
-may have breaking changes while we work on new endpoints for the application.
-
-We try to keep stable releases of OpenProject with changes to this API backwards compatible whenever possible.
-
-## Hypermedia REST API
+## Introduction
 
 The APIv3 is a hypermedia REST API, a shorthand for "Hypermedia As The Engine Of Application State" (HATEOAS).
 This means that each endpoint of this API will have links to other resources or actions defined in the resulting body.
@@ -90,7 +80,7 @@ However, OpenProject already has supported API keys in the past for the API v2, 
 Using **username and password** directly would have some advantages:
 
 * It is intuitive for the user who then just has to provide those just as they would when logging into OpenProject.
-* No extra logic for token managment necessary.
+* No extra logic for token management necessary.
 
 On the other hand using **API keys** has some advantages too, which is why we went for that:
 
@@ -99,6 +89,15 @@ On the other hand using **API keys** has some advantages too, which is why we we
 
 Most importantly users may not actually have a password to begin with. Specifically when they have registered
 through an OpenID Connect provider.
+
+# Cross-Origin Resource Sharing (CORS)
+
+By default, the OpenProject API is _not_ responding with any CORS headers.
+If you want to allow cross-domain AJAX calls against your OpenProject instance, you need to enable CORS headers being returned.
+
+Please see [our API settings documentation](https://docs.openproject.org/system-admin-guide/system-settings/api-settings/) on
+how to selectively enable CORS.
+
 
 # Allowed HTTP methods
 

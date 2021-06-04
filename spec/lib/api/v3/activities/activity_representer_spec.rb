@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -95,7 +95,7 @@ describe ::API::V3::Activities::ActivityRepresenter do
       it_behaves_like 'API V3 formattable', 'comment' do
         let(:format) { 'markdown' }
         let(:raw) { journal.notes }
-        let(:html) { "<p>#{journal.notes}</p>" }
+        let(:html) { "<p class=\"op-uc-p\">#{journal.notes}</p>" }
       end
 
       context 'if having no change and notes' do
@@ -105,7 +105,7 @@ describe ::API::V3::Activities::ActivityRepresenter do
         it_behaves_like 'API V3 formattable', 'comment' do
           let(:format) { 'markdown' }
           let(:raw) { "_#{I18n.t(:'journals.changes_retracted')}_" }
-          let(:html) { "<p><em>#{I18n.t(:'journals.changes_retracted')}</em></p>" }
+          let(:html) { "<p class=\"op-uc-p\"><em>#{I18n.t(:'journals.changes_retracted')}</em></p>" }
         end
       end
     end
@@ -134,6 +134,23 @@ describe ::API::V3::Activities::ActivityRepresenter do
 
     it 'should link to update' do
       expect(subject).to have_json_path('_links/update/href')
+    end
+
+    context 'for a non own journal' do
+      context 'when having edit_work_package_notes' do
+        it 'should link to update' do
+          expect(subject).to have_json_path('_links/update/href')
+        end
+      end
+
+      context 'when only having edit_own_work_package_notes' do
+        let(:permissions) { %i(edit_own_work_package_notes) }
+
+        it 'has no update link' do
+          expect(subject)
+            .not_to have_json_path('_links/update/href')
+        end
+      end
     end
   end
 end

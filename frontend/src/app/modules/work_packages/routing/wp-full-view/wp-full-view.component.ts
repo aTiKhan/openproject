@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,20 +24,25 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {WorkPackageResource} from 'core-app/modules/hal/resources/work-package-resource';
-import {StateService} from '@uirouter/core';
-import {Component, Injector, OnInit} from '@angular/core';
-import {WorkPackageViewSelectionService} from 'core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-selection.service';
-import {WorkPackageSingleViewBase} from "core-app/modules/work_packages/routing/wp-view-base/work-package-single-view.base";
-import {of} from "rxjs";
+import { WorkPackageResource } from 'core-app/modules/hal/resources/work-package-resource';
+import { StateService } from '@uirouter/core';
+import { Component, Injector, OnInit } from '@angular/core';
+import { WorkPackageViewSelectionService } from 'core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-selection.service';
+import { WorkPackageSingleViewBase } from "core-app/modules/work_packages/routing/wp-view-base/work-package-single-view.base";
+import { of } from "rxjs";
+import { HalResourceNotificationService } from "core-app/modules/hal/services/hal-resource-notification.service";
+import { WorkPackageNotificationService } from "core-app/modules/work_packages/notifications/work-package-notification.service";
 
 @Component({
   templateUrl: './wp-full-view.html',
   selector: 'wp-full-view-entry',
   // Required class to support inner scrolling on page
-  host: { 'class': 'work-packages-page--ui-view' }
+  host: { 'class': 'work-packages-page--ui-view' },
+  providers: [
+    { provide: HalResourceNotificationService, useExisting: WorkPackageNotificationService }
+  ]
 })
 export class WorkPackagesFullViewComponent extends WorkPackageSingleViewBase implements OnInit {
   // Watcher properties

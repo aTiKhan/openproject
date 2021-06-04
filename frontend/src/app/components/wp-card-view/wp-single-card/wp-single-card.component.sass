@@ -11,7 +11,6 @@
   box-shadow: 1px 1px 3px 0px lightgrey
   background: var(--body-background)
   font-size: var(--card-font-size)
-  max-width: 400px
 
   &:hover
     box-shadow: 0px 0px 10px lightgrey
@@ -38,12 +37,18 @@
 .wp-card--content:not(.-new)
   display: grid
   grid-template-columns: auto 1fr auto
-  grid-template-rows: auto auto 1fr auto
+  grid-template-rows: auto auto auto 1fr auto
   grid-row-gap: 10px
-  grid-template-areas: "type type type" "subject subject subject" "image image image" "attributeTag avatar idlink"
+  grid-template-areas: "project project project" "type type type" "subject subject subject" "image image image" "attributeTag avatar idlink"
   overflow: hidden
   flex-grow: 1
 
+  .wp-card--project-name
+    grid-area: project
+    font-style: italic
+    color: var(--gray-dark)
+    font-size: 12px
+    @include text-shortener(false)
   .wp-card--type
     grid-area: type
   .wp-card--subject
@@ -86,8 +91,6 @@
 
 @media only screen and (max-width: 679px)
   .wp-card
-    max-width: none
-
     &.-shrink
       border: none
       box-shadow: none

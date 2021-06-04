@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -63,21 +63,21 @@ RSpec.feature 'Work package copy', js: true, selenium: true do
   end
   let(:role) { FactoryBot.build(:role, permissions: [:view_work_packages]) }
   let(:assignee) do
-    FactoryBot.build(:user,
+    FactoryBot.create(:user,
                      firstname: 'An',
                      lastname: 'assignee',
                      member_in_project: project,
                      member_through_role: role)
   end
   let(:responsible) do
-    FactoryBot.build(:user,
+    FactoryBot.create(:user,
                      firstname: 'The',
                      lastname: 'responsible',
                      member_in_project: project,
                      member_through_role: role)
   end
   let(:author) do
-    FactoryBot.build(:user,
+    FactoryBot.create(:user,
                      firstname: 'The',
                      lastname: 'author',
                      member_in_project: project,
@@ -177,7 +177,6 @@ RSpec.feature 'Work package copy', js: true, selenium: true do
 
     work_package_page.expect_activity user, number: 1
     work_package_page.expect_current_path
-
 
     work_package_page.visit_tab!('relations')
     expect_angular_frontend_initialized

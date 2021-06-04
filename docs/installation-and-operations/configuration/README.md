@@ -38,12 +38,16 @@ Configuring OpenProject through environment variables is detailed [in this separ
 * [`omniauth_direct_login_provider`](#omniauth-direct-login-provider) (default: nil)
 * [`disable_password_login`](#disable-password-login) (default: false)
 * [`attachments_storage`](#attachments-storage) (default: file)
+* [`direct_uploads`](#direct-uploads) (default: true)
+* [`fog_download_url_expires_in`](#fog-download-url-expires-in) (default: 21600)
 * [`hidden_menu_items`](#hidden-menu-items) (default: {})
 * [`disabled_modules`](#disabled-modules) (default: [])
 * [`blacklisted_routes`](#blacklisted-routes) (default: [])
 * [`global_basic_auth`](#global-basic-auth)
 * [`apiv3_enable_basic_auth`](#apiv3_enable_basic_auth)
 * [`enterprise_limits`](#enterprise-limits)
+* [`backup_enabled`](#backup-enabled)
+* [`show_community_links`](#show-community-links)
 
 ## Setting session options
 
@@ -76,7 +80,13 @@ Example:
 
     auth_source_sso:
       header: X-Remote-User
+      
+      # Optional secret to be passed by the header in form
+      # of a colon-separted userinfo string
+      # e.g., X-Remote-User "username:s3cret"
       secret: s3cr3t
+      # Uncomment to make the header optional.
+      # optional: true
 
 Can be used to automatically login a user defined through a custom header
 sent by a load balancer or reverse proxy in front of OpenProject,
@@ -107,7 +117,14 @@ You can override this behavior by setting `gravatar_fallback_image` to a differe
 
 For supported values, please see https://en.gravatar.com/site/implement/images/
 
-### attachments storage
+
+### Attachments storage
+
+You can modify the folder that attachments are stored locally. Use the `attachments_storage_path` configuration variable for that. But ensure that you move the existing paths. To find out the current path on a packaged installation, use `openproject config:get ATTACHMENTS_STORAGE_PATH`.
+
+To update the path, use `openproject config:set ATTACHMENTS_STORAGE_PATH="/path/to/new/folder"`. Ensure that this is writable by the `openproject` user.
+
+### attachment storage type
 
 *default: file*
 
@@ -158,6 +175,36 @@ Note that you have to configure the respective storage (i.e. fog) beforehand as 
 In the case of fog you only have to configure everything under `fog`, however. Don't change `attachments_storage`
 to `fog` just yet. Instead leave it as `file`. This is because the current attachments storage is used as the source
 for the migration.
+
+### direct uploads
+
+*default: true*
+
+When using fog attachments uploaded in the frontend will be posted directly
+to the cloud rather than going through the OpenProject servers. This allows large attachments to be uploaded
+without the need to increase the `client_max_body_size` for the proxy in front of OpenProject.
+Also it prevents web processes from being blocked through long uploads.
+
+If, for what ever reason, this is undesirable, you can disable this option.
+In that case attachments will be posted as usual to the OpenProject server which then uploads the file
+to the remote storage in an extra step.
+
+**Note**: This only works for S3 right now. When using fog with another provider this configuration will be `false`. The same goes for when no fog storage is configured, or when the `use_iam_profile` option is used in the fog credentials when using S3.
+
+### fog download url expires in
+
+*default: 21600*
+
+Example:
+
+    fog_download_url_expires_in: 60
+
+When using remote storage for attachments via fog - usually S3 (see [`attachments_storage`](#attachments-storage) option) -
+each attachment download will generate a temporary URL.
+This option determines how long these links will be valid.
+
+The default is 21600 seconds, that is 6 hours, which is the maximum expiry time
+allowed by S3 when using IAM roles for authentication.
 
 ### Overriding the help link
 
@@ -342,7 +389,41 @@ Or through the environment like this:
 OPENPROJECT_ENTERPRISE_FAIL__FAST=true
 ```
 
+### Backup enabled
 
+*default: true*
+
+If enabled, admins (or users with the necessary permission) can download backups of the OpenProject installation
+via OpenProject's web interface or via the API.
+
+There are further configurations you can use to adjust your backups.
+
+```
+backup_enabled: true # enable/disable backups feature
+backup_daily_limit: 3 # number of times backups can be requested per day across all users
+backup_initial_waiting_period: 24.hours # time after which new backup token is usable
+backup_include_attachments: true # include/exclude attachments besides db dump
+backup_attachment_size_max_sum_mb: 1024 # if all attachments together are larger than this, they will not be included
+```
+
+Per default the maximum overall size of all attachments must not exceed 1GB for them to be included
+in the backup. If they are larger only the database dump will be included.
+
+As usual this can be override via the environment, for example like this:
+
+```
+OPENPROJECT_BACKUP__ENABLED=true
+OPENPROJECT_BACKUP__INCLUDE__ATTACHMENTS=true
+OPENPROJECT_BACKUP__ATTACHMENT__SIZE__MAX__SUM__MB=1024
+```
+
+### Show community links
+
+If you would like to hide the homescreen links to the OpenProject community, you can do this with the following configuration:
+
+```
+OPENPROJECT_SHOW__COMMUNITY__LINKS=false
+```
 
 | ----------- | :---------- |
 | [List of supported environment variables](./environment) | The full list of environment variables you can use to override the default configuration |

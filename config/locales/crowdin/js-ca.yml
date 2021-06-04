@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -33,15 +33,29 @@ ca:
         single: "Seleccionar\"%{name}\""
       remove: "Eliminar %{name}"
       active: "Activar %{label} %{name}"
+    backup:
+      attachments_disabled: Attachments may not be included since they exceed the maximum overall size allowed. You can change this via the configuration (requires a server restart).
+      info: >
+        You can trigger a backup here. The process can take some time depending on the amount of data (especially attachments) you have. You will receive an email once it's ready.
+      note: >
+        A new backup will override any previous one. Only a limited number of backups per day can be requested.
+      last_backup: Last backup
+      last_backup_from: Last backup from
+      title: Backup OpenProject
+      options: Opcions
+      include_attachments: Include attachments
+      download_backup: Download backup
+      request_backup: Request backup
     close_popup_title: "Tanca el popup"
     close_filter_title: "Tancar filtre"
     close_form_title: "Tancar formulari"
     button_add_watcher: "Afegir observador"
+    button_add: "Afegir"
     button_back: "Endarrere"
     button_back_to_list_view: "Tornar al llistat"
     button_cancel: "Cancel·la"
     button_close: "Tancar"
-    button_change_project: "Change project"
+    button_change_project: "Canviar el projecte"
     button_check_all: "Marcar-ho tot"
     button_configure-form: "Configurar formulari"
     button_confirm: "Confirmar"
@@ -54,6 +68,8 @@ ca:
     button_duplicate: "Duplicar"
     button_edit: "Editar"
     button_filter: "Filtre"
+    button_collapse_all: "Replega-ho tot"
+    button_expand_all: "Expandeix tot"
     button_advanced_filter: "Filtres avançats"
     button_list_view: "Vista de llista"
     button_show_view: "Vista de pantalla completa"
@@ -62,8 +78,8 @@ ca:
     button_open_details: "Obrir vista detallada"
     button_close_details: "Tancar vista detallada"
     button_open_fullscreen: "Obrir vista a pantalla completa"
-    button_show_cards: "Show card view"
-    button_show_list: "Show list view"
+    button_show_cards: "Mostra la vista de targeta"
+    button_show_list: "Mostrar la vista de llista"
     button_quote: "Citar"
     button_save: "Desa"
     button_settings: "Configuració"
@@ -71,36 +87,37 @@ ca:
     button_update: "Actualitza"
     button_export-pdf: "Descarregar PDF"
     button_export-atom: "Descarregar Atom"
+    button_create: "Crear"
     calendar:
       title: 'Calendari'
-      too_many: 'There are %{count} work packages in total, but only %{max} can be shown.'
+      too_many: 'Hi ha %{count} paquets de treball en total, però només %{max} es poden mostrar'
     card:
-      add_new: 'Add new card'
+      add_new: 'Afegir nova targeta'
       highlighting:
-        inline: 'Highlight inline:'
-        entire_card_by: 'Entire card by'
-      remove_from_list: 'Remove card from list'
+        inline: 'Ressaltar en línia:'
+        entire_card_by: 'targeta sencera per'
+      remove_from_list: 'Suprimeix la targeta de la llista'
     caption_rate_history: "Rate history"
     clipboard:
       browser_error: "El seu navegador no suporta copiar al porta-retalls. Si us plau, copieu el text seleccionat manualment."
-      copied_successful: "S'ha copiat correctament al porta-retalls!"
+      copied_successful: "Successfully copied to clipboard!"
     chart:
-      type: 'Chart type'
-      axis_criteria: 'Axis criteria'
-      modal_title: 'Work package graph configuration'
+      type: 'Tipus de gràfica'
+      axis_criteria: 'Criteri d''eix'
+      modal_title: 'Configuració gràfica de paquet de treball'
       types:
-        line: 'Line'
-        horizontal_bar: 'Horizontal bar'
-        bar: 'Bar'
-        pie: 'Pie'
-        doughnut: 'Doughnut'
+        line: 'Línia'
+        horizontal_bar: 'Barra horitzontal'
+        bar: 'Barra'
+        pie: 'Pastís'
+        doughnut: 'Donut'
         radar: 'Radar'
-        polar_area: 'Polar area'
+        polar_area: 'Àrea polar'
       tabs:
         graph_settings: 'General'
         dataset: 'Dataset %{number}'
       errors:
-        could_not_load: 'The data to display the graph could not be loaded. The necessary permissions may be lacking.'
+        could_not_load: 'Les dades mostrades al gràfic no es poden carregar. Pot ser que faltin els permisos necessaris.'
     description_available_columns: "Columnes disponibles"
     description_current_position: "You are here: "
     description_select_work_package: "Seleccionar el paquet de treball #%{id}"
@@ -115,6 +132,11 @@ ca:
         manual: 'Canviar a la font Markdown'
         wysiwyg: 'Canviar a l''editor WYSIWYG'
       macro:
+        error: 'Cannot expand macro: %{message}'
+        attribute_reference:
+          macro_help_tooltip: 'This text segment is being dynamically rendered by a macro.'
+          not_found: 'Requested resource could not be found'
+          invalid_attribute: "The selected attribute '%{name}' does not exist."
         child_pages:
           button: 'Enllaços a pagines filles'
           include_parent: 'Afegir pare'
@@ -157,16 +179,17 @@ ca:
       type_form:
         custom_field: 'Camp personalitzat'
         inactive: 'Inactive'
-        drag_to_activate: "Drag fields from here to activate them"
-        add_group: "Add attribute group"
+        drag_to_activate: "Arrossega els camps aquí per a activar-los"
+        add_group: "Afegir atribut de grup"
         add_table: "Afegeix una taula de paquets de treball relacionats"
-        edit_query: 'Edit query'
+        edit_query: 'Editar consulta'
         new_group: 'Nou grup'
         reset_to_defaults: 'Reset to defaults'
       enterprise:
         trial:
           confirmation: "Confirmation of email address"
-          confirmation_info: "We sent you an email. Please check your emails and click the confirmation link provided to start your 14 days trial."
+          confirmation_info: >
+            We sent you an email on %{date} to %{email}. Please check your inbox and click the confirmation link provided to start your 14 days trial.
           form:
             general_consent: >
               I agree with the <a target="_blank" href="%{link_terms}">terms of service</a> and the <a target="_blank" href="%{link_privacy}">privacy policy</a>.
@@ -181,9 +204,10 @@ ca:
             label_starts_at: "Starts at"
             label_expires_at: "Caduca el"
             receive_newsletter: I want to receive the OpenProject <a target="_blank" href="%{link}">newsletter</a>.
+            taken_domain: There can only be one active trial per domain.
+            taken_email: Each user can only create one trial.
           email_not_received: "You did not receive an email? You can resend the email with the link on the right."
           try_another_email: "Or try it with another email address."
-          try_another_email_hint: "Please be aware that your previous email address gets invalid if you try again with a new one."
           next_steps: "Next steps"
           resend_link: "Resend"
           resend_success: "Email has been resent. Please check your emails and click the confirmation link provided."
@@ -197,7 +221,7 @@ ca:
         upsale:
           become_hero: "Become a hero!"
           benefits:
-            description: "What are the benefits?"
+            description: "What are the benefits of the Enterprise on-premises Edition?"
             high_security: "Security features"
             high_security_text: "Single sign on (SAML, OpenID Connect, CAS), two-factor authentication and automatic sync of LDAP groups."
             installation: "Installation support"
@@ -248,27 +272,26 @@ ca:
     general_text_yes: "sí"
     general_text_No: "No"
     general_text_Yes: "Sí"
-    global_roles: Global Roles
     hal:
       error:
-        update_conflict_refresh: "Click here to refresh the resource and update to the newest version."
-        edit_prohibited: "Editing %{attribute} is blocked for this resource. Either this attribute is derived from relations (e.g, children) or otherwise not configurable."
+        update_conflict_refresh: "Cliqui aquí per refrescar la font i actualitzar a la última versió."
+        edit_prohibited: "L'edició de %{attribute} està bloquejada per a aquest paquet de treball. Ja sigui perquè aquest atribut es deriva d'alguna relació (per exemple, els fills) o perquè no és configurable."
         format:
           date: "%{attribute} no és una data vàlida - s'espera en format AAAA-MM-DD."
         general: "S'ha produït un error."
     homescreen:
       blocks:
         new_features:
-          text_new_features: "Read about new features and product updates."
-          learn_about: "Learn more about the new features"
+          text_new_features: "Llegeixi sobre les noves característiques i actualitzacions del producte. "
+          learn_about: "Aprengui més sobre les noves característiques"
           standard:
-            learn_about_link: https://www.openproject.org/openproject-10-4
+            learn_about_link: https://www.openproject.org/openproject-11-3-release
             current_new_feature_html: >
-              The release contains various new features and improvements: <br><br> <ul> <li>Default <b>design templates</b> to select a light or dark theme (premium feature).</li> <li>New <b>time tracking widget</b> for <i>My page</i> to show spent time in a bar chart.</li> <li><b>XLS-exports for cost reports</b> and formatted text in PDF export of work packages.</li> <li><b>Improved design and usability</b>, i.e. tabs and more in project settings and administration.</li> </ul>
+              The release contains various new features and improvements: <br> <ul class="%{list_styling_class}"> <li>New button in header navigation to create projects, users and work packages.</li> <li>A new invite modal for users, groups and placeholder users allows to easily add or invite new users and assign them to work packages.</li> <li>GitHub integration into OpenProject.</li> <li>API v3 extensions for groups and more, i.e. create, read, update and delete groups and group members through the API.</li> <li>Multi-selection for project custom fields of type list.</li> <li>Creation of backup from the web interface.</li> </ul>
           bim:
-            learn_about_link: https://www.openproject.org/openproject-bim-10-4
+            learn_about_link: https://www.openproject.org/openproject-11-3-release
             current_new_feature_html: >
-              OpenProject contains a <b>new IFC module to integrate 3D models</b> into your project management application and to work collaboratively with these files with your team without installation of separate costly software or licenses. <br><br> <ul> <li><b>Import IFC files</b> of building models into your OpenProject application.</li> <li><b>Open 3D models and visualize building models</b> in your browser.</li> <li> Easily <b>work on multiple IFC files</b> with your team directly in OpenProject without installation of separate costly software. </li> </ul>
+              The release contains various new features and improvements: <br> <ul class="%{list_styling_class}"> <li>BIM: Improved performance of the IFC model viewer.</li> <li>BIM: The IFC viewer now supports double precision models, which is great for large construction sites such as bridges, roads etc.</li> <li>BIM: Toggle button for switching between perspective and orthogonal mode.</li> <li>BIM: A menu for editing, deleting or flipping section planes.</li> <li>New button in header navigation to create projects, users and work packages.</li> <li>A new invite modal for users, groups and placeholder users allows to easily add or invite new users and assign them to work packages.</li> <li>API v3 extensions for groups and more, i.e. create, read, update and delete groups and group members through the API.</li> <li>Multi-selection for project custom fields of type list.</li> <li>Creation of backup from the web interface.</li> </ul>
     label_activate: "Activar"
     label_add_column_after: "Afegir columna desprès"
     label_add_column_before: "Afegir columna abans"
@@ -279,7 +302,7 @@ ca:
     label_add_row_before: "Afegir fila abans"
     label_add_selected_columns: "Afegir columnes seleccionades"
     label_added_by: "afegit per"
-    label_added_time_by: "Afegit per %{author} %{age}"
+    label_added_time_by: "Added by <a href=%{authorLink}>%{author}</a> at %{age}"
     label_ago: "dies abans"
     label_all: "tot"
     label_all_work_packages: "tots els paquets de treball"
@@ -288,9 +311,9 @@ ca:
     label_author: "Autor: %{user}"
     label_avatar: "Avatar"
     label_between: "between"
-    label_board: "Board"
+    label_board: "Taulell"
     label_board_locked: "Bloquejat"
-    label_board_plural: "Boards"
+    label_board_plural: "Taulells"
     label_board_sticky: "Fixa't"
     label_create: "Crear"
     label_create_work_package: "Crear paquet de treball nou"
@@ -320,9 +343,11 @@ ca:
     label_expand_all: "Expandeix tot"
     label_expand_project_menu: "Expandir menú de projecte"
     label_export: "Exportar"
+    label_export_preparing: "The export is being prepared and will be downloaded shortly."
     label_filename: "Fitxer"
     label_filesize: "Mida"
     label_general: "General"
+    label_global_roles: "Global Roles"
     label_greater_or_equal: ">="
     label_group: 'Grup'
     label_group_by: "Agrupa per"
@@ -352,7 +377,7 @@ ca:
     label_next: "Següent"
     label_no_color: "Sense color"
     label_no_data: "No hi ha dades per mostrar"
-    label_no_due_date: "no hi ha data de finalització"
+    label_no_due_date: "no finish date"
     label_no_start_date: "no hi ha data d'inici"
     label_no_value: "Cap valor"
     label_none: "cap"
@@ -371,6 +396,7 @@ ca:
     label_quote_comment: "Citar aquest comentari"
     label_recent: "Recent"
     label_reset: "Restablir"
+    label_remove: "Suprimir"
     label_remove_column: "Eliminar columna"
     label_remove_columns: "Treure les columnes seleccionades"
     label_remove_row: "Eliminar fila"
@@ -392,9 +418,10 @@ ca:
     label_public_query: "Públic"
     label_sum: "Suma"
     label_sum_for: "Suma de"
+    label_total_sum: "Total sum"
     label_subject: "Assumpte"
     label_this_week: "aquesta setmana"
-    label_today: "avui"
+    label_today: "Today"
     label_time_entry_plural: "Temps invertit"
     label_up: "Amunt"
     label_user_plural: "Usuaris"
@@ -404,8 +431,10 @@ ca:
     label_total_amount: "Total: %{amount}"
     label_updated_on: "actualitzat el"
     label_value_derived_from_children: "(value derived from children)"
+    label_children_derived_duration: "Work package's children derived duration"
     label_warning: "Alerta"
     label_work_package: "Paquet de treball"
+    label_work_package_parent: "Parent work package"
     label_work_package_plural: "Paquets de treball"
     label_watch: "Observa"
     label_watch_work_package: "Seguir paquet de treball"
@@ -451,7 +480,8 @@ ca:
       steps:
         help_menu: 'Al menú d''<b>Ajuda</b> vostè trobarà una guia d''usuari i material adicional de suport. <br>Gaudeixi de la seva feina amb OpenProject!'
         members: 'Convidi nous <b>Membres</b> per afegir-se al seu projecte.'
-        project_selection: 'Please click on one of the projects with useful demo data to get started. <br> The <b>Demo project</b> suits best for classical project management, while the <b>Scrum project</b> is better for Agile project management.'
+        project_selection: 'Si us plau cliqui a un dels projectes amb informació útil per a introduir-se.<br>El <b>Projecte demo</b> encaixa millor per a la gestió clàssica de projectes, mentre que el <b>Projecte Scrum</b> es millor per a gestió Àgil de projectes.'
+        quick_add_button: 'Create a new project or invite coworkers.'
         sidebar_arrow: "Amb la fletxa vostè pot navegar enrrere cap al <b>Menu principal</b> del projecte."
         welcome: 'Realitzi un tour de tres minuts per aprendre els <b> aspectes més importants</b>. <br>Recomanem completar les passes fins el final. Podrà recomençar el tour en qualsevol moment.'
         wiki: 'Dintre del <b>Wiki</b> pot documentar i compartir el coneixement amb el seu equip.'
@@ -461,13 +491,13 @@ ca:
           task_board_select: '... i seleccioni l''entrada <b>Tauler de tasca</b>.'
           task_board: "Al <b>Tauler de tasca</b> visualitza el progrés d'aquest esprint. Afegeixi noves tasques o problemes amb la icona + al costat de la història d'usuari. Arrossegant podrà actualitzar l'estatus."
         boards:
-          overview: 'Manage your work within an intuitive <b>Boards</b> view.'
-          lists: 'You can create multiple lists (columns) within one Board view, e.g. to create a KANBAN board.'
-          add: 'Click the + will <b>add a new card</b> to the list within a Board.'
-          drag: 'Drag & Drop your cards within a list to re-order, or to another list. A double click will open the details view.'
+          overview: 'Administri el seu traball amb la vista intuitiva de <b>Taulells</b>.'
+          lists: 'Pot crear llistes múltiples (columnes) en un únic Taulell, per exemple per a creat un taulell KANBAN. '
+          add: 'Faci clic a + per a <b>afegir una nova targeta</b> a la llista dintre del Taulell.'
+          drag: 'Arrossegui les seves targetes per la llista per a reordenar-les, o moure a una altra llista. Amb doble clic obrirà la vista de detalls.'
         wp:
           toggler: "Ara fem un cop d'ull a la secció <b>Paquets de treball</b>, la qual ens dona una vista més detallada de la seva feina."
-          list: 'Aquesta es la llista <b>Paquet de treball</b> amb el treball important dintre del seu projecte, com tasques, característiques, fites, errors i mes. <br> Pot crear o editar un paquet de treball directament dintre d''aquesta llista. Per a veure els seus detalls pot fer doble clic en una fila.'
+          list: 'This is the <b>Work package</b> list with the important work within your project, such as tasks, milestones, phases, and more. <br> You can create or edit a work package directly within this list. To see its details you can double click on a row.'
           full_view: 'Dintre de <b>Detalls de paquet de treball</b> trobarà tota la informació rellevant, com la descripció, estat i prioritats, activitats, dependències o comentaris.'
           back_button: 'Amb la fletxa pot navegar enrrere cap a la llista de paquets de treball.'
           create_button: 'El botó <b>Crear</b> afegirà un nou paquet de treball al seu projecte.'
@@ -488,10 +518,15 @@ ca:
       relation_description: 'Cliqui per afegir una descripció per aquesta relació'
     project:
       required_outside_context: >
-        Please choose a project to create the work package in to see all attributes. You can only select projects which have the type above activated.
+        Si us plau, seleccioni un projecte on crear el paquet de treball per a veure tots els atributs. Només pot seleccionar projectes que tinguin activat el tipus anterior.
       context: 'Context de projecte'
       work_package_belongs_to: 'Aquest paquet de treball pertany al projecte %{projectname}.'
       click_to_switch_context: 'Obrir aquest paquet de treball d''aquell projecte.'
+      confirm_template_load: 'Switching the template will reload the page and you will lose all input to this form. Continue?'
+      use_template: "Use template"
+      no_template_selected: "(None)"
+      copy:
+        copy_options: "Copy options"
       autocompleter:
         label: 'Autoemplenament del projecte'
     text_are_you_sure: "N'esteu segur?"
@@ -502,24 +537,24 @@ ca:
         reset_title: "Reiniciar la configuració del formulari"
         confirm_reset: >
           Compte: Esta segur que vol reiniciar la configuració del formulari? Això retornarà als atributs als grups per defecte i des-habilitarà TOTS els camps personalitzats.
-        upgrade_to_ee: "Actualitza a l'Enterprise Edition"
+        upgrade_to_ee: "Upgrade to Enterprise on-premises Edition"
         upgrade_to_ee_text: "Ostres! Si necessita aquesta característica es un súper pro! L'importaria donar suport als desenvolupadors d'OpenSource convertint-se en un client de la versió Enterprise?"
         more_information: "More information"
         nevermind: "No importa"
       edit:
-        form_configuration: "Form Configuration"
+        form_configuration: "Configuració del formulari"
         projects: "Projectes"
         settings: "Configuració"
     time_entry:
       project: 'Projecte'
       work_package: 'Paquet de treball'
-      work_package_required: 'Requires selecting a work package first.'
+      work_package_required: 'Requereix seleccionar un paquet de treball primer.'
       activity: 'Activitat'
       comment: 'Comentari'
       duration: 'Durada'
       spent_on: 'Data'
       hours: 'Hores'
-      label: 'Entrada de temps'
+      title: 'Temps de registre'
     two_factor_authentication:
       label_two_factor_authentication: 'Two-factor authentication'
     watchers:
@@ -573,38 +608,45 @@ ca:
       save: "Guardar la relació"
       abort: "Avortar"
     relations_autocomplete:
-      placeholder: "Type to search"
-      parent_placeholder: "Choose new parent or press escape to cancel."
+      placeholder: "Escriviu per cercar..."
+      parent_placeholder: "Escull nou pare o clica escapar per cancel·lar."
+    autocompleter:
+      placeholder: "Escriviu per cercar..."
+      notFoundText: "No items found"
+      typeToSearchText: "Escriviu per cercar..."
     repositories:
       select_tag: 'Seleccionar l''etiqueta'
       select_branch: 'Seleccionar branca'
     field_value_enter_prompt: "Introduïu un valor per a '%{field}'"
     project_menu_details: "Detalls"
+    scheduling:
+      manual: 'Manual scheduling'
+      automatic: 'Automatic scheduling'
     sort:
       sorted_asc: 'Ordre ascendent aplicat,'
       sorted_dsc: 'Ordre descendent aplicat,'
       sorted_no: 'Sense ordre aplicat,'
       sorting_disabled: 'ordenació des-habilitada'
-      activate_asc: 'activate to apply an ascending sort'
-      activate_dsc: 'activate to apply a descending sort'
-      activate_no: 'activate to remove the sort'
+      activate_asc: 'activeu per aplicar endreçament ascendent '
+      activate_dsc: 'activeu per aplicar endreçament descendent'
+      activate_no: 'activeu per desactivar l''endreçament'
     text_work_packages_destroy_confirmation: "¿Està segur que desitja eliminar el(s) paquet(s) de treball seleccionat(s)?"
-    text_query_destroy_confirmation: "Are you sure you want to delete the selected view?"
+    text_query_destroy_confirmation: "Esteu segur que voleu suprimir la consulta seleccionada?"
     text_attachment_destroy_confirmation: "Esteu segur que voleu suprimir el fitxer adjunt?"
     timelines:
       quarter_label: 'Q%{quarter_number}'
       gantt_chart: 'Gantt chart'
       labels:
-        title: 'Label configuration'
-        bar: 'Bar labels'
-        left: 'Left'
-        right: 'Right'
-        farRight: 'Far right'
-        showNone: '-- No label --'
+        title: 'Configuració d''etiquetes'
+        bar: 'Etiquetes de barres'
+        left: 'Esquerra'
+        right: 'Dreta'
+        farRight: 'Extrem dret'
+        showNone: '-- Sense etiqueta --'
         description: >
-          Select the attributes you want to be shown in the respective positions of the Gantt chart at all times. Note that when hovering an element, its date labels will be shown instead of these attributes.
-      button_activate: 'Show Gantt chart'
-      button_deactivate: 'Hide Gantt chart'
+          Seleccioni els atributs que vol que es mostrin en les posicions corresponents del diagrama de Gantt en tot moment. Tingui en compte que, al mantenir el ratolí sobre un element, se mostraran les etiquetes de data, en lloc d'aquests atributs. 
+      button_activate: 'Mostra gràfica de Gantt'
+      button_deactivate: 'Amaga gràfica de Gantt'
       cancel: Cancel·la
       change: "Canvi en la planificació"
       due_date: "Finish date"
@@ -635,7 +677,7 @@ ca:
       start_date: "Data d'inici"
       tooManyProjects: "Més de %{count} projectes. Si us plau, utilitzeu un filtre millor!"
       selection_mode:
-        notification: 'Click on any highlighted work package to create the relation. Press escape to cancel.'
+        notification: 'Faci clic en qualsevol paquet de treball destacat per a crear la relació. Cliqui Esc per a cancel·lar.'
       zoom:
         in: "Ampliar"
         out: "Allunyar"
@@ -647,12 +689,12 @@ ca:
         years: "Anys"
         slider: "Control de zoom"
         description: >
-          Select the initial zoom level that should be shown when autozoom is not available.
+          Seleccioni el l¡nivell inicial de zoom que s'ha de mostrar quan l'autozoom no estigui disponible.
     tl_toolbar:
       zooms: "Nivell de zoom"
       outlines: "Nivell de jerarquia"
     upsale:
-      ee_only: 'Enterprise Edition only feature'
+      ee_only: 'Característica només disponible a la versió Enterprise'
     wiki_formatting:
       strong: "Fort"
       italic: "Cursiva"
@@ -671,10 +713,10 @@ ca:
       image: "Imatge"
     work_packages:
       bulk_actions:
-        move: 'Bulk change of project'
-        edit: 'Bulk edit'
-        copy: 'Bulk copy'
-        delete: 'Bulk delete'
+        move: 'Canvi massiu del projecte'
+        edit: 'Edició massiva'
+        copy: 'Copiat massiu'
+        delete: 'Eliminat massiu'
       button_clear: "Netejar"
       comment_added: "El comentari s'ha afegit correctament."
       comment_send_failed: "S'ha produït un error. No es pot enviar el comentari."
@@ -689,29 +731,29 @@ ca:
       label_enable_multi_select: "Permetre sel·lecció múltiple"
       label_disable_multi_select: "Deshabilita la selecció múltiple"
       label_filter_add: "Afegir un filtre"
-      label_filter_by_text: "Filter by text"
+      label_filter_by_text: "Filtrar per text"
       label_options: "Opcions"
       label_column_multiselect: "Camp combinat desplegable: selecciona amb les tecles de fletxa, confirmar la selecció amb enter, suprimir amb retrocés"
       message_error_during_bulk_delete: S'ha produït un error en intentar suprimir paquets de treball.
       message_successful_bulk_delete: Paquets de treball suprimits correctament.
       message_successful_show_in_fullscreen: "Feu clic aquí per obrir aquest paquet de treball en visualització de pantalla completa."
-      message_view_spent_time: "Show spent time for this work package"
-      message_work_package_read_only: "Work package is locked in this status. No attribute other than status can be altered."
-      message_work_package_status_blocked: "Work package status is not writable due to closed status and closed version being assigned."
-      placeholder_filter_by_text: "Subject, description, comments, ..."
+      message_view_spent_time: "Mostra el temps invertit en aquest paquet de treball"
+      message_work_package_read_only: "El paquet de treball esta bloquejat en aquest estat. Cap atribut excepte l'estat es pot modificar."
+      message_work_package_status_blocked: "L'estat del paquet de treball no permet l'escriptura perquè s'assignarà l'estat tancat i la versió tancada."
+      placeholder_filter_by_text: "Assumpte, descripció, comentaris, ..."
       inline_create:
         title: 'Feu clic aquí per afegir un nou paquet de treball a aquesta llista'
       create:
         title: 'Paquet de treball nou'
-        header: 'New %{type}'
-        header_no_type: 'New work package (Type not yet set)'
-        header_with_parent: 'New %{type} (Child of %{parent_type} #%{id})'
+        header: 'Nou %{type}'
+        header_no_type: 'Nou paquet de treball (Tipus no establert encara)'
+        header_with_parent: 'Nou %{type} (Fill de %{parent_type} #%{id})'
         button: 'Crear'
       copy:
-        title: 'Copy work package'
+        title: 'Copiar paquets de treball'
       hierarchy:
-        show: "Show hierarchy mode"
-        hide: "Hide hierarchy mode"
+        show: "Mostra l'estructura jeràrquica"
+        hide: "Amaga l'estructura jeràrquica"
         toggle_button: 'Click to toggle hierarchy mode.'
         leaf: 'Work package leaf at level %{level}.'
         children_collapsed: 'Hierarchy level %{level}, collapsed. Click to show the filtered children'
@@ -745,6 +787,7 @@ ca:
         startDate: "Data d'inici"
         status: "Estat"
         subject: "Assumpte"
+        subproject: "Subprojecte"
         title: "Títol"
         type: "Tipus"
         updatedAt: "Actualitzat el"
@@ -790,6 +833,9 @@ ca:
           not_found: "There is no such view"
           duplicate_query_title: "Name of this view already exists. Change anyway?"
         text_no_results: "No matching views were found."
+      scheduling:
+        is_parent: "The dates of this work package are automatically deduced from its children. Activate 'Manual scheduling' to set the dates."
+        is_switched_from_manual_to_automatic: "The dates of this work package may need to be recalculated after switching from manual to automatic scheduling due to relationships with other work packages."
       table:
         configure_button: 'Configure work package table'
         summary: "Taula amb fileres de paquets de treball i columnes amb els atributs dels paquets de treball."
@@ -823,7 +869,7 @@ ca:
           automatic: 'Automatic'
           manually: 'Manually'
           warning: 'You will lose your previous sorting when activating the automatic sorting mode.'
-        columns_help_text: "Use the input above to add columns to your table view. You can drag and drop the columns to reorder them."
+        columns_help_text: "Use the input field above to add columns to your table view. You can drag and drop the columns to reorder them."
         upsale:
           attribute_highlighting: 'Need certain work packages to stand out from the mass?'
           relation_columns: 'Need to see relations in the work package list?'
@@ -878,10 +924,14 @@ ca:
         has_children: "The work package has %{childUnits}:"
         confirm_deletion_children: "I acknowledge that ALL descendants of the listed work packages will be recursively removed."
         deletes_children: "All child work packages and their descendants will also be recursively deleted."
+      destroy_time_entry:
+        title: "Confirm deletion of time entry"
+        text: "Are you sure you want to delete the following time entry?"
     notice_no_results_to_display: "No visible results to display."
     notice_successful_create: "Creat correctament."
     notice_successful_delete: "Esborrat correctament."
     notice_successful_update: "S'ha modificat correctament."
+    notice_job_started: "job started."
     notice_bad_request: "Sol·licitud incorrecte."
     relations:
       empty: No existeix cap relació
@@ -915,9 +965,9 @@ ca:
         one: "one child work package"
         other: "%{count} work package children"
       hour:
-        zero: "0 h"
         one: "1 h"
         other: "%{count} h"
+        zero: "0 h"
     zen_mode:
       button_activate: 'Activate zen mode'
       button_deactivate: 'Deactivate zen mode'
@@ -935,3 +985,78 @@ ca:
       card: 'Cards'
       list: 'Table'
       timeline: 'Gantt'
+    invite_user_modal:
+      back: 'Endarrere'
+      invite: 'Invite'
+      title:
+        invite: 'Invitar usuari'
+        invite_to_project: 'Invite %{type} to %{project}'
+        User: 'user'
+        Group: 'group'
+        PlaceholderUser: 'placeholder user'
+        invite_principal_to_project: 'Invite %{principal} to %{project}'
+      project:
+        label: 'Projecte'
+        required: 'Please select a project'
+        lacking_permission: 'Please select a different project since you lack permissions to assign users to the currently selected.'
+        lacking_permission_info: 'You lack the permission to assign users to the project you are currently in. You need to select a different one.'
+        next_button: 'Següent'
+        no_results: 'No projects were found'
+        no_invite_rights: 'You are not allowed to invite members to this project'
+      type:
+        required: 'Please select the type to be invited'
+        user:
+          title: 'Usuari'
+          description: 'Permissions based on the assigned role in the selected project'
+        group:
+          title: 'Grup'
+          description: 'Permissions based on the assigned role in the selected project'
+        placeholder:
+          title: 'Placeholder user'
+          title_no_ee: 'Placeholder user (Enterprise Edition only feature)'
+          description: 'Has no access to the project and no emails are sent out.'
+          description_no_ee: 'Has no access to the project and no emails are sent out. <br>Check out the <a href="%{eeHref}" target="_blank">Enterprise Edition</a>'
+      principal:
+        label:
+          name_or_email: 'Name or email address'
+          name: 'Nom'
+        already_member_message: 'Already a member of %{project}'
+        no_results_user: 'No users were found'
+        invite_user: 'Invite:'
+        change_user_selection: 'Change e-mail-address or select an existing user'
+        no_results_placeholder: 'No placeholders were found'
+        change_placeholder_selection: 'Change name or select an existing placeholder'
+        create_new_placeholder: 'Create new placeholder:'
+        no_results_group: 'No groups were found'
+        change_group_selection: 'Change name or select an existing group'
+        next_button: 'Següent'
+        required:
+          user: 'Please select a user'
+          placeholder: 'Please select a placeholder'
+          group: 'Please select a group'
+      role:
+        label: 'Role in %{project}'
+        no_roles_found: 'No roles were found'
+        description: 'This is the role that %{principal} will receive when they join your project. The role defines which actions they are allowed to take and which information they are allowed to see. <a href="https://docs.openproject.org/system-admin-guide/users-permissions/roles-permissions/#roles-and-permissions" target="_blank"> Learn more about roles and permissions. </a>'
+        required: 'Please select a role'
+        next_button: 'Següent'
+      message:
+        label: 'Invitation message'
+        description: 'We will send an email to %{principal}, to which you can add a personal message here. An explanation for the invitation could be useful, or perhaps a bit of information regarding the project to help them get started.'
+        next_button: 'Review invitation'
+      summary:
+        next_button: 'Send invitation'
+      success:
+        title: '%{principal} was invited!'
+        description:
+          user: 'The user can now log in to access %{project}. Meanwhile you can already plan with that user and assign work packages for instance.'
+          placeholder: 'The placeholder can now be used in %{project}. Meanwhile you can already plan with that user and assign work packages for instance.'
+          group: 'The group is now a part of %{project}. Meanwhile you can already plan with that group and assign work packages for instance.'
+        next_button: 'Continue'
+    forms:
+      submit_success_message: 'The form was successfully submitted'
+      load_error_message: 'There was an error loading the form'
+      validation_error_message: 'Please fix the errors present in the form'
+      advanced_settings: 'Configuració avançada'
+
+

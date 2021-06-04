@@ -6,7 +6,12 @@ class RailsCell < Cell::ViewModel
   include SecureHeaders::ViewHelpers
 
   # Delegate to action_view
-  delegates :action_view, :content_for
+  delegate :content_for,
+           :content_tag,
+           :tag_options,
+           to: :action_view
+
+  delegate :request, to: :controller
 
   self.view_paths = ['app/cells/views']
 
@@ -42,7 +47,14 @@ class RailsCell < Cell::ViewModel
     # but don't use the request method itself.
     @_request = request
 
+    # Prepare the model for rendering
+    prepare
+
     render
+  end
+
+  def prepare
+    # Nothing to do by default
   end
 
   def controller
@@ -50,24 +62,14 @@ class RailsCell < Cell::ViewModel
   end
 
   def action_view
-    context[:action_view]
-  end
-
-  def protect_against_forgery?
-    controller.send(:protect_against_forgery?)
+    context[:action_view] || controller.view_context
   end
 
   def form_authenticity_token(*args)
     controller.send(:form_authenticity_token, *args)
   end
 
-  # override cell-erb's behaviour to not escape
-  # https://github.com/trailblazer/cells-erb/tree/v0.1.0#html-escaping
-  def content_tag(name, content_or_options_with_block = nil, options = nil, escape = true, &block)
-    super
-  end
-
-  def request
-    controller.request
+  def protect_against_forgery?
+    controller.send(:protect_against_forgery?)
   end
 end

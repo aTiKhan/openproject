@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -28,7 +28,7 @@
 
 ##
 # Using test-prof's before_all block to safely wrap shared data in a transaction,
-# shared_let acts similary to +let(:foo) { value }+ but initialized the value only once
+# shared_let acts similarly to +let(:foo) { value }+ but initialized the value only once
 # Changes _within_ an example will be rolled back by database cleaner,
 # and the creation is rolled back in an after_all hook.
 #
@@ -38,9 +38,6 @@
 #
 # Since test-prof added `let_it_be` this is only a wrapper for it
 # before_all / let_it_be fixture
-require 'test_prof/recipes/rspec/before_all'
-require 'test_prof/recipes/rspec/let_it_be'
-
 def shared_let(key, reload: true, refind: false, &block)
   let_it_be(key, reload: reload, refind: refind, &block)
 end

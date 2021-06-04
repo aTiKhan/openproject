@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -28,24 +28,29 @@
 
 require 'spec_helper'
 
-feature 'members pagination', type: :feature, js: true do
-  using_shared_fixtures :admin
-  let!(:project) { FactoryBot.create :project, name: 'Project 1', identifier: 'project1' }
+describe 'members pagination', type: :feature, js: true do
+  shared_let(:admin) { FactoryBot.create :admin }
+  let(:project) do
+    FactoryBot.create :project,
+                      name: 'Project 1',
+                      identifier: 'project1',
+                      members: {
+                        alice => beta,
+                        bob => alpha
+                      }
+  end
 
-  let!(:bob)   { FactoryBot.create :user, firstname: 'Bob', lastname: 'Bobbit' }
-  let!(:alice) { FactoryBot.create :user, firstname: 'Alice', lastname: 'Alison' }
+  let(:bob)   { FactoryBot.create :user, firstname: 'Bob', lastname: 'Bobbit' }
+  let(:alice) { FactoryBot.create :user, firstname: 'Alice', lastname: 'Alison' }
 
-  let!(:alpha) { FactoryBot.create :role, name: 'alpha' }
-  let!(:beta)  { FactoryBot.create :role, name: 'beta' }
+  let(:alpha) { FactoryBot.create :role, name: 'alpha' }
+  let(:beta)  { FactoryBot.create :role, name: 'beta' }
 
   let(:members_page) { Pages::Members.new project.identifier }
 
+  current_user { admin }
+
   before do
-    allow(User).to receive(:current).and_return admin
-
-    project.add_member! alice, [beta]
-    project.add_member! bob, [alpha]
-
     members_page.visit!
   end
 

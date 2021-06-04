@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -35,7 +35,7 @@ describe CostQuery, type: :model, reporting_query_helper: true do
 
   describe '#chain' do
     before do
-      #FIXME: is there a better way to load all filter and groups?
+      # FIXME: is there a better way to load all filter and groups?
       CostQuery::Filter.all && CostQuery::GroupBy.all
       CostQuery.chain_initializer.clear
     end
@@ -80,17 +80,6 @@ describe CostQuery, type: :model, reporting_query_helper: true do
       expect(@query.chain.top.type).to eq(:row)
     end
 
-    it "should place rows in front of columns when adding a row first" do
-      skip "This fails unreproducible on travis" if ENV['CI']
-      @query.row :project_id
-      expect(@query.chain.bottom.parent.type).to eq(:row)
-      expect(@query.chain.top.type).to eq(:row)
-
-      @query.column :project_id
-      expect(@query.chain.bottom.parent.type).to eq(:column)
-      expect(@query.chain.top.type).to eq(:row)
-    end
-
     it "should place rows in front of filters" do
       @query.row :project_id
       expect(@query.chain.bottom.parent.type).to eq(:row)
@@ -102,30 +91,18 @@ describe CostQuery, type: :model, reporting_query_helper: true do
       expect(@query.chain.top.type).to eq(:row)
     end
 
-    it "should place columns in front of filters" do
-      skip "This fails unreproducible on travis" if ENV['CI']
-      @query.column :project_id
-      expect(@query.chain.bottom.parent.type).to eq(:column)
-      expect(@query.chain.top.type).to eq(:column)
-
-      @query.filter :project_id
-      expect(@query.chain.bottom.parent).to be_a(CostQuery::Filter::ProjectId)
-      expect(@query.chain.top).to be_a(CostQuery::GroupBy::Base)
-      expect(@query.chain.top.type).to eq(:column)
-    end
-
     it "should return all filters, including the NoFilter" do
       @query.filter :project_id
       @query.group_by :project_id
       expect(@query.filters.size).to eq(2)
-      expect(@query.filters.map {|f| f.class.underscore_name}).to include "project_id"
+      expect(@query.filters.map { |f| f.class.underscore_name }).to include "project_id"
     end
 
     it "should return all group_bys" do
       @query.filter :project_id
       @query.group_by :project_id
       expect(@query.group_bys.size).to eq(1)
-      expect(@query.group_bys.map {|g| g.class.underscore_name}).to include "project_id"
+      expect(@query.group_bys.map { |g| g.class.underscore_name }).to include "project_id"
     end
 
     it "should initialize the chain through a block" do
@@ -134,10 +111,10 @@ describe CostQuery, type: :model, reporting_query_helper: true do
           CostQuery
         end
       end
-      TestFilter.send(:initialize_query_with) {|query| query.filter(:project_id, value: project.id)}
+      TestFilter.send(:initialize_query_with) { |query| query.filter(:project_id, value: project.id) }
       @query.build_new_chain
-      expect(@query.filters.map {|f| f.class.underscore_name}).to include "project_id"
-      expect(@query.filters.detect {|f| f.class.underscore_name == "project_id"}.values).to eq(Array(project.id))
+      expect(@query.filters.map { |f| f.class.underscore_name }).to include "project_id"
+      expect(@query.filters.detect { |f| f.class.underscore_name == "project_id" }.values).to eq(Array(project.id))
     end
 
     context "store and load" do
@@ -146,15 +123,15 @@ describe CostQuery, type: :model, reporting_query_helper: true do
         @query.filter :cost_type_id, value: CostQuery::Filter::CostTypeId.available_values.first
         @query.filter :category_id, value: CostQuery::Filter::CategoryId.available_values.first
         @query.group_by :activity_id
-        @query.group_by :cost_object_id
+        @query.group_by :budget_id
         @query.group_by :cost_type_id
         @new_query = CostQuery.deserialize(@query.serialize)
       end
 
       it "should serialize the chain correctly" do
-        [:filters, :group_bys].each do |type|
+        %i[filters group_bys].each do |type|
           @query.send(type).each do |chainable|
-            expect(@query.serialize[type].collect{|c| c[0]}).to include chainable.class.name.demodulize
+            expect(@query.serialize[type].collect { |c| c[0] }).to include chainable.class.name.demodulize
           end
         end
       end
@@ -167,7 +144,7 @@ describe CostQuery, type: :model, reporting_query_helper: true do
         @query.group_bys.each_with_index do |group_by, index|
           # check for order
           @new_query.group_bys.each_with_index do |g, ix|
-            if g.class.name == group_by.class.name
+            if g.instance_of?(group_by.class)
               expect(ix).to eq(index)
             end
           end
@@ -175,10 +152,10 @@ describe CostQuery, type: :model, reporting_query_helper: true do
       end
 
       it "should keep the right filter values" do
-        @query.filters.each_with_index do |filter, index|
+        @query.filters.each_with_index do |filter, _index|
           # check for presence
           expect(@new_query.filters.any? do |f|
-            f.class.name == filter.class.name && (filter.respond_to?(:values) ? f.values == filter.values : true)
+            f.instance_of?(filter.class) && (filter.respond_to?(:values) ? f.values == filter.values : true)
           end).to be_truthy
         end
       end
@@ -203,7 +180,8 @@ describe CostQuery, type: :model, reporting_query_helper: true do
       it "sets new top when prepending elements" do
         current = @chain
         10.times do
-          old, current = current, CostQuery::Chainable.new(current)
+          old = current
+          current = Report::Chainable.new(current)
           expect(old.top).to eq(current)
           expect(@chain.top).to eq(current)
         end
@@ -238,7 +216,7 @@ describe CostQuery, type: :model, reporting_query_helper: true do
       end
 
       it 'is able to map values' do
-        @a.inherited_attribute :bar, map: proc { |x| x*2 }
+        @a.inherited_attribute :bar, map: proc { |x| x * 2 }
         @a.bar 21
         expect(@a.bar).to eq(42)
       end

@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,10 +24,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {DisplayFieldContext} from "core-app/modules/fields/display/display-field.service";
-import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
+import { DisplayFieldContext } from "core-app/modules/fields/display/display-field.service";
+import { UntilDestroyedMixin } from "core-app/helpers/angular/until-destroyed.mixin";
 
 export interface IFieldSchema {
   type:string;
@@ -63,7 +63,7 @@ export class Field extends UntilDestroyedMixin {
   }
 
   public get writable():boolean {
-    return this.schema.writable && this.resource.isAttributeEditable(this.name);
+    return this.schema.writable && this.context.options.writable !== false;
   }
 
   public get hasDefault():boolean {
@@ -75,10 +75,10 @@ export class Field extends UntilDestroyedMixin {
   }
 
   public isEmpty():boolean {
-    return !this.value;
+    return this.value === undefined || this.value === null || this.value === '';
   }
 
   public get unknownAttribute():boolean {
-    return this.isEmpty && !this.schema;
+    return this.isEmpty() && !this.schema;
   }
 }

@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -49,8 +49,6 @@ class OpenProject::JournalFormatter::CustomField < ::JournalFormatter::Base
   def get_old_and_new_value(custom_field, values)
     if custom_field.list?
       format_list custom_field, values
-    elsif custom_field.multi_value?
-      format_multi custom_field, values
     else
       format_single custom_field, values
     end
@@ -64,12 +62,6 @@ class OpenProject::JournalFormatter::CustomField < ::JournalFormatter::Base
     [old_option || old_value, new_option || new_value]
   end
 
-  def format_multi(custom_field, values)
-    old_value, new_value = values.map { |vs| formatted_values custom_field, vs }
-
-    [old_value, new_value]
-  end
-
   def format_single(custom_field, values)
     old_value = format_value(values.first, custom_field) if values.first
     value = format_value(values.last, custom_field) if values.last
@@ -78,27 +70,17 @@ class OpenProject::JournalFormatter::CustomField < ::JournalFormatter::Base
   end
 
   def find_list_value(custom_field, id)
-    if custom_field.multi_value?
-      custom_field_values(custom_field, id).join(", ")
-    else
-      custom_field.custom_options.find_by(id: id).try(:value)
-    end
-  end
+    ids = id.split(",").map(&:to_i)
 
-  def formatted_values(custom_field, values)
-    String(values)
-      .split(",")
-      .map(&:strip)
-      .map { |value| format_value value, custom_field }
-      .join(", ")
-      .presence
-  end
+    id_value = custom_field
+               .custom_options
+               .where(id: ids)
+               .order(:position)
+               .pluck(:id, :value)
+               .to_h
 
-  def custom_field_values(custom_field, id)
-    custom_field
-      .custom_options
-      .where(id: id.split(","))
-      .pluck(:value)
-      .select(&:present?)
+    ids.map do |id|
+      id_value[id] || I18n.t(:label_deleted_custom_option)
+    end.join(', ')
   end
 end

@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -28,15 +29,16 @@
 #++
 
 class BaseMailer < ActionMailer::Base
+  layout 'mailer'
+
   helper :application, # for format_text
          :work_packages, # for css classes
          :custom_fields # for show_value
-  helper IssuesHelper
 
   include OpenProject::LocaleHelper
 
   # Send all delayed mails with the following job
-  self.delivery_job = ::MailerJob
+  self.delivery_job = ::Mails::MailerJob
 
   # wrap in a lambda to allow changing at run-time
   default from: Proc.new { Setting.mail_from }
@@ -72,24 +74,20 @@ class BaseMailer < ActionMailer::Base
     end
 
     def remove_self_notifications(message, author)
-      if author.pref && author.pref[:no_self_notified]
-        message.to = message.to.reject { |address| address == author.mail } if message.to.present?
+      if author.pref && author.pref[:no_self_notified] && message.to.present?
+        message.to = message.to.reject { |address| address == author.mail }
       end
     end
 
     def mail_timestamp(object)
-      if object.respond_to? :created_at
-        object.send(object.respond_to?(:created_at) ? :created_at : :updated_at)
-      else
-        object.send(object.respond_to?(:created_on) ? :created_on : :updated_on)
-      end
+      object.send(object.respond_to?(:created_at) ? :created_at : :updated_at)
     end
 
     def host
       if OpenProject::Configuration.rails_relative_url_root.blank?
         Setting.host_name
       else
-        Setting.host_name.to_s.gsub(%r{\/.*\z}, '')
+        Setting.host_name.to_s.gsub(%r{/.*\z}, '')
       end
     end
 
@@ -99,7 +97,7 @@ class BaseMailer < ActionMailer::Base
 
     def default_url_options
       options = super.merge host: host, protocol: protocol
-      unless OpenProject::Configuration.rails_relative_url_root.blank?
+      if OpenProject::Configuration.rails_relative_url_root.present?
         options[:script_name] = OpenProject::Configuration.rails_relative_url_root
       end
 

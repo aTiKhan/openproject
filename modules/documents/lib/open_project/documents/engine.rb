@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -34,32 +34,30 @@ module OpenProject::Documents
 
     register 'openproject-documents',
              author_url: "http://www.openproject.com",
-             global_assets: { css: 'documents/global_rules' },
              bundled: true do
-
-      menu :project_menu, :documents,
-                          { controller: '/documents', action: 'index' },
-                          param: :project_id,
-                          caption: :label_document_plural,
-                          icon: 'icon2 icon-notes'
+      menu :project_menu,
+           :documents,
+           { controller: '/documents', action: 'index' },
+           param: :project_id,
+           caption: :label_document_plural,
+           before: :members,
+           icon: 'icon2 icon-notes'
 
       project_module :documents do |_map|
-        permission :view_documents, documents: [:index, :show, :download]
+        permission :view_documents, documents: %i[index show download]
         permission :manage_documents, {
-          documents: [:new, :create, :edit, :update, :destroy, :add_attachment]
-          }, require: :loggedin
+          documents: %i[new create edit update destroy add_attachment]
+        }, require: :loggedin
       end
 
-      Redmine::Notifiable.all << Redmine::Notifiable.new('document_added')
-
-      Redmine::Activity.map do |activity|
-        activity.register :documents, class_name: 'Activities::DocumentActivityProvider', default: false
-      end
+      OpenProject::Notifiable.all << OpenProject::Notifiable.new('document_added')
 
       Redmine::Search.register :documents
     end
 
-    patches [:CustomFieldsHelper, :Project]
+    activity_provider :documents, class_name: 'Activities::DocumentActivityProvider', default: false
+
+    patches %i[CustomFieldsHelper Project]
 
     add_api_path :documents do
       "#{root}/documents"
@@ -77,22 +75,13 @@ module OpenProject::Documents
       mount ::API::V3::Documents::DocumentsAPI
     end
 
-    assets %w(documents/documents.css)
-
     # Add documents to allowed search params
     additional_permitted_attributes search: %i(documents)
-
-    initializer "documents.register_hooks" do
-      require 'open_project/documents/hooks'
-    end
 
     config.to_prepare do
       require_dependency 'document'
       require_dependency 'document_category'
       require_dependency 'document_category_custom_field'
-
-      ::OpenProject::Documents::Patches::ColonSeparatorPatch.mixin!
-      ::OpenProject::Documents::Patches::HashSeparatorPatch.mixin!
 
       require_dependency 'open_project/documents/patches/textile_converter_patch'
     end

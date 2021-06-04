@@ -1,6 +1,6 @@
-// -- copyright
-// OpenProject is a project management system.
-// Copyright (C) 2012-2015 the OpenProject Foundation (OPF)
+//-- copyright
+// OpenProject is an open source project management software.
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -23,15 +23,14 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
-// See doc/COPYRIGHT.rdoc for more details.
-// ++
+// See docs/COPYRIGHT.rdoc for more details.
+//++
 
-import {Component, Injector} from "@angular/core";
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
-import {DynamicBootstrapper} from "core-app/globals/dynamic-bootstrapper";
-import {EnterpriseTrialModal} from "core-components/enterprise/enterprise-modal/enterprise-trial.modal";
-import {OpModalService} from "core-components/op-modals/op-modal.service";
-import {EnterpriseTrialService} from "core-components/enterprise/enterprise-trial.service";
+import { Component, Injector } from "@angular/core";
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
+import { EnterpriseTrialModal } from "core-components/enterprise/enterprise-modal/enterprise-trial.modal";
+import { OpModalService } from "core-app/modules/modal/modal.service";
+import { EnterpriseTrialService } from "core-components/enterprise/enterprise-trial.service";
 
 export const enterpriseBaseSelector = 'enterprise-base';
 
@@ -48,9 +47,9 @@ export class EnterpriseBaseComponent {
     become_hero: this.I18n.t('js.admin.enterprise.upsale.become_hero'),
     you_contribute: this.I18n.t('js.admin.enterprise.upsale.you_contribute'),
     email_not_received: this.I18n.t('js.admin.enterprise.trial.email_not_received'),
-    text: this.I18n.t('js.admin.enterprise.upsale.text'),
-    try_another_email: this.I18n.t('js.admin.enterprise.trial.try_another_email'),
-    try_another_email_hint: this.I18n.t('js.admin.enterprise.trial.try_another_email_hint')
+    enterprise_edition: this.I18n.t('js.admin.enterprise.upsale.text'),
+    confidence: this.I18n.t('js.admin.enterprise.upsale.confidence'),
+    try_another_email: this.I18n.t('js.admin.enterprise.trial.try_another_email')
   };
 
   constructor(protected I18n:I18nService,

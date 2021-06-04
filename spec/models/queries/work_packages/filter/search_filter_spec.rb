@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -128,6 +128,33 @@ describe Queries::WorkPackages::Filter::SearchFilter, type: :model do
               .to match_array [work_package]
           end
         end
+
+        context 'with two attachments' do
+          let(:text) { 'lorem ipsum' }
+          let(:filename) { 'plaintext-file.txt' }
+          let(:attachment) { FactoryBot.create(:attachment, container: work_package, filename: filename) }
+          let(:attachment2) { FactoryBot.create(:attachment, container: work_package, filename: filename) }
+
+          before do
+            allow_any_instance_of(Plaintext::Resolver).to receive(:text).and_return(text)
+            allow(attachment).to receive(:readable?).and_return(true)
+            allow(attachment2).to receive(:readable?).and_return(true)
+            work_package.reload
+          end
+
+          context 'with the search string in both attachments' do
+            let(:text) { 'plaintext lorem ipsum' }
+
+            it "only finds work package once" do
+              perform_enqueued_jobs
+
+              instance.values = ['plaintext']
+
+              expect(WorkPackage.joins(instance.joins).where(instance.where).pluck(:id))
+                .to match_array [work_package.id]
+            end
+          end
+        end
       end
 
       it_behaves_like 'basic query filter' do
@@ -154,6 +181,13 @@ describe Queries::WorkPackages::Filter::SearchFilter, type: :model do
 
             expect(instance.values)
               .to match_array ['none', 'is', 'changed']
+          end
+        end
+
+        describe '#available_operators' do
+          it 'supports **' do
+            expect(instance.available_operators)
+              .to eql [Queries::Operators::Everywhere]
           end
         end
 

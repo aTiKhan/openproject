@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -30,22 +30,23 @@ require 'spec_helper'
 
 describe 'Projects index page',
          type: :feature,
+         clear_cache: true,
          js: true,
          with_settings: { login_required?: false } do
-  using_shared_fixtures :admin
+  shared_let(:admin) { FactoryBot.create :admin }
 
-  let!(:manager)   { FactoryBot.create :role, name: 'Manager' }
-  let!(:developer) { FactoryBot.create :role, name: 'Developer' }
+  shared_let(:manager)   { FactoryBot.create :role, name: 'Manager' }
+  shared_let(:developer) { FactoryBot.create :role, name: 'Developer' }
 
-  let!(:custom_field) { FactoryBot.create :project_custom_field }
-  let!(:invisible_custom_field) { FactoryBot.create :project_custom_field, visible: false }
+  shared_let(:custom_field) { FactoryBot.create :project_custom_field }
+  shared_let(:invisible_custom_field) { FactoryBot.create :project_custom_field, visible: false }
 
-  let!(:project) do
+  shared_let(:project) do
     FactoryBot.create(:project,
                       name: 'Plain project',
                       identifier: 'plain-project')
   end
-  let!(:public_project) do
+  shared_let(:public_project) do
     project = FactoryBot.create(:project,
                                 name: 'Public project',
                                 identifier: 'public-project',
@@ -54,7 +55,7 @@ describe 'Projects index page',
     project.save
     project
   end
-  let!(:development_project) do
+  shared_let(:development_project) do
     FactoryBot.create(:project,
                       name: 'Development project',
                       identifier: 'development-project')
@@ -103,7 +104,7 @@ describe 'Projects index page',
     end
 
     feature 'for project members' do
-      let!(:user) do
+      shared_let(:user) do
         FactoryBot.create(:user,
                           member_in_project: development_project,
                           member_through_role: developer,
@@ -145,7 +146,7 @@ describe 'Projects index page',
         expect(page).to have_text(public_project.name)
         expect(page).to have_text(project.name)
 
-        # Test visiblity of 'more' menu list items
+        # Test visibility of 'more' menu list items
         item = page.first('tbody tr .icon-show-more-horizontal', visible: :all)
         item.hover
         item.click
@@ -202,7 +203,15 @@ describe 'Projects index page',
       allow_enterprise_edition
     end
 
-    scenario 'CF columns and filters are visible' do
+    scenario 'CF columns and filters are not visible by default' do
+      load_and_open_filters admin
+
+      # CF's columns are not shown due to setting
+      expect(page).to_not have_text(custom_field.name.upcase)
+    end
+
+    scenario 'CF columns and filters are visible when added to settings' do
+      Setting.enabled_projects_columns += ["cf_#{custom_field.id}", "cf_#{invisible_custom_field.id}"]
       load_and_open_filters admin
 
       # CF's column is present:
@@ -242,6 +251,7 @@ describe 'Projects index page',
     scenario 'it keeps applying filters and order' do
       load_and_open_filters admin
 
+      SeleniumHubWaiter.wait
       projects_page.set_filter('name_and_identifier',
                                'Name or identifier',
                                'doesn\'t contain',
@@ -250,44 +260,49 @@ describe 'Projects index page',
       click_on 'Apply'
 
       # Sorts ASC by name
+      SeleniumHubWaiter.wait
       click_on 'Sort by "Name"'
 
       # Results should be filtered and ordered ASC by name
       expect(page).to have_text(development_project.name)
-      expect(page).to_not have_text(project.name)        # as it filtered away
-      expect(page).to have_text('Next')                  # as the result set is larger than 1
-      expect(page).to_not have_text(public_project.name) # as it is on the second page
+      expect(page).to have_no_text(project.name) # as it filtered away
+      expect(page).to have_text('Next') # as the result set is larger than 1
+      expect(page).to have_no_text(public_project.name) # as it is on the second page
 
       # Changing the page size to 5 and back to 1 should not change the filters (which we test later on the second page)
+      SeleniumHubWaiter.wait
       find('.pagination--options .pagination--item', text: '5').click # click page size '5'
+      SeleniumHubWaiter.wait
       find('.pagination--options .pagination--item', text: '1').click # return back to page size '1'
-
+      SeleniumHubWaiter.wait
       click_on '2' # Go to pagination page 2
 
       # On page 2 you should see the second page of the filtered set ordered ASC by name
       expect(page).to have_text(public_project.name)
-      expect(page).to_not have_text(project.name)             # Filtered away
-      expect(page).to_not have_text('Next')                   # Filters kept active, so there is no third page.
-      expect(page).to_not have_text(development_project.name) # That one should be on page 1
+      expect(page).to have_no_text(project.name)             # Filtered away
+      expect(page).to have_no_text('Next')                   # Filters kept active, so there is no third page.
+      expect(page).to have_no_text(development_project.name) # That one should be on page 1
 
       # Sorts DESC by name
+      SeleniumHubWaiter.wait
       click_on 'Ascending sorted by "Name"'
 
       # On page 2 the same filters should still be intact but the order should be DESC on name
       expect(page).to have_text(development_project.name)
-      expect(page).to_not have_text(project.name)        # Filtered away
-      expect(page).to_not have_text('Next')              # Filters kept active, so there is no third page.
-      expect(page).to_not have_text(public_project.name) # That one should be on page 1
+      expect(page).to have_no_text(project.name)        # Filtered away
+      expect(page).to have_no_text('Next')              # Filters kept active, so there is no third page.
+      expect(page).to have_no_text(public_project.name) # That one should be on page 1
 
       # Sending the filter form again what implies to compose the request freshly
+      SeleniumHubWaiter.wait
       click_on 'Apply'
 
       # We should see page 1, resetting pagination, as it is a new filter, but keeping the DESC order on the project
       # name
       expect(page).to have_text(public_project.name)
-      expect(page).to_not have_text(development_project.name) # as it is on the second page
-      expect(page).to_not have_text(project.name)             # as it filtered away
-      expect(page).to have_text('Next')                       # as the result set is larger than 1
+      expect(page).to have_no_text(development_project.name) # as it is on the second page
+      expect(page).to have_no_text(project.name)             # as it filtered away
+      expect(page).to have_text('Next') # as the result set is larger than 1
     end
   end
 
@@ -296,6 +311,7 @@ describe 'Projects index page',
       load_and_open_filters admin
 
       # Filter on model attribute 'name'
+      SeleniumHubWaiter.wait
       projects_page.set_filter('name_and_identifier',
                                'Name or identifier',
                                'doesn\'t contain',
@@ -305,9 +321,10 @@ describe 'Projects index page',
 
       expect(page).to have_text(development_project.name)
       expect(page).to have_text(public_project.name)
-      expect(page).to_not have_text(project.name)
+      expect(page).to have_no_text(project.name)
 
       # Filter on model attribute 'identifier'
+      SeleniumHubWaiter.wait
       remove_filter('name_and_identifier')
 
       projects_page.set_filter('name_and_identifier',
@@ -318,17 +335,17 @@ describe 'Projects index page',
       click_on 'Apply'
 
       expect(page).to have_text(project.name)
-      expect(page).to_not have_text(development_project.name)
-      expect(page).to_not have_text(public_project.name)
+      expect(page).to have_no_text(development_project.name)
+      expect(page).to have_no_text(public_project.name)
     end
 
     feature 'Active or archived' do
-      let!(:parent_project) do
+      shared_let(:parent_project) do
         FactoryBot.create(:project,
                           name: 'Parent project',
                           identifier: 'parent-project')
       end
-      let!(:child_project) do
+      shared_let(:child_project) do
         FactoryBot.create(:project,
                           name: 'Child project',
                           identifier: 'child-project',
@@ -341,16 +358,13 @@ describe 'Projects index page',
         # value selection defaults to "active"'
         expect(page).to have_selector('li[filter-name="active"]')
 
-        # Filter has three operators 'all', 'active' and 'archived'
-        expect(page.find('li[filter-name="active"] select[name="operator"] option[value="="]')).to have_text('is')
-        expect(page.find('li[filter-name="active"] select[name="operator"] option[value="!"]')).to have_text('is not')
-
         expect(page).to have_text(parent_project.name)
         expect(page).to have_text(child_project.name)
         expect(page).to have_text('Plain project')
         expect(page).to have_text('Development project')
         expect(page).to have_text('Public project')
 
+        SeleniumHubWaiter.wait
         projects_page.click_menu_item_of('Archive', parent_project)
         projects_page.accept_alert_dialog!
 
@@ -370,12 +384,13 @@ describe 'Projects index page',
 
         load_and_open_filters admin
 
+        SeleniumHubWaiter.wait
         projects_page.filter_by_active('no')
 
         expect(page).to have_text("ARCHIVED #{parent_project.name}")
         expect(page).to have_text("ARCHIVED #{child_project.name}")
 
-        # Test visiblity of 'more' menu list items
+        # Test visibility of 'more' menu list items
         projects_page.activate_menu_of(parent_project) do |menu|
           expect(menu).to have_text('Unarchive')
           expect(menu).to have_text('Delete')
@@ -384,6 +399,7 @@ describe 'Projects index page',
           expect(menu).to_not have_text('Settings')
           expect(menu).to_not have_text('New subproject')
 
+          SeleniumHubWaiter.wait
           click_link('Unarchive')
         end
 
@@ -396,6 +412,7 @@ describe 'Projects index page',
 
         load_and_open_filters admin
 
+        SeleniumHubWaiter.wait
         projects_page.filter_by_active('yes')
 
         expect(page).to have_text(parent_project.name)
@@ -407,19 +424,19 @@ describe 'Projects index page',
     end
 
     feature 'project status filter' do
-      let!(:no_status_project) do
+      shared_let(:no_status_project) do
         # A project that never had project status associated.
         FactoryBot.create(:project,
                           name: 'No status project')
       end
 
-      let!(:green_project) do
+      shared_let(:green_project) do
         # A project that has a project status associated.
         FactoryBot.create(:project,
                           name: 'Green project',
                           status: FactoryBot.create(:project_status))
       end
-      let!(:gray_project) do
+      shared_let(:gray_project) do
         # A project that once had a project status associated, that was later unset.
         FactoryBot.create(:project,
                           name: 'Gray project',
@@ -430,16 +447,19 @@ describe 'Projects index page',
         login_as(admin)
         projects_page.visit!
 
+        SeleniumHubWaiter.wait
         click_link('Sort by "Status"')
 
         expect_project_at_place(green_project, 1)
         expect(page).to have_text('(1 - 8/8)')
 
+        SeleniumHubWaiter.wait
         click_link('Ascending sorted by "Status"')
 
         expect_project_at_place(green_project, 8)
         expect(page).to have_text('(1 - 8/8)')
 
+        SeleniumHubWaiter.wait
         projects_page.open_filters
 
         projects_page.set_filter('project_status_code',
@@ -453,6 +473,7 @@ describe 'Projects index page',
         expect(page).to_not have_text(gray_project.name)
         expect(page).to_not have_text(no_status_project.name)
 
+        SeleniumHubWaiter.wait
         projects_page.set_filter('project_status_code',
                                  'Project status',
                                  'all',
@@ -464,6 +485,7 @@ describe 'Projects index page',
         expect(page).to_not have_text(gray_project.name)
         expect(page).to_not have_text(no_status_project.name)
 
+        SeleniumHubWaiter.wait
         projects_page.set_filter('project_status_code',
                                  'Project status',
                                  'none',
@@ -486,21 +508,20 @@ describe 'Projects index page',
         expect(page).to have_text(gray_project.name)
         expect(page).to have_text(no_status_project.name)
       end
-
     end
 
     feature 'other filter types' do
-      let!(:list_custom_field) { FactoryBot.create :list_project_custom_field }
-      let!(:date_custom_field) { FactoryBot.create :date_project_custom_field }
-      let(:datetime_of_this_week) do
+      shared_let(:list_custom_field) { FactoryBot.create :list_project_custom_field }
+      shared_let(:date_custom_field) { FactoryBot.create :date_project_custom_field }
+      shared_let(:datetime_of_this_week) do
         today = Date.today
         # Ensure that the date is not today but still in the middle of the week to not run into week-start-issues here.
         date_of_this_week = today + ((today.wday % 7) > 2 ? -1 : 1)
         DateTime.parse(date_of_this_week.to_s + 'T11:11:11+00:00')
       end
-      let(:fixed_datetime) { DateTime.parse('2017-11-11T11:11:11+00:00') }
+      shared_let(:fixed_datetime) { DateTime.parse('2017-11-11T11:11:11+00:00') }
 
-      let!(:project_created_on_today) do
+      shared_let(:project_created_on_today) do
         project = FactoryBot.create(:project,
                                     name: 'Created today project',
                                     created_at: DateTime.now)
@@ -509,22 +530,22 @@ describe 'Projects index page',
         project.save!
         project
       end
-      let!(:project_created_on_this_week) do
+      shared_let(:project_created_on_this_week) do
         FactoryBot.create(:project,
                           name: 'Created on this week project',
                           created_at: datetime_of_this_week)
       end
-      let!(:project_created_on_six_days_ago) do
+      shared_let(:project_created_on_six_days_ago) do
         FactoryBot.create(:project,
                           name: 'Created on six days ago project',
                           created_at: DateTime.now - 6.days)
       end
-      let!(:project_created_on_fixed_date) do
+      shared_let(:project_created_on_fixed_date) do
         FactoryBot.create(:project,
                           name: 'Created on fixed date project',
                           created_at: fixed_datetime)
       end
-      let!(:todays_wp) do
+      shared_let(:todays_wp) do
         # This WP should trigger a change to the project's 'latest activity at' DateTime
         FactoryBot.create(:work_package,
                           updated_at: DateTime.now,
@@ -535,6 +556,7 @@ describe 'Projects index page',
         allow_enterprise_edition
         project_created_on_today
         load_and_open_filters admin
+        SeleniumHubWaiter.wait
       end
 
       scenario 'selecting operator' do
@@ -550,6 +572,7 @@ describe 'Projects index page',
         expect(page).to_not have_text(project_created_on_fixed_date.name)
 
         # created on 'this week' shows projects that were created within the last seven days
+        SeleniumHubWaiter.wait
         remove_filter('created_at')
 
         projects_page.set_filter('created_at',
@@ -563,6 +586,7 @@ describe 'Projects index page',
         expect(page).to_not have_text(project_created_on_fixed_date.name)
 
         # created on 'on' shows projects that were created within the last seven days
+        SeleniumHubWaiter.wait
         remove_filter('created_at')
 
         projects_page.set_filter('created_at',
@@ -577,6 +601,7 @@ describe 'Projects index page',
         expect(page).to_not have_text(project_created_on_this_week.name)
 
         # created on 'less than days ago'
+        SeleniumHubWaiter.wait
         remove_filter('created_at')
 
         projects_page.set_filter('created_at',
@@ -590,6 +615,7 @@ describe 'Projects index page',
         expect(page).to_not have_text(project_created_on_fixed_date.name)
 
         # created on 'more than days ago'
+        SeleniumHubWaiter.wait
         remove_filter('created_at')
 
         projects_page.set_filter('created_at',
@@ -603,6 +629,7 @@ describe 'Projects index page',
         expect(page).to_not have_text(project_created_on_today.name)
 
         # created on 'between'
+        SeleniumHubWaiter.wait
         remove_filter('created_at')
 
         projects_page.set_filter('created_at',
@@ -616,6 +643,7 @@ describe 'Projects index page',
         expect(page).to_not have_text(project_created_on_today.name)
 
         # Latest activity at 'today'. This spot check would fail if the data does not get collected from multiple tables
+        SeleniumHubWaiter.wait
         remove_filter('created_at')
 
         projects_page.set_filter('latest_activity_at',
@@ -628,6 +656,7 @@ describe 'Projects index page',
         expect(page).to_not have_text(project_created_on_fixed_date.name)
 
         # CF List
+        SeleniumHubWaiter.wait
         remove_filter('latest_activity_at')
 
         projects_page.set_filter("cf_#{list_custom_field.id}",
@@ -645,11 +674,13 @@ describe 'Projects index page',
         within(cf_filter) do
           # Initial filter is a 'single select'
           expect(cf_filter.find(:select, 'value')).not_to be_multiple
+          SeleniumHubWaiter.wait
           click_on 'Toggle multiselect'
           # switching to multiselect keeps the current selection
           expect(cf_filter.find(:select, 'value')).to be_multiple
           expect(cf_filter).to have_select('value', selected: list_custom_field.possible_values[2].value)
 
+          SeleniumHubWaiter.wait
           select list_custom_field.possible_values[3].value, from: 'value'
         end
 
@@ -657,7 +688,7 @@ describe 'Projects index page',
 
         cf_filter = page.find("li[filter-name='cf_#{list_custom_field.id}']")
         within(cf_filter) do
-          # Query has two values for that filter, so it shoud show a 'multi select'.
+          # Query has two values for that filter, so it should show a 'multi select'.
           expect(cf_filter.find(:select, 'value')).to be_multiple
           expect(cf_filter)
             .to have_select('value',
@@ -665,6 +696,7 @@ describe 'Projects index page',
                                        list_custom_field.possible_values[3].value])
 
           # switching to single select keeps the first selection
+          SeleniumHubWaiter.wait
           select list_custom_field.possible_values[1].value, from: 'value'
           unselect list_custom_field.possible_values[2].value, from: 'value'
 
@@ -683,6 +715,7 @@ describe 'Projects index page',
         end
 
         # CF date filter work (at least for one operator)
+        SeleniumHubWaiter.wait
         remove_filter("cf_#{list_custom_field.id}")
 
         projects_page.set_filter("cf_#{date_custom_field.id}",
@@ -690,36 +723,60 @@ describe 'Projects index page',
                                  'on',
                                  ['2011-11-11'])
 
+        SeleniumHubWaiter.wait
         click_on 'Apply'
 
         expect(page).to have_text(project_created_on_today.name)
-        expect(page).to_not have_text(project_created_on_fixed_date.name)
+        expect(page).to have_no_text(project_created_on_fixed_date.name)
       end
 
       pending "NOT WORKING YET: Date vs. DateTime issue: Selecting same date for from and to value shows projects of that date"
     end
+
+    feature 'public filter' do
+      scenario 'filter on "public" status' do
+        load_and_open_filters admin
+
+        expect(page).to have_text(project.name)
+        expect(page).to have_text(public_project.name)
+
+        SeleniumHubWaiter.wait
+        projects_page.filter_by_public('no')
+
+        expect(page).to have_text(project.name)
+        expect(page).to have_no_text(public_project.name)
+
+        load_and_open_filters admin
+
+        SeleniumHubWaiter.wait
+        projects_page.filter_by_public('yes')
+
+        expect(page).to have_text(public_project.name)
+        expect(page).to have_no_text(project.name)
+      end
+    end
   end
 
   feature 'Non-admins with role with permission' do
-    let!(:can_copy_projects_role) do
+    shared_let(:can_copy_projects_role) do
       FactoryBot.create :role, name: 'Can Copy Projects Role', permissions: [:copy_projects]
     end
-    let!(:can_add_subprojects_role) do
+    shared_let(:can_add_subprojects_role) do
       FactoryBot.create :role, name: 'Can Add Subprojects Role', permissions: [:add_subprojects]
     end
 
-    let!(:parent_project) do
+    shared_let(:parent_project) do
       FactoryBot.create(:project,
                         name: 'Parent project',
                         identifier: 'parent-project')
     end
 
-    let!(:can_copy_projects_manager) do
+    shared_let(:can_copy_projects_manager) do
       FactoryBot.create(:user,
                         member_in_project: parent_project,
                         member_through_role: can_copy_projects_role)
     end
-    let!(:can_add_subprojects_manager) do
+    shared_let(:can_add_subprojects_manager) do
       FactoryBot.create(:user,
                         member_in_project: parent_project,
                         member_through_role: can_add_subprojects_role)
@@ -764,7 +821,7 @@ describe 'Projects index page',
       page.find('tbody tr').hover
       expect(page).to have_selector('.icon-show-more-horizontal')
 
-      # Test visiblity of 'more' menu list items
+      # Test visibility of 'more' menu list items
       page.find('tbody tr .icon-show-more-horizontal').click
       menu = page.find('tbody tr .project-actions')
       expect(menu).to have_text('Copy')
@@ -782,7 +839,7 @@ describe 'Projects index page',
       page.find('tbody tr').hover
       expect(page).to have_selector('.icon-show-more-horizontal')
 
-      # Test visiblity of 'more' menu list items
+      # Test visibility of 'more' menu list items
       page.find('tbody tr .icon-show-more-horizontal').click
       menu = page.find('tbody tr .project-actions')
       expect(menu).to have_text('New subproject')
@@ -808,20 +865,20 @@ describe 'Projects index page',
   end
 
   feature 'order' do
-    let!(:integer_custom_field) { FactoryBot.create(:int_project_custom_field) }
+    shared_let(:integer_custom_field) { FactoryBot.create(:int_project_custom_field) }
     # order is important here as the implementation uses lft
     # first but then reorders in ruby
-    let!(:child_project_z) do
+    shared_let(:child_project_z) do
       FactoryBot.create(:project,
                         parent: project,
                         name: "Z Child")
     end
-    let!(:child_project_m) do
+    shared_let(:child_project_m) do
       FactoryBot.create(:project,
                         parent: project,
                         name: "m Child") # intentionally written lowercase to test for case insensitive sorting
     end
-    let!(:child_project_a) do
+    shared_let(:child_project_a) do
       FactoryBot.create(:project,
                         parent: project,
                         name: "A Child")
@@ -847,6 +904,8 @@ describe 'Projects index page',
     end
 
     scenario 'allows to alter the order in which projects are displayed' do
+      Setting.enabled_projects_columns += ["cf_#{integer_custom_field.id}"]
+
       # initially, ordered by name asc on each hierarchical level
       expect_projects_in_order(development_project,
                                project,
@@ -855,6 +914,7 @@ describe 'Projects index page',
                                child_project_z,
                                public_project)
 
+      SeleniumHubWaiter.wait
       click_link('Name')
 
       # Projects ordered by name asc
@@ -865,6 +925,7 @@ describe 'Projects index page',
                                public_project,
                                child_project_z)
 
+      SeleniumHubWaiter.wait
       click_link('Name')
 
       # Projects ordered by name desc
@@ -875,6 +936,7 @@ describe 'Projects index page',
                                development_project,
                                child_project_a)
 
+      SeleniumHubWaiter.wait
       click_link(integer_custom_field.name)
 
       # Projects ordered by cf asc first then project name desc
@@ -885,6 +947,7 @@ describe 'Projects index page',
                                child_project_m,
                                child_project_a)
 
+      SeleniumHubWaiter.wait
       click_link('Sort by "Project hierarchy"')
 
       # again ordered by name asc on each hierarchical level
@@ -904,6 +967,34 @@ describe 'Projects index page',
       expect(page).to_not have_select('add_filter_select', with_options: ["Principal"])
       expect(page).to_not have_select('add_filter_select', with_options: ["ID"])
       expect(page).to_not have_select('add_filter_select', with_options: ["Subproject of"])
+    end
+  end
+
+  context 'with a multi-value custom field' do
+    let!(:list_custom_field) { FactoryBot.create(:list_project_custom_field, multi_value: true) }
+
+    before do
+      project.custom_values << CustomValue.new(custom_field: list_custom_field, value: list_custom_field.value_of('A'))
+      project.custom_values << CustomValue.new(custom_field: list_custom_field, value: list_custom_field.value_of('B'))
+
+      project.save!
+
+      allow_enterprise_edition
+      allow(Setting)
+        .to receive(:enabled_projects_columns) #<< "cf_#{list_custom_field.id}"
+        .and_return ["cf_#{list_custom_field.id}"]
+
+      login_as(admin)
+      visit projects_path
+    end
+
+    it 'shows the multi selection' do
+      expected_sort = list_custom_field
+                        .custom_options
+                        .where(value: %w[A B])
+                        .reorder(:id)
+                        .pluck(:value)
+      expect(page).to have_selector(".cf_#{list_custom_field.id}.format-list", text: expected_sort.join(", "))
     end
   end
 end

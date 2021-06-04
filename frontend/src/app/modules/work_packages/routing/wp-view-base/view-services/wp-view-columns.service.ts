@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,21 +24,27 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {WorkPackageQueryStateService} from './wp-view-base.service';
-import {QueryResource} from 'core-app/modules/hal/resources/query-resource';
-import {IsolatedQuerySpace} from "core-app/modules/work_packages/query-space/isolated-query-space";
-import {States} from 'core-components/states.service';
-import {Injectable} from '@angular/core';
-import {cloneHalResourceCollection} from 'core-app/modules/hal/helpers/hal-resource-builder';
-import {QueryColumn, queryColumnTypes} from "core-components/wp-query/query-column";
+import { WorkPackageQueryStateService } from './wp-view-base.service';
+import { QueryResource } from 'core-app/modules/hal/resources/query-resource';
+import { IsolatedQuerySpace } from "core-app/modules/work_packages/query-space/isolated-query-space";
+import { States } from 'core-components/states.service';
+import { Injectable } from '@angular/core';
+import { cloneHalResourceCollection } from 'core-app/modules/hal/helpers/hal-resource-builder';
+import { QueryColumn, queryColumnTypes } from "core-components/wp-query/query-column";
+import { combine } from "reactivestates";
+import { mapTo, take } from "rxjs/operators";
 
 @Injectable()
 export class WorkPackageViewColumnsService extends WorkPackageQueryStateService<QueryColumn[]> {
 
   public constructor(readonly states:States, readonly querySpace:IsolatedQuerySpace) {
     super(querySpace);
+  }
+
+  public initialize(query:any, results:any, schema?:any) {
+    super.initialize(query, results, schema);
   }
 
   public valueFromQuery(query:QueryResource):QueryColumn[] {
@@ -108,7 +114,7 @@ export class WorkPackageViewColumnsService extends WorkPackageQueryStateService<
    * @param column
    */
   public previous(column:QueryColumn):QueryColumn|null {
-    let index = this.index(column.id);
+    const index = this.index(column.id);
 
     if (index <= 0) {
       return null;
@@ -122,9 +128,9 @@ export class WorkPackageViewColumnsService extends WorkPackageQueryStateService<
    * @param column
    */
   public next(column:QueryColumn):QueryColumn|null {
-    let index = this.index(column.id);
+    const index = this.index(column.id);
 
-    if (index === -1 || this.isLast(name)) {
+    if (index === -1 || this.isLast(column)) {
       return null;
     }
 
@@ -168,7 +174,7 @@ export class WorkPackageViewColumnsService extends WorkPackageQueryStateService<
    * - If toIndex is less than zero, insert at the start.
    */
   public moveColumn(fromIndex:number, toIndex:number) {
-    let columns = this.getColumns();
+    const columns = this.getColumns();
 
     if (toIndex >= columns.length) {
       toIndex = columns.length - 1;
@@ -178,7 +184,7 @@ export class WorkPackageViewColumnsService extends WorkPackageQueryStateService<
       toIndex = 0;
     }
 
-    let element = columns[fromIndex];
+    const element = columns[fromIndex];
     columns.splice(fromIndex, 1);
     columns.splice(toIndex, 0, element);
 
@@ -190,7 +196,7 @@ export class WorkPackageViewColumnsService extends WorkPackageQueryStateService<
    * where X is the offset in indices (-1 = shift one to left)
    */
   public shift(column:QueryColumn, offset:number) {
-    let index = this.index(column.id);
+    const index = this.index(column.id);
     if (index === -1) {
       return;
     }
@@ -202,14 +208,14 @@ export class WorkPackageViewColumnsService extends WorkPackageQueryStateService<
    * Add a new column to the selection at the given position
    */
   public addColumn(id:string, position?:number) {
-    let columns = this.getColumns();
+    const columns = this.getColumns();
 
     if (position === undefined) {
       position = columns.length;
     }
 
     if (this.index(id) === -1) {
-      let newColumn =  _.find(this.all, (column) => column.id === id);
+      const newColumn =  _.find(this.all, (column) => column.id === id);
 
       if (!newColumn) {
         throw "Column with provided name is not found";
@@ -224,10 +230,10 @@ export class WorkPackageViewColumnsService extends WorkPackageQueryStateService<
    * Remove a column from the active list
    */
   public removeColumn(column:QueryColumn) {
-    let index = this.index(column.id);
+    const index = this.index(column.id);
 
     if (index !== -1) {
-      let columns = this.getColumns();
+      const columns = this.getColumns();
       columns.splice(index, 1);
       this.setColumns(columns);
     }
@@ -268,5 +274,18 @@ export class WorkPackageViewColumnsService extends WorkPackageQueryStateService<
    */
   public get unused():QueryColumn[] {
     return _.differenceBy(this.all, this.getColumns(), '$href');
+  }
+
+  /**
+   * Columns service depends on two states
+   */
+  public onReady() {
+    return combine(this.pristineState, this.availableState)
+      .values$()
+      .pipe(
+        take(1),
+        mapTo(null)
+      )
+      .toPromise();
   }
 }

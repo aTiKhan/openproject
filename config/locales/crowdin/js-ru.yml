@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -33,10 +33,24 @@ ru:
         single: "Выбрать «%{name}»"
       remove: "Удалить %{name}"
       active: "Активировать %{label} %{name}"
+    backup:
+      attachments_disabled: Вложения не могут быть включены, так как они превышают максимальный общий размер. Вы можете изменить это через конфигурацию (требуется перезапуск сервера).
+      info: >
+        Здесь вы можете запустить резервное копирование. Процесс может занять некоторое время в зависимости от объема данных (особенно вложений). Как только копия будет готова, вы получите письмо.
+      note: >
+        Новая резервная копия перезапишет любую предыдущию. Может быть запрошено ограниченное количество резервных копий в день.
+      last_backup: Последняя резервная копия
+      last_backup_from: Последняя резервная копия от
+      title: Резервное копирование OpenProject
+      options: Параметры
+      include_attachments: Включить вложения
+      download_backup: Скачать резервную копию
+      request_backup: Запросить резервную копию
     close_popup_title: "Закрыть всплывающее"
     close_filter_title: "Закрыть фильтр"
     close_form_title: "Закрыть форму"
     button_add_watcher: "Добавить наблюдателя"
+    button_add: "Добавить"
     button_back: "Назад"
     button_back_to_list_view: "Вернуться к просмотру списка"
     button_cancel: "Отмена"
@@ -54,6 +68,8 @@ ru:
     button_duplicate: "Дублировать"
     button_edit: "Правка"
     button_filter: "Фильтр"
+    button_collapse_all: "Свернуть все"
+    button_expand_all: "Развернуть все"
     button_advanced_filter: "Расширенный фильтр"
     button_list_view: "Представление списком"
     button_show_view: "Полноэкранный просмотр"
@@ -62,8 +78,8 @@ ru:
     button_open_details: "Открыть детальный просмотр"
     button_close_details: "Закрыть детальный просмотр"
     button_open_fullscreen: "Полноэкранный просмотр"
-    button_show_cards: "Показать вид карты"
-    button_show_list: "Показать список"
+    button_show_cards: "В виде карточек"
+    button_show_list: "В виде списка"
     button_quote: "Цитата"
     button_save: "Сохранить"
     button_settings: "Параметры"
@@ -71,9 +87,10 @@ ru:
     button_update: "Обновление"
     button_export-pdf: "Скачать PDF"
     button_export-atom: "Скачать Atom"
+    button_create: "Создать"
     calendar:
       title: 'Календарь'
-      too_many: 'Всего в общей сложности есть %{count} рабочих пакетов, но только %{max} можно показать.'
+      too_many: 'В общей сложности пакетов работ: %{count}. Отображено только: %{max}.'
     card:
       add_new: 'Добавить новую карточку'
       highlighting:
@@ -85,22 +102,22 @@ ru:
       browser_error: "Ваш браузер не поддерживает копирование в буфер обмена. Пожалуйста, скопируйте выделенный текст вручную."
       copied_successful: "Успешно скопировано в буфер обмена!"
     chart:
-      type: 'Тип графика'
+      type: 'Тип диаграммы'
       axis_criteria: 'Критерии оси'
-      modal_title: 'Конфигурация графика пакета работ'
+      modal_title: 'Настройки диаграммы по пакетам работ'
       types:
-        line: 'Линия'
-        horizontal_bar: 'Горизонтальная полоса'
-        bar: 'Полоса'
-        pie: 'Пирог'
-        doughnut: 'Пончик'
-        radar: 'Радар'
-        polar_area: 'Полярная область'
+        line: 'Линейная'
+        horizontal_bar: 'Полосовая'
+        bar: 'Столбчатая'
+        pie: 'Круговая'
+        doughnut: 'Кольцевая'
+        radar: 'Лепестковая'
+        polar_area: 'Круговая полярная'
       tabs:
         graph_settings: 'Общие'
-        dataset: 'Набор данных %{number}'
+        dataset: 'Набор %{number}'
       errors:
-        could_not_load: 'Данные для отображения графика не могут быть загружены. Необходимые разрешения могут отсутствовать.'
+        could_not_load: 'Данные для отображения диаграммы не могут быть загружены. Могут отсутствовать необходимые разрешения.'
     description_available_columns: "Доступные столбцы"
     description_current_position: "Вы здесь: "
     description_select_work_package: "Выберите пакет работ #%{id}"
@@ -115,6 +132,11 @@ ru:
         manual: 'Перейти к источнику уценок'
         wysiwyg: 'Перейти к WYSIWYG-редактору'
       macro:
+        error: 'Невозможно развернуть макрос: %{message}'
+        attribute_reference:
+          macro_help_tooltip: 'Этот текстовый сегмент динамически отображается макросом.'
+          not_found: 'Запрошенный ресурс не найден'
+          invalid_attribute: "Выбранный атрибут '%{name}' не существует."
         child_pages:
           button: 'Ссылки на дочерние страницы'
           include_parent: 'Включить родителей'
@@ -165,7 +187,8 @@ ru:
       enterprise:
         trial:
           confirmation: "Подтверждение адреса электронной почты"
-          confirmation_info: "Мы отправили вам письмо. Проверьте электронную почту и нажмите на ссылку подтверждения в письме, чтобы получить 14-дневную пробную версию."
+          confirmation_info: >
+            Мы отправили вам письмо %{date} на адрес %{email}. Проверьте свой почтовый ящик и нажмите на ссылку подтверждения, чтобы начать 14 дней пробной версии.
           form:
             general_consent: >
               Я принимаю <a target="_blank" href="%{link_terms}">условия обслуживания</a> и <a target="_blank" href="%{link_privacy}">политику конфиденциальности</a>.
@@ -180,9 +203,10 @@ ru:
             label_starts_at: "Начиная с"
             label_expires_at: "Срок действия до"
             receive_newsletter: Я хочу получать <a target="_blank" href="%{link}">новостную рассылку от OpenProject</a>.
+            taken_domain: На каждом домене может быть только один активный пробный период.
+            taken_email: Каждый пользователь может создать только одну пробную версию.
           email_not_received: "Не получили письмо? Справа вы можете запросить повторную отправку письма со ссылкой."
           try_another_email: "Еще можно указать другой адрес электронной почты."
-          try_another_email_hint: "Учтите, что предыдущий адрес электронной почты сбросится, если вы повторите попытку с новым адресом."
           next_steps: "Дальнейшие шаги"
           resend_link: "Отправить еще раз"
           resend_success: "Письмо отправлено. Проверьте электронную почту и нажмите на ссылку подтверждения в письме."
@@ -196,7 +220,7 @@ ru:
         upsale:
           become_hero: "Станьте героем!"
           benefits:
-            description: "Каковы преимущества?"
+            description: "Каковы преимущества корпоративной версии?"
             high_security: "Функции безопасности"
             high_security_text: "Единый вход (SAML, OpenID Connect, CAS), двухфакторная аутентификация и автоматическая синхронизация LDAP-групп."
             installation: "Поддержка установки"
@@ -247,11 +271,10 @@ ru:
     general_text_yes: "Да"
     general_text_No: "Нет"
     general_text_Yes: "да"
-    global_roles: Глобальная роль
     hal:
       error:
-        update_conflict_refresh: "Кликните здесь для обновления ресурса и обновления до последней версии."
-        edit_prohibited: "Редактирование %{attribute} этого ресурса заблокировано. Либо этот атрибут является производным от отношений (например, потомков), или же не настраивается."
+        update_conflict_refresh: "Нажмите здесь, чтобы обновить ресурс до последней версии."
+        edit_prohibited: "Редактирование атрибута «%{attribute}» запрещено ресурсом. Либо этот атрибут является производным (например, выходящим из родительского объекта), либо просто не настраиваемый."
         format:
           date: "%{attribute} не соответствует дате - ожидается гггг-мм-дд."
         general: "Произошла ошибка."
@@ -261,13 +284,13 @@ ru:
           text_new_features: "Читайте о новых возможностях и обновлениях продуктов."
           learn_about: "Подробнее о новых функциях"
           standard:
-            learn_about_link: https://www.openproject.org/openproject-10-4
+            learn_about_link: https://www.openproject.org/openproject-11-3-release
             current_new_feature_html: >
-              Этот релиз содержит ряд новых функций и улучшений: <br><br> <ul> <li><b>Шаблоны оформления</b> по умолчанию: светлая и темная темы (премиум-функция).</li> <li>Новый <b>виджет отслеживания времени</b> для <i>Моей страницы</i>, в котором затраченное время отображается в виде столбчатой диаграммы.</li> <li><b>Экспорт отчетов о затратах в виде XLS</b> и форматированного текста из пакетов работ в виде PDF.</li> <li><b>Обновленный внешний вид и эргономика:</b>вкладки и другие улучшения в настройках проекта и функциях администрирования.</li> </ul>
+              The release contains various new features and improvements: <br> <ul class="%{list_styling_class}"> <li>New button in header navigation to create projects, users and work packages.</li> <li>A new invite modal for users, groups and placeholder users allows to easily add or invite new users and assign them to work packages.</li> <li>GitHub integration into OpenProject.</li> <li>API v3 extensions for groups and more, i.e. create, read, update and delete groups and group members through the API.</li> <li>Multi-selection for project custom fields of type list.</li> <li>Creation of backup from the web interface.</li> </ul>
           bim:
-            learn_about_link: https://www.openproject.org/openproject-bim-10-4
+            learn_about_link: https://www.openproject.org/openproject-11-3-release
             current_new_feature_html: >
-              OpenProject содержит <b>новый модуль IFC для интеграции 3D-моделей</b> в систему управления проектами и для совместной работы с этими файлами в команде без установки отдельных платных приложений или лицензий. <br><br> <ul> <li><b>Импортируйте файлы IFC</b> моделей построения в свое приложение OpenProject.</li> <li><b>Открывайте 3D-модели и визуализируйте модели построения</b> прямо в браузере.</li> <li> <b>Работайте сразу с несколькими файлами IFC</b> вместе со своей командой прямо в OpenProject без установки отдельных платных приложений. </li> </ul>
+              The release contains various new features and improvements: <br> <ul class="%{list_styling_class}"> <li>BIM: Improved performance of the IFC model viewer.</li> <li>BIM: The IFC viewer now supports double precision models, which is great for large construction sites such as bridges, roads etc.</li> <li>BIM: Toggle button for switching between perspective and orthogonal mode.</li> <li>BIM: A menu for editing, deleting or flipping section planes.</li> <li>New button in header navigation to create projects, users and work packages.</li> <li>A new invite modal for users, groups and placeholder users allows to easily add or invite new users and assign them to work packages.</li> <li>API v3 extensions for groups and more, i.e. create, read, update and delete groups and group members through the API.</li> <li>Multi-selection for project custom fields of type list.</li> <li>Creation of backup from the web interface.</li> </ul>
     label_activate: "Активировать"
     label_add_column_after: "Добавить столбец после"
     label_add_column_before: "Добавить столбец перед"
@@ -278,7 +301,7 @@ ru:
     label_add_row_before: "Добавить строку перед"
     label_add_selected_columns: "Добавить выбранные столбцы"
     label_added_by: "Добавил(-а)"
-    label_added_time_by: "Добавил(-а) %{author} %{age}"
+    label_added_time_by: "Добавлено <a href=%{authorLink}>%{author}</a> в %{age}"
     label_ago: "дней назад"
     label_all: "все"
     label_all_work_packages: "Все пакеты работ"
@@ -319,9 +342,11 @@ ru:
     label_expand_all: "Развернуть все"
     label_expand_project_menu: "Развернуть меню проекта"
     label_export: "Экспорт"
+    label_export_preparing: "Файлы для экспорта готовятся и скоро будут загружены."
     label_filename: "Файл"
     label_filesize: "Размер"
     label_general: "Общие"
+    label_global_roles: "Глобальная роль"
     label_greater_or_equal: ">="
     label_group: 'Группа'
     label_group_by: "Группировать по"
@@ -351,7 +376,7 @@ ru:
     label_next: "Следующие"
     label_no_color: "Нет цвета"
     label_no_data: "Нет данных для отображения"
-    label_no_due_date: "без даты окончания"
+    label_no_due_date: "нет даты окончания"
     label_no_start_date: "без даты начала"
     label_no_value: "Значение отсутствует"
     label_none: "Ничего"
@@ -370,6 +395,7 @@ ru:
     label_quote_comment: "Цитировать этот комментарий"
     label_recent: "Недавние"
     label_reset: "Сброс"
+    label_remove: "Удалить"
     label_remove_column: "Удалить столбец"
     label_remove_columns: "Удалить выбранные столбцы"
     label_remove_row: "Удалить строку"
@@ -391,6 +417,7 @@ ru:
     label_public_query: "Общий"
     label_sum: "Сумма"
     label_sum_for: "Сумма для"
+    label_total_sum: "Общая сумма"
     label_subject: "Тема"
     label_this_week: "на этой неделе"
     label_today: "Сегодня"
@@ -402,9 +429,11 @@ ru:
     label_total_progress: "%{percent}% общего прогресса"
     label_total_amount: "Всего: %{amount}"
     label_updated_on: "Обновлено"
-    label_value_derived_from_children: "(значение, полученное от наследников)"
+    label_value_derived_from_children: "(значение, полученное от потомков)"
+    label_children_derived_duration: "Продолжительность производимого пакета работ"
     label_warning: "Предупреждение"
     label_work_package: "Пакет работ"
+    label_work_package_parent: "Родительский пакет работ"
     label_work_package_plural: "Комплекс работ"
     label_watch: "Просмотреть"
     label_watch_work_package: "Наблюдать за пакетом работ"
@@ -439,7 +468,7 @@ ru:
     label_upload_counter: "%{done} %{count} файлов, готовы"
     label_validation_error: "Пакет работ не удалось сохранить из-за следующих ошибок:"
     label_version_plural: "Этапы"
-    label_view_has_changed: "У этого вида есть несохраненные изменения. Нажмите, чтобы сохранить их."
+    label_view_has_changed: "У этого представления есть несохранённые изменения. Нажмите, чтобы сохранить их."
     help_texts:
       show_modal: 'Показать содержимое атрибута текста справки'
     onboarding:
@@ -451,6 +480,7 @@ ru:
         help_menu: 'В меню <b>Справка</b> руководство пользователя и дополнительные справочные материалы. <br>Приятной работы с OpenProject!'
         members: 'Предложите новому <b>участнику</b> присоединиться к вашему проекту.'
         project_selection: 'Пожалуйста, кликните по проекту с полезными демонстрационными данными. <br> <b>Демонстрационный проект</b> подходит лучше всего для классического проекта управления, пока <b>проект Scrum</b> лучший в Agile-управлении проектами.'
+        quick_add_button: 'Создайте новый проект или пригласите коллег.'
         sidebar_arrow: "Стрелка возвращает к <b>главному меню</b> проекта."
         welcome: 'Совершите вводный трехминутный тур для знакомства с наиболее <b>важными особенностями</b>. <br>Рекомендуем пройти все шаги до конца. Пройти вводный тур повторно можно в любое время.'
         wiki: 'В пределах <b>вики</b> возможно документирование и обмен знаниями в вашей команде.'
@@ -466,7 +496,7 @@ ru:
           drag: 'Перетащите ваши карточки в список для повторного заказа, или в другой список. Двойной клик мыши откроет детальное представление.'
         wp:
           toggler: "Давайте теперь в секции <b>Пакет работ</b> посмотрим более детальное описание вашей работы."
-          list: 'Это список <b>Пакета работ</b> с важной работой в рамках проекта такими как задачи, функции, вехи, ошибки и многое другое. <br>Создать или изменить пакет работ можно непосредственно в этом списке. Чтобы увидеть его детали, нужно дважды щелкнуть по строке.'
+          list: 'Это список <b>пакета работ</b> с важной работой в вашем проекте, таких как задачи, этапы, фазы и многое другое. <br> Вы можете создать или редактировать пакет работ непосредственно в этом списке. Чтобы увидеть его подробности, щелкните дважды по строке.'
           full_view: 'В <b>Деталях пакета работ</b> вы найдете всю необходимую информацию: описание, состояние и приоритет, активность, зависимости или комментарии.'
           back_button: 'Стрелка возвращает к списку пакетов работ.'
           create_button: 'Кнопка <b>Создать</b> добавляет новый пакет работ к вашему проекту.'
@@ -491,6 +521,11 @@ ru:
       context: 'Контекст проекта'
       work_package_belongs_to: 'Этот пакет работ относится к проекту %{projectname}.'
       click_to_switch_context: 'Открыть пакет работ в этом проекте.'
+      confirm_template_load: 'При смене шаблона будет перезагружена страница, и вы потеряете все входные данные в этой форме. Продолжить?'
+      use_template: "Применить шаблон"
+      no_template_selected: "(Нет)"
+      copy:
+        copy_options: "Скопировать параметры"
       autocompleter:
         label: 'Автоматическое завершение проекта'
     text_are_you_sure: "Вы уверены?"
@@ -501,7 +536,7 @@ ru:
         reset_title: "Сбросить настройки формы"
         confirm_reset: >
           Предупреждение: хотите сбросить форму? Это сбросит атрибуты к первоначальным значениям группы и запретит правку настраиваемых полей.
-        upgrade_to_ee: "Обновите до корпоративной версии"
+        upgrade_to_ee: "Обновление до корпоративной версии"
         upgrade_to_ee_text: "Ух ты! Если вам нужна эта функция, вы – супер профессионал! Не хотите поддержать OpenSource разработчиков, став клиентом корпоративной версии?"
         more_information: "Больше информации"
         nevermind: "Неважно"
@@ -518,7 +553,7 @@ ru:
       duration: 'Продолжительность'
       spent_on: 'Дата'
       hours: 'Часы'
-      label: 'Время поступления'
+      title: 'Журналировать время'
     two_factor_authentication:
       label_two_factor_authentication: 'Двухфакторная аутентификация'
     watchers:
@@ -574,11 +609,18 @@ ru:
     relations_autocomplete:
       placeholder: "Введите текст для поиска"
       parent_placeholder: "Выберите нового родителя или нажмите кнопку \"Отменить\"."
+    autocompleter:
+      placeholder: "Введите текст для поиска"
+      notFoundText: "No items found"
+      typeToSearchText: "Введите текст для поиска"
     repositories:
       select_tag: 'Выберите тег'
       select_branch: 'Выберите ветвь'
     field_value_enter_prompt: "Введите значение для «%{field}»"
     project_menu_details: "Детали"
+    scheduling:
+      manual: 'Ручное планирование'
+      automatic: 'Автоматическое планирование'
     sort:
       sorted_asc: 'Применяется сортировка по возрастанию, '
       sorted_dsc: 'Применяется сортировка по убыванию, '
@@ -696,7 +738,7 @@ ru:
       message_successful_show_in_fullscreen: "Кликните здесь, чтобы открыть этот пакет работ в полноэкранном режиме."
       message_view_spent_time: "Показать время, затраченное на этот комплекс работ"
       message_work_package_read_only: "В этом статусе пакет работ заблокирован. Никакой атрибут, отличный от статуса, изменен быть не может."
-      message_work_package_status_blocked: "Статус пакета работ не доступен для записи из-за закрытого состояния и назначена закрытая версия."
+      message_work_package_status_blocked: "Статус не доступен для записи в пакете работ, потому что таковой закрыт или из-за закрытой версии, назначенной за пакетом работ."
       placeholder_filter_by_text: "Тема, описание, комментарии, ..."
       inline_create:
         title: 'Кликните здесь, чтобы добавить новый пакет работ в этот список'
@@ -744,6 +786,7 @@ ru:
         startDate: "Дата начала"
         status: "Состояние"
         subject: "Тема"
+        subproject: "Подпроект"
         title: "Заголовок"
         type: "Тип"
         updatedAt: "Обновлено"
@@ -781,14 +824,17 @@ ru:
         confirm_edit_cancel: "Уверены, что хотите отменить редактирование названия этого представления? Заголовку будет присвоено прежнее название."
         click_to_edit_query_name: "Кликните, чтобы изменить название этого представления."
         rename_query_placeholder: "Название этого представления"
-        star_text: "Отметить этот вид как избранный и добавить в панель сохраненных видов слева."
+        star_text: "Отметить это представление как избранное и добавить в панель сохранённых представлений слева."
         public_text: >
-          Опубликовать это представление, дав к нему доступ другим пользователям. Пользователи с правом 'Управление публичными представлениями' могут изменить или удалить публичный запрос. Это не влияет на видимость результатов пакета работ в данном представлении и в зависимости от своих прав пользователи могут видеть различные результаты.
+          Опубликовать это представление, дав к нему доступ другим пользователям. Пользователи с правом доступа «Управление публичными представлениями» могут изменить или удалить публичный запрос. Это не влияет на видимость результатов пакета работ в этом представлении, и в зависимости от своих прав пользователи могут видеть разные результаты.
         errors:
           unretrievable_query: "Не удается получить представление из URL-адреса"
           not_found: "Нет такого представления"
           duplicate_query_title: "Представление с таким именем уже существует. Менять в любом случае?"
         text_no_results: "Подходящие представления не найдены."
+      scheduling:
+        is_parent: "Даты этого пакета работ автоматически вычитаются из дочерних узлов. Активируйте «Ручной планировщик», чтобы установить даты."
+        is_switched_from_manual_to_automatic: "Даты этого пакета работ могут быть пересчитаны после переключения с ручного на автоматическое планирование из-за связей с другими пакетами работ."
       table:
         configure_button: 'Настроить таблицу пакетов работ'
         summary: "Таблица с названиями пакетов работ в строках и атрибутами пакетов работ в столбцах."
@@ -821,8 +867,8 @@ ru:
           description: 'Выберите режим сортировки пакетов работ:'
           automatic: 'Автоматически'
           manually: 'Вручную'
-          warning: 'При активации режима автоматической сортировки вы потеряете свою предыдущую сортировку.'
-        columns_help_text: "С помощью поля ввода выше можно добавлять столбцы в табличное представление. Для изменения порядка столбцов перетаскивайте их мышью."
+          warning: 'При активации режима автоматического упорядования вы потеряете свою предыдущую сортировку.'
+        columns_help_text: "Используйте поле ввода выше, чтобы добавить столбцы в вид таблицы. Вы можете перетаскивать колонки для их сортировки."
         upsale:
           attribute_highlighting: 'Хотите выделить некоторые пакеты работ из общей массы?'
           relation_columns: 'Нужно видеть отношения в списке пакетов работ?'
@@ -877,10 +923,14 @@ ru:
         has_children: "Пакет работ имеет %{childUnits}:"
         confirm_deletion_children: "Я понимаю, что ВСЕ производные элементы указанных пакетов работ будут рекурсивно удалены."
         deletes_children: "Все дочерние пакеты работ и их потомки будут также рекурсивно удалены."
+      destroy_time_entry:
+        title: "Подтвердите удаление записи времени"
+        text: "Вы уверены, что хотите удалить следующую запись?"
     notice_no_results_to_display: "Нет видимых результатов для отображения."
     notice_successful_create: "Создание выполнено."
     notice_successful_delete: "Удаление выполнено."
     notice_successful_update: "Обновление выполнено."
+    notice_job_started: "задание начато."
     notice_bad_request: "Неправильный запрос."
     relations:
       empty: Не существует отношения
@@ -918,11 +968,9 @@ ru:
         many: "пакет работ с %{count} дочерними"
         other: "пакет работ с %{count} дочерними"
       hour:
-        zero: "0 ч"
         one: "1 ч"
-        few: "%{count} ч"
-        many: "%{count} ч"
         other: "%{count} ч"
+        zero: "0 ч"
     zen_mode:
       button_activate: 'Включить дзен-режим'
       button_deactivate: 'Отключить дзен-режим'
@@ -940,3 +988,78 @@ ru:
       card: 'Карточки'
       list: 'Таблица'
       timeline: 'Гант'
+    invite_user_modal:
+      back: 'Назад'
+      invite: 'Пригласить'
+      title:
+        invite: 'Пригласить пользователя'
+        invite_to_project: 'Пригласить %{type} в %{project}'
+        User: 'пользователь'
+        Group: 'группа'
+        PlaceholderUser: 'пользователь плейсхолдера'
+        invite_principal_to_project: 'Пригласить %{principal} в %{project}'
+      project:
+        label: 'Проект'
+        required: 'Пожалуйста, выберите проект'
+        lacking_permission: 'Пожалуйста, выберите другой проект, так у вас нет прав для назначения пользователей к выбранному в данный момент проекту.'
+        lacking_permission_info: 'У вас недостаточно прав для назначения пользователей в текущий проект. Вам нужно выбрать другой проект.'
+        next_button: 'Следующие'
+        no_results: 'Проекты не найдены'
+        no_invite_rights: 'Вы не можете пригласить участников в этот проект'
+      type:
+        required: 'Пожалуйста, выберите тип для приглашения'
+        user:
+          title: 'Пользователь'
+          description: 'Права доступа, основанные на назначенной роли в выбранном проекте'
+        group:
+          title: 'Группа'
+          description: 'Права доступа, основанные на назначенной роли в выбранном проекте'
+        placeholder:
+          title: 'Пользователь-заполнитель'
+          title_no_ee: 'Пользователь-заполнитель (только для корпоративной версии)'
+          description: 'Нет доступа к проекту и письма не отправляются.'
+          description_no_ee: 'Нет доступа к проекту и письма не отправляются. <br>Проверьте <a href="%{eeHref}" target="_blank">Enterprise Edition</a>'
+      principal:
+        label:
+          name_or_email: 'Имя или email адрес'
+          name: 'Имя'
+        already_member_message: 'Уже член %{project}'
+        no_results_user: 'Пользователи не найдены.'
+        invite_user: 'Приглашение:'
+        change_user_selection: 'Изменить адрес электронной почты или выбрать существующего пользователя'
+        no_results_placeholder: 'Заполнители не найдены'
+        change_placeholder_selection: 'Изменить имя или выбрать существующий плейсхолдер'
+        create_new_placeholder: 'Создать новый плейсхолдер:'
+        no_results_group: 'Группы не найдены'
+        change_group_selection: 'Изменить имя или выбрать существующую группу'
+        next_button: 'Следующие'
+        required:
+          user: 'Пожалуйста, выберите пользователя'
+          placeholder: 'Пожалуйста, выберите заполнитель'
+          group: 'Пожалуйста, выберите группу'
+      role:
+        label: 'Роль в %{project}'
+        no_roles_found: 'Роли не найдены'
+        description: 'Эту роль %{principal} получит после присоединения к вашему проекту. Роль определяет, разрешаемые действия и доступ к просмотру информации участника проекта. <a href="https://docs.openproject.org/system-admin-guide/users-permissions/roles-permissions/#roles-and-permissions" target="_blank"> Узнайте больше о ролях и разрешениях. </a>'
+        required: 'Пожалуйста, выберите роль'
+        next_button: 'Следующие'
+      message:
+        label: 'Сообщение о приглашении'
+        description: 'Мы отправим письмо на адрес %{principal}, в которое вы можете добавить личное сообщение здесь. Может быть полезным объяснить причину приглашения или, возможно, добавить немного информации о проекте, чтобы помочь им начать работу.'
+        next_button: 'Просмотреть приглашение'
+      summary:
+        next_button: 'Отправить приглашение'
+      success:
+        title: '%{principal} был приглашен!'
+        description:
+          user: 'Теперь пользователь может войти в систему и получить доступ к %{project}. Тем временем вы уже можете планировать работу с этим пользователем и назначать пакеты работ.'
+          placeholder: 'Теперь плейсхолдер может быть использован в %{project}. Тем временем вы уже можете планировать с этим пользователем и назначать рабочие пакеты.'
+          group: 'Теперь группа является частью %{project}. Тем временем вы уже можете спланировать работу с этой группой и назначить пакеты работ.'
+        next_button: 'Далее'
+    forms:
+      submit_success_message: 'Форма успешно отправлена'
+      load_error_message: 'Произошла ошибка при загрузке формы'
+      validation_error_message: 'Пожалуйста, исправьте ошибки в форме'
+      advanced_settings: 'Расширенные настройки'
+
+

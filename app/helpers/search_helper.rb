@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -30,6 +31,7 @@
 module SearchHelper
   def highlight_tokens(text, tokens)
     return text unless text && tokens && !tokens.empty?
+
     re_tokens = tokens.map { |t| Regexp.escape(t) }
     regexp = Regexp.new "(#{re_tokens.join('|')})", Regexp::IGNORECASE
     result = ''
@@ -80,7 +82,7 @@ module SearchHelper
 
   def with_notes_anchor(event, tokens)
     if has_tokens? last_journal(event).try(:notes), tokens
-      event.event_url.merge anchor: notes_anchor(last_journal event)
+      event.event_url.merge anchor: notes_anchor(last_journal(event))
     else
       event.event_url
     end
@@ -105,7 +107,7 @@ module SearchHelper
   end
 
   def link_to_previous_search_page(pagination_previous_date)
-    link_to_content_update(l(:label_previous),
+    link_to_content_update(I18n.t(:label_previous),
                            @search_params.merge(previous: 1,
                                                 project_id: @project.try(:identifier),
                                                 offset: pagination_previous_date.to_r.to_s),
@@ -113,7 +115,7 @@ module SearchHelper
   end
 
   def link_to_next_search_page(pagination_next_date)
-    link_to_content_update(l(:label_next),
+    link_to_content_update(I18n.t(:label_next),
                            @search_params.merge(previous: nil,
                                                 project_id: @project.try(:identifier),
                                                 offset: pagination_next_date.to_r.to_s),

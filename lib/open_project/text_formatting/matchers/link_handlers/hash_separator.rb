@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -31,9 +31,8 @@
 module OpenProject::TextFormatting::Matchers
   module LinkHandlers
     class HashSeparator < Base
-
       def self.allowed_prefixes
-        %w(version message project user group)
+        %w(version message project user group document meeting)
       end
 
       ##
@@ -68,6 +67,29 @@ module OpenProject::TextFormatting::Matchers
         end
       end
 
+      def render_document
+        if document = Document.visible.find_by_id(oid)
+          link_to document.title,
+                  { only_path: context[:only_path],
+                    controller: '/documents',
+                    action: 'show',
+                    id: document },
+                  class: 'document'
+        end
+      end
+
+      def render_meeting
+        meeting = Meeting.find_by_id(oid)
+        if meeting&.visible?(User.current)
+          link_to meeting.title,
+                  { only_path: context[:only_path],
+                    controller: '/meetings',
+                    action: 'show',
+                    id: oid },
+                  class: 'meeting'
+        end
+      end
+
       def render_message
         message = Message.includes(:parent).find_by(id: oid)
         if message
@@ -85,16 +107,19 @@ module OpenProject::TextFormatting::Matchers
       def render_user
         user = User.find_by(id: oid)
         if user
-          link_to_user(user, only_path: context[:only_path], class: 'user-mention')
+          link_to_user(user,
+                       only_path: context[:only_path],
+                       class: 'user-mention')
         end
       end
 
       def render_group
-        if group = Group.find_by(id: oid)
-          content_tag :span,
-                      group.name,
-                      title: I18n.t(:label_group_named, name: group.name),
-                      class: 'user-mention'
+        group = Group.find_by(id: oid)
+
+        if group
+          link_to_group(group,
+                        only_path: context[:only_path],
+                        class: 'user-mention')
         end
       end
     end

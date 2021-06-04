@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -36,18 +37,16 @@ module API
         relation.base_class.per_page
       end
 
-      def initialize(models, self_link, query: {}, page: nil, per_page: nil, current_user:)
+      def initialize(models, self_link:, current_user:, query: {}, page: nil, per_page: nil)
         @self_link_base = self_link
         @query = query
         @page = page.to_i > 0 ? page.to_i : 1
-        @per_page = [per_page || self.class.per_page_default(models), maximum_page_size]
-          .map(&:to_i)
-          .min
+        @per_page = resulting_page_size(per_page, models)
 
         full_self_link = make_page_link(page: @page, page_size: @per_page)
         paged = paged_models(models)
 
-        super(paged, models.count, full_self_link, current_user: current_user)
+        super(paged, models.count, self_link: full_self_link, current_user: current_user)
       end
 
       link :jumpTo do

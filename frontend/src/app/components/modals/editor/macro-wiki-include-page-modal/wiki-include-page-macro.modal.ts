@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,13 +24,13 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {OpModalComponent} from "core-components/op-modals/op-modal.component";
-import {OpModalLocalsToken} from "core-components/op-modals/op-modal.service";
-import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, Inject, ViewChild} from "@angular/core";
-import {OpModalLocalsMap} from "core-components/op-modals/op-modal.types";
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Inject, ViewChild } from "@angular/core";
+import { OpModalComponent } from "core-app/modules/modal/modal.component";
+import { OpModalLocalsToken } from "core-app/modules/modal/modal.service";
+import { OpModalLocalsMap } from "core-app/modules/modal/modal.types";
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
 
 @Component({
   templateUrl: './wiki-include-page-macro.modal.html'
@@ -43,7 +43,7 @@ export class WikiIncludePageMacroModal extends OpModalComponent implements After
   public closeOnOutsideClick = true;
 
   public selectedPage:string;
-  public page:string = '';
+  public page = '';
 
   @ViewChild('selectedPageInput', { static: true }) selectedPageInput:ElementRef;
 

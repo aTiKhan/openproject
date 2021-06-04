@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -34,7 +35,10 @@ require 'active_support'
 require 'active_support/dependencies'
 require 'core_extensions'
 
-ActiveSupport::Deprecation.silenced = Rails.env.production? && !ENV['OPENPROJECT_SHOW_DEPRECATIONS']
+# Silence deprecations early on for testing on CI and production
+ActiveSupport::Deprecation.silenced =
+  (Rails.env.production? && !ENV['OPENPROJECT_SHOW_DEPRECATIONS']) ||
+  (Rails.env.test? && ENV['CI'])
 
 if defined?(Bundler)
   # lib directory has to be added to the load path so that
@@ -44,7 +48,7 @@ if defined?(Bundler)
   #
   # require 'open_project/plugins'
   #
-  # to ensure the code to be loaded. So we provide a compaibility
+  # to ensure the code to be loaded. So we provide a compatibility
   # layer here. One might remove this later.
   $LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
   require 'open_project/plugins'
@@ -56,34 +60,24 @@ end
 
 require_relative '../lib/open_project/configuration'
 
-env = ENV['RAILS_ENV'] || 'production'
-db_config = ActiveRecord::Base.configurations[env] || {}
-db_adapter = db_config['adapter']
-if db_adapter&.start_with? 'mysql'
-  warn <<~ERROR
-    ======= INCOMPATIBLE DATABASE DETECTED =======
-    Your database is set up for use with a MySQL or MySQL-compatible variant.
-    This installation of OpenProject no longer supports these variants.
-
-    The following guides provide extensive documentation for migrating
-    your installation to a PostgreSQL database:
-
-    https://www.openproject.org/migration-guides/
-
-    This process is mostly automated so you can continue using your
-    OpenProject installation within a few minutes!
-
-    ==============================================
-  ERROR
-
-  Kernel.exit 1
-end
-
 module OpenProject
   class Application < Rails::Application
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
+
+    # Sets up logging for STDOUT and configures the default logger formatter
+    # so that all environments receive level and timestamp information
+    #
+    # Use default logging formatter so that PID and timestamp are not suppressed.
+    config.log_formatter = ::Logger::Formatter.new
+
+    # Set up STDOUT logging if requested
+    if ENV["RAILS_LOG_TO_STDOUT"].present?
+      logger           = ActiveSupport::Logger.new(STDOUT)
+      logger.formatter = config.log_formatter
+      config.logger    = ActiveSupport::TaggedLogging.new(logger)
+    end
 
     # Use Rack::Deflater to gzip/deflate all the responses if the
     # HTTP_ACCEPT_ENCODING header is set appropriately. As Rack::ETag as
@@ -125,6 +119,14 @@ module OpenProject
 
     # Fall back to default locale
     config.i18n.fallbacks = true
+
+    # Activate being able to specify the format in which full_message works.
+    # Doing this, it is e.g. possible to avoid having the format of '%{attribute} %{message}' which
+    # will always prepend the attribute name to the error message.
+    # The formats can then be specified using the `format:` key within the [local].yml file in every
+    # layer of activerecord.errors down to the individual leve of the message, e.g.
+    # activerecord.errors.models.project.attributes.types.format
+    config.active_model.i18n_customize_full_message = true
 
     # Enable cascade key lookup for i18n
     I18n.backend.class.send(:include, I18n::Backend::Cascade)

@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -41,27 +41,33 @@ module Shared
     end
 
     def in_mutex_context(model, send_notifications = true, &block)
-      OpenProject::Mutex.with_advisory_lock_transaction(model) do
-        in_user_context(send_notifications, &block)
-      end
-    end
-
-    def in_user_context(send_notifications = true)
       result = nil
 
-      ActiveRecord::Base.transaction do
-        User.execute_as user do
-          JournalManager.with_send_notifications(send_notifications) do
-            result = yield
+      OpenProject::Mutex.with_advisory_lock_transaction(model) do
+        result = without_context_transaction(send_notifications, &block)
 
-            if result.failure?
-              raise ActiveRecord::Rollback
-            end
-          end
-        end
+        raise ActiveRecord::Rollback if result.failure?
       end
 
       result
+    end
+
+    def in_user_context(send_notifications = true, &block)
+      result = nil
+
+      ActiveRecord::Base.transaction do
+        result = without_context_transaction(send_notifications, &block)
+
+        raise ActiveRecord::Rollback if result.failure?
+      end
+
+      result
+    end
+
+    def without_context_transaction(send_notifications, &block)
+      User.execute_as user do
+        Journal::NotificationConfiguration.with(send_notifications, &block)
+      end
     end
   end
 end

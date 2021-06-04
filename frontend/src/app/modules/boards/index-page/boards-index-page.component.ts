@@ -1,20 +1,20 @@
-import {AfterViewInit, Component, Injector, OnInit} from "@angular/core";
-import {Observable} from "rxjs";
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
-import {BoardService} from "core-app/modules/boards/board/board.service";
-import {Board} from "core-app/modules/boards/board/board";
-import {BoardCacheService} from "core-app/modules/boards/board/board-cache.service";
-import {NotificationsService} from "core-app/modules/common/notifications/notifications.service";
-import {OpModalService} from "core-components/op-modals/op-modal.service";
-import {NewBoardModalComponent} from "core-app/modules/boards/new-board-modal/new-board-modal.component";
-import {BannersService} from "core-app/modules/common/enterprise/banners.service";
-import {LoadingIndicatorService} from "core-app/modules/common/loading-indicator/loading-indicator.service";
-import {AuthorisationService} from "core-app/modules/common/model-auth/model-auth.service";
-import {enterpriseDemoUrl, enterpriseEditionUrl} from "core-app/globals/constants.const";
-import {DomSanitizer} from "@angular/platform-browser";
-import {boardTeaserVideoURL} from "core-app/modules/boards/board-constants.const";
-import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
-import {componentDestroyed} from "@w11k/ngx-componentdestroyed";
+import { AfterViewInit, Component, Injector, OnInit } from "@angular/core";
+import { Observable } from "rxjs";
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
+import { BoardService } from "core-app/modules/boards/board/board.service";
+import { Board } from "core-app/modules/boards/board/board";
+import { NotificationsService } from "core-app/modules/common/notifications/notifications.service";
+import { OpModalService } from "core-app/modules/modal/modal.service";
+import { NewBoardModalComponent } from "core-app/modules/boards/new-board-modal/new-board-modal.component";
+import { BannersService } from "core-app/modules/common/enterprise/banners.service";
+import { LoadingIndicatorService } from "core-app/modules/common/loading-indicator/loading-indicator.service";
+import { AuthorisationService } from "core-app/modules/common/model-auth/model-auth.service";
+import { contactUrl } from "core-app/globals/constants.const";
+import { DomSanitizer } from "@angular/platform-browser";
+import { boardTeaserVideoURL } from "core-app/modules/boards/board-constants.const";
+import { UntilDestroyedMixin } from "core-app/helpers/angular/until-destroyed.mixin";
+import { componentDestroyed } from "@w11k/ngx-componentdestroyed";
+import { APIV3Service } from "core-app/modules/apiv3/api-v3.service";
 
 @Component({
   templateUrl: './boards-index-page.component.html',
@@ -29,7 +29,7 @@ export class BoardsIndexPageComponent extends UntilDestroyedMixin implements OnI
     type: this.I18n.t('js.boards.label_board_type'),
     type_free: this.I18n.t('js.boards.board_type.free'),
     action_by_attribute: (attr:string) => this.I18n.t('js.boards.board_type.action_by_attribute',
-      { attribute: attr }),
+      { attribute: this.I18n.t('js.boards.board_type.action_type.' + attr ) }),
     createdAt: this.I18n.t('js.label_created_on'),
     delete: this.I18n.t('js.button_delete'),
     areYouSure: this.I18n.t('js.text_are_you_sure'),
@@ -44,12 +44,15 @@ export class BoardsIndexPageComponent extends UntilDestroyedMixin implements OnI
 
   public canAdd = false;
 
-  public boards$:Observable<Board[]> = this.boardCache.observeAll();
+  public boards$:Observable<Board[]> = this
+    .apiV3Service
+    .boards
+    .observeAll();
 
   teaserVideoURL = this.domSanitizer.bypassSecurityTrustResourceUrl(boardTeaserVideoURL);
 
   constructor(private readonly boardService:BoardService,
-              private readonly boardCache:BoardCacheService,
+              private readonly apiV3Service:APIV3Service,
               private readonly I18n:I18nService,
               private readonly notifications:NotificationsService,
               private readonly opModalService:OpModalService,
@@ -86,7 +89,6 @@ export class BoardsIndexPageComponent extends UntilDestroyedMixin implements OnI
     this.boardService
       .delete(board)
       .then(() => {
-        this.boardCache.clearSome(board.id!);
         this.notifications.addSuccess(this.text.deleteSuccessful);
       })
       .catch((error) => this.notifications.addError("Deletion failed: " + error));
@@ -97,10 +99,10 @@ export class BoardsIndexPageComponent extends UntilDestroyedMixin implements OnI
   }
 
   public eeLink() {
-    return enterpriseEditionUrl + '&op_referrer=boards';
+    return this.bannerService.getEnterPriseEditionUrl({ referrer: 'boards' });
   }
 
-  public demoLink() {
-    return enterpriseDemoUrl;
+  public demoLink():string {
+    return contactUrl[this.I18n.locale] || contactUrl.en;
   }
 }

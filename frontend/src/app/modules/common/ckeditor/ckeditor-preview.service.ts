@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,10 +24,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {ApplicationRef, ComponentFactoryResolver, ComponentRef, Injectable, Injector} from "@angular/core";
-import {DynamicBootstrapper} from "core-app/globals/dynamic-bootstrapper";
+import { ApplicationRef, ComponentFactoryResolver, ComponentRef, Injectable, Injector } from "@angular/core";
+import { DynamicBootstrapper } from "core-app/globals/dynamic-bootstrapper";
 
 @Injectable()
 export class CKEditorPreviewService {
@@ -47,22 +47,22 @@ export class CKEditorPreviewService {
    */
   public render(hostElement:HTMLElement, preview:string):() => void {
     hostElement.innerHTML = preview;
-    let refs:ComponentRef<any>[] = [];
+    const refs:ComponentRef<any>[] = [];
 
     DynamicBootstrapper
       .getEmbeddable()
       .forEach((entry) => {
-      const matchedElements = hostElement.querySelectorAll(entry.selector);
+        const matchedElements = hostElement.querySelectorAll(entry.selector);
 
-      for (let i = 0, l = matchedElements.length; i < l; i++) {
-        const factory = this.componentFactoryResolver.resolveComponentFactory(entry.cls);
-        const componentRef = factory.create(this.injector, [], matchedElements[i]);
+        for (let i = 0, l = matchedElements.length; i < l; i++) {
+          const factory = this.componentFactoryResolver.resolveComponentFactory(entry.cls);
+          const componentRef = factory.create(this.injector, [], matchedElements[i]);
 
-        refs.push(componentRef);
-        this.appRef.attachView(componentRef.hostView);
-        componentRef.changeDetectorRef.detectChanges();
-      }
-    });
+          refs.push(componentRef);
+          this.appRef.attachView(componentRef.hostView);
+          componentRef.changeDetectorRef.detectChanges();
+        }
+      });
 
     return () => {
       refs.forEach(ref => {

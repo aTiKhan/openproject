@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -51,10 +51,6 @@ module OpenProject::Backlogs
       sql_for_field(values)
     end
 
-    def order
-      20
-    end
-
     def type
       :list
     end
@@ -72,8 +68,11 @@ module OpenProject::Backlogs
     end
 
     def value_objects
-      allowed_values
-        .select { |av| values.include?(av.last) }
+      available_backlog_types = allowed_values.index_by(&:last)
+
+      values
+        .map { |backlog_type_id| available_backlog_types[backlog_type_id] }
+        .compact
         .map { |value| BacklogsType.new(*value) }
     end
 

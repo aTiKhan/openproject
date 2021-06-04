@@ -1,22 +1,26 @@
-<div class="form--selected-value--container" focus-within="accessible-by-keyboard">
+<div class="form--selected-value--container" focus-within="button">
   <span class="form--selected-value">
     <span [ngClass]="{'deleting': deleting }">
       <a [attr.href]="watcher.showUser.href">
-        <user-avatar [attr.data-user-name]="watcher.name"
-                     [attr.data-user-id]="watcher.id"
-                     data-class-list="avatar-mini">
-        </user-avatar>
+        <op-principal
+          [attr.data-principal-id]="watcher.id"
+          [attr.data-principal-name]="watcher.name"
+          data-principal-type="user"
+          data-hide-name="true"
+          data-size="avatar-mini"
+        ></op-principal>
         <span class="work-package--watcher-name" [textContent]="watcher.name"></span>
       </a>
     </span>
   </span>
-  <accessible-by-keyboard (execute)="remove()"
-                          [linkAriaLabel]="text.remove"
-                          [linkTitle]="text.remove"
-                          linkClass="form--selected-value--remover">
-    <op-icon icon-classes="icon-remove"
-             [icon-title]="text.remove"></op-icon>
-  </accessible-by-keyboard>
+  <button
+      type="button"
+      class="op-link form--selected-value--remover"
+      [title]="text.remove"
+      (click)="remove()"
+  >
+    <op-icon icon-classes="icon-remove"></op-icon>
+  </button>
 </div>
 
 

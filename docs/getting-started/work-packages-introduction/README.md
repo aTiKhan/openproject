@@ -4,7 +4,7 @@ sidebar_navigation:
   priority: 700
 description: Introduction to work packages in OpenProject.
 robots: index, follow
-keywords: work packages introduction
+keywords: work packages introduction, attributes, values, task
 ---
 
 # Introduction to Work Packages
@@ -13,22 +13,24 @@ In this document you will get a first introduction to work packages. You will fi
 
 For further documentation, please visit our [user guide for work packages](../../user-guide/work-packages).
 
-| Feature                                                      | Documentation for                                         |
+| Topic                                                        | Content                                                   |
 | ------------------------------------------------------------ | --------------------------------------------------------- |
-| [What is a work package?](#what-is-a-work-package?)          | Find out what is a work package in OpenProject.           |
+| [What is a work package?](#what-is-a-work-package?)          | Find out what a work package in OpenProject is.           |
 | [Create a new work package](#create-a-new-work-package)      | How to create a new work package in  a project?           |
 | [Open and edit a work package](#open-and-edit-a-work-package) | How to open and make changes to an existing work package? |
 | [Activity of work packages](#activity-of-work-packages)      | See all changes in a work package.                        |
 
+<video src="https://www.openproject.org/wp-content/uploads/2020/12/OpenProject-Work-Packages.mp4" type="video/mp4" controls="" style="width:100%"></video>
+
 ## What is a work package?
 
-A work package in OpenProject can basically be everything you need to keep track off within your projects. It can be e.g. a task, a feature, a bug, a risk, a milestone or a project phase. This different kinds of work packages are called work package types.
+A work package in OpenProject can basically be everything you need to keep track off within your projects. It can be e.g. a task, a feature, a bug, a risk, a milestone or a project phase. These different kinds of work packages are called **work package types**.
 
 ## Create a new work package
 
 To get started, create a new work package in your project, [open the project](#open-an-existing-project) with the project drop-down menu, navigate to the **module work packages** in the project menu.
 
-Within the work packages module, click the green + Work package button to create a new work package. In the drop down menu, choose which type of work package you want to create, e.g. a task, a 
+Within the work packages module, click the green + Create button to create a new work package. In the drop down menu, choose which type of work package you want to create, e.g. a task or a milestone.
 
 ![create-work-package](create-work-package-1569611257373.png)
 
@@ -36,7 +38,7 @@ A split screen view is opened with the new work package form on the right and th
 
 If there are not yet any work packages in the project, you will see a message that there are no work packages to be displayed in the list.
 
-In the empty form on the right, you can enter all relevant information for this work package, e.g. the subject and a description, set an assignee, a due date or any other field. Also, you can add attachments with copy & paste or with drag and drop.
+In the empty form on the right, you can enter all relevant information for this work package, e.g. the subject and a description, set an assignee, a due date or any other field. The fields you can populate are called **work package attributes**. Also, you can add attachments with copy & paste or with drag and drop.
 
 Click the green **Save** button to create the work package.
 
@@ -46,9 +48,19 @@ The work package will the be displayed in the list view:
 
 ![list-view-work-package](1569611758166.png)
 
+Another option to create a work package is to do it from the header menu. The [work package types](../../user-guide/projects/proejct-settings/work-package-types/#work-pacakge-types) that are activated, will be shown and you can select the relevant work package type to be created.
+
+![create-work-package-header](create-work-package-header.png)
+
+Once you click on the work package type that you want to create, the work package detail view opens and you have to **select the project** that you want to create the work package for. 
+
+![create-work-package-define-project](create-work-package-define-project.png)
+
+Then you follow the same steps as mentioned above to fill in the your work package attributes and save it.
+
 ## Open and edit a work package
 
-To open and edit an existing work package from the list, select the work package in the list which you want to edit and click on the **open details view** icon in the work package list or on top of the list to open the split screen view.
+To open and edit an existing work package from the list, select the work package in the list which you want to edit and click on the **open details view** icon in the work package list or on top of the list to open the split screen view. Other ways to open it would be to double-click on the work package or to click on the work package ID.
 
 ![open-details-view-work-packages](open-details-view-work-packages.png)
 
@@ -71,6 +83,8 @@ Here you will see all changes which have been made to this work package.
 You can also insert a comment at the end of the Activity list.
 
 ![activity-work-packages](activity-work-packages.png)
+
+The aggregation of changes in the Activity list can be configured in the [system administration](../../system-admin-guide/system-settings/display-settings/#time-and-date-formatting,-aggregation-of-changes-in-activity).
 
 To find out more about the work package functionalities, please visit our detailed [user guide for work packages](../../user-guide/work-packages).
 

@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -48,10 +48,11 @@ module Redmine
           attachments_order = options.delete(:order) || "#{Attachment.table_name}.created_at"
           has_many :attachments, -> {
             order(attachments_order)
-          }, options.reverse_merge!(as: :container, dependent: :destroy)
+          }, **options.reverse_merge!(as: :container, dependent: :destroy)
 
           attr_accessor :attachments_replacements,
                         :attachments_claimed
+
           send :include, Redmine::Acts::Attachable::InstanceMethods
 
           OpenProject::Deprecation.deprecate_method self, :attach_files
@@ -66,6 +67,7 @@ module Redmine
             add_on_new_permission: add_on_new_permission(options),
             add_on_persisted_permission: add_on_persisted_permission(options),
             only_user_allowed: only_user_allowed(options),
+            viewable_by_all_users: viewable_by_all_users(options),
             modification_blocked: options[:modification_blocked],
             extract_tsv: attachable_extract_tsv_option(options)
           }
@@ -80,6 +82,7 @@ module Redmine
                           :add_on_persisted_permission,
                           :add_permission,
                           :only_user_allowed,
+                          :viewable_by_all_users,
                           :modification_blocked,
                           :extract_tsv)
         end
@@ -98,6 +101,10 @@ module Redmine
 
         def add_on_persisted_permission(options)
           options[:add_on_persisted_permission] || options[:add_permission] || edit_permission_default
+        end
+
+        def viewable_by_all_users(options)
+          options.fetch(:viewable_by_all_users, false)
         end
 
         def only_user_allowed(options)
@@ -149,6 +156,8 @@ module Redmine
           end
 
           def attachments_visible?(user = User.current)
+            return true if user.logged? && self.class.attachable_options[:viewable_by_all_users]
+
             allowed_to_on_attachment?(user, self.class.attachable_options[:view_permission])
           end
 

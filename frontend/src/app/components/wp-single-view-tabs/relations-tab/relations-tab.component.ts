@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,14 +24,14 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {Transition} from '@uirouter/core';
-import {WorkPackageCacheService} from 'core-components/work-packages/work-package-cache.service';
-import {Component, Input, OnInit} from '@angular/core';
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
-import {WorkPackageResource} from 'core-app/modules/hal/resources/work-package-resource';
-import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
+import { Transition } from '@uirouter/core';
+import { Component, Input, OnInit } from '@angular/core';
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
+import { WorkPackageResource } from 'core-app/modules/hal/resources/work-package-resource';
+import { UntilDestroyedMixin } from "core-app/helpers/angular/until-destroyed.mixin";
+import { APIV3Service } from "core-app/modules/apiv3/api-v3.service";
 
 @Component({
   templateUrl: './relations-tab.html',
@@ -43,14 +43,17 @@ export class WorkPackageRelationsTabComponent extends UntilDestroyedMixin implem
 
   public constructor(readonly I18n:I18nService,
                      readonly $transition:Transition,
-                     readonly wpCacheService:WorkPackageCacheService) {
+                     readonly apiV3Service:APIV3Service) {
     super();
   }
 
   ngOnInit() {
     const wpId = this.workPackageId || this.$transition.params('to').workPackageId;
-    this.wpCacheService.loadWorkPackage(wpId)
-      .values$()
+    this
+      .apiV3Service
+      .work_packages
+      .id(wpId)
+      .requireAndStream()
       .pipe(
         this.untilDestroyed()
       )

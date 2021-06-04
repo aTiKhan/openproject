@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -67,28 +68,28 @@ class WorkflowsController < ApplicationController
   end
 
   def copy
-    if params[:source_type_id].blank? || params[:source_type_id] == 'any'
-      @source_type = nil
-    else
-      @source_type = ::Type.find_by(id: params[:source_type_id].to_i)
-    end
-    if params[:source_role_id].blank? || params[:source_role_id] == 'any'
-      @source_role = nil
-    else
-      @source_role = Role.find_by(id: params[:source_role_id].to_i)
-    end
+    @source_type = if params[:source_type_id].blank? || params[:source_type_id] == 'any'
+                     nil
+                   else
+                     ::Type.find_by(id: params[:source_type_id].to_i)
+                   end
+    @source_role = if params[:source_role_id].blank? || params[:source_role_id] == 'any'
+                     nil
+                   else
+                     Role.find_by(id: params[:source_role_id].to_i)
+                   end
 
     @target_types = params[:target_type_ids].blank? ? nil : ::Type.where(id: params[:target_type_ids])
     @target_roles = params[:target_role_ids].blank? ? nil : Role.where(id: params[:target_role_ids])
 
     if request.post?
       if params[:source_type_id].blank? || params[:source_role_id].blank? || (@source_type.nil? && @source_role.nil?)
-        flash.now[:error] = l(:error_workflow_copy_source)
+        flash.now[:error] = I18n.t(:error_workflow_copy_source)
       elsif @target_types.nil? || @target_roles.nil?
-        flash.now[:error] = l(:error_workflow_copy_target)
+        flash.now[:error] = I18n.t(:error_workflow_copy_target)
       else
         Workflow.copy(@source_type, @source_role, @target_types, @target_roles)
-        flash[:notice] = l(:notice_successful_update)
+        flash[:notice] = I18n.t(:notice_successful_update)
         redirect_to action: 'copy', source_type_id: @source_type, source_role_id: @source_role
       end
     end

@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -55,7 +55,7 @@ module OpenProject
       end
 
       def permissions
-        @permissions
+        @permissions.select(&:enabled?)
       end
 
       def modules
@@ -71,13 +71,13 @@ module OpenProject
       # Returns the actions that are allowed by the permission of given name
       def allowed_actions(permission_name)
         perm = permission(permission_name)
-        perm ? perm.actions : []
+        perm ? perm.controller_actions : []
       end
 
       def allow_actions(action_hash)
         action = "#{action_hash[:controller]}/#{action_hash[:action]}"
 
-        permissions.select { |p| p.actions.include? action }
+        permissions.select { |p| p.controller_actions.include? action }
       end
 
       def public_permissions
@@ -92,9 +92,13 @@ module OpenProject
         @loggedin_only_permissions ||= @permissions.select(&:require_loggedin?)
       end
 
+      def global_permissions
+        @permissions.select(&:global?)
+      end
+
       def available_project_modules
         @available_project_modules ||= begin
-          (@permissions.map(&:project_module) + @project_modules_without_permissions)
+          (@permissions.reject(&:global?).map(&:project_module) + @project_modules_without_permissions)
             .uniq
             .compact
             .reject { |name| disabled_project_modules.include? name }
@@ -109,6 +113,14 @@ module OpenProject
 
       def modules_permissions(modules)
         @permissions.select { |p| p.project_module.nil? || modules.include?(p.project_module.to_s) }
+      end
+
+      def contract_actions_map
+        @contract_actions_map ||= permissions.each_with_object({}) do |p, hash|
+          next unless p.contract_actions.any?
+
+          hash[p.name] = { actions: p.contract_actions, global: p.global?, module: p.project_module }
+        end
       end
 
       def remove_modules_permissions(module_name)
@@ -126,6 +138,7 @@ module OpenProject
         @public_permissions = nil
         @members_only_permissions = nil
         @loggedin_only_permissions = nil
+        @contract_actions_map = nil
       end
     end
   end

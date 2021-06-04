@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -73,7 +73,7 @@ describe ::API::V3::Memberships::Schemas::MembershipSchemaRepresenter do
   end
   let(:representer) do
     described_class.create(contract,
-                           self_link,
+                           self_link: self_link,
                            form_embedded: embedded,
                            current_user: current_user)
   end
@@ -103,9 +103,32 @@ describe ::API::V3::Memberships::Schemas::MembershipSchemaRepresenter do
 
       it_behaves_like 'has basic schema properties' do
         let(:type) { 'DateTime' }
-        let(:name) { Version.human_attribute_name('created_at') }
+        let(:name) { Member.human_attribute_name('created_at') }
         let(:required) { true }
         let(:writable) { false }
+      end
+    end
+
+    describe 'updatedAt' do
+      let(:path) { 'updatedAt' }
+
+      it_behaves_like 'has basic schema properties' do
+        let(:type) { 'DateTime' }
+        let(:name) { Member.human_attribute_name('updated_at') }
+        let(:required) { true }
+        let(:writable) { false }
+      end
+    end
+
+    describe 'notificationMessage' do
+      let(:path) { 'notificationMessage' }
+
+      it_behaves_like 'has basic schema properties' do
+        let(:type) { 'Formattable' }
+        let(:name) { I18n.t('label_message') }
+        let(:required) { false }
+        let(:writable) { true }
+        let(:location) { :_meta }
       end
     end
 
@@ -116,8 +139,9 @@ describe ::API::V3::Memberships::Schemas::MembershipSchemaRepresenter do
         it_behaves_like 'has basic schema properties' do
           let(:type) { 'Project' }
           let(:name) { Member.human_attribute_name('project') }
-          let(:required) { true }
+          let(:required) { false }
           let(:writable) { true }
+          let(:location) { '_links' }
         end
 
         context 'if embedding' do
@@ -157,8 +181,9 @@ describe ::API::V3::Memberships::Schemas::MembershipSchemaRepresenter do
         it_behaves_like 'has basic schema properties' do
           let(:type) { 'Project' }
           let(:name) { Version.human_attribute_name('project') }
-          let(:required) { true }
+          let(:required) { false }
           let(:writable) { false }
+          let(:location) { '_links' }
         end
 
         context 'if embedding' do
@@ -178,6 +203,7 @@ describe ::API::V3::Memberships::Schemas::MembershipSchemaRepresenter do
           let(:name) { Version.human_attribute_name('principal') }
           let(:required) { true }
           let(:writable) { true }
+          let(:location) { '_links' }
         end
 
         context 'if embedding' do
@@ -186,7 +212,7 @@ describe ::API::V3::Memberships::Schemas::MembershipSchemaRepresenter do
           context 'if having no project' do
             it_behaves_like 'links to allowed values via collection link' do
               let(:href) do
-                statuses = [Principal::STATUSES[:locked].to_s]
+                statuses = [Principal.statuses[:locked].to_s]
                 filters = [{ 'status' => { 'operator' => '!', 'values' => statuses } }]
 
                 api_v3_paths.path_for(:principals, filters: filters)
@@ -199,7 +225,7 @@ describe ::API::V3::Memberships::Schemas::MembershipSchemaRepresenter do
 
             it_behaves_like 'links to allowed values via collection link' do
               let(:href) do
-                statuses = [Principal::STATUSES[:locked].to_s]
+                statuses = [Principal.statuses[:locked].to_s]
                 status_filter = { 'status' => { 'operator' => '!', 'values' => statuses } }
                 member_filter = { 'member' => { 'operator' => '!', 'values' => [assigned_project.id.to_s] } }
 
@@ -226,6 +252,7 @@ describe ::API::V3::Memberships::Schemas::MembershipSchemaRepresenter do
           let(:name) { Version.human_attribute_name('principal') }
           let(:required) { true }
           let(:writable) { false }
+          let(:location) { '_links' }
         end
 
         context 'if embedding' do
@@ -244,14 +271,39 @@ describe ::API::V3::Memberships::Schemas::MembershipSchemaRepresenter do
         let(:name) { Version.human_attribute_name('role') }
         let(:required) { true }
         let(:writable) { true }
+        let(:location) { '_links' }
       end
 
       context 'if embedding' do
         let(:embedded) { true }
 
-        it_behaves_like 'links to allowed values via collection link' do
-          let(:href) do
-            api_v3_paths.path_for(:roles, filters: [{ unit: { operator: '=', values: ['project'] } }])
+        context 'for a new record' do
+          it_behaves_like 'links to allowed values via collection link' do
+            let(:href) do
+              api_v3_paths.path_for(:roles)
+            end
+          end
+        end
+
+        context 'for a persisted record without project (global)' do
+          let(:assigned_project) { nil }
+          let(:new_record) { false }
+
+          it_behaves_like 'links to allowed values via collection link' do
+            let(:href) do
+              api_v3_paths.path_for(:roles, filters: [{ unit: { operator: '=', values: ['system'] } }])
+            end
+          end
+        end
+
+        context 'for a persisted record with project (global)' do
+          let(:assigned_project) { project }
+          let(:new_record) { false }
+
+          it_behaves_like 'links to allowed values via collection link' do
+            let(:href) do
+              api_v3_paths.path_for(:roles, filters: [{ unit: { operator: '=', values: ['project'] } }])
+            end
           end
         end
       end

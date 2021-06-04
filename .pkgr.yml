@@ -5,27 +5,32 @@ targets:
     build_dependencies:
       - libsqlite3-dev
     dependencies:
+      - unzip
       - poppler-utils
       - unrtf
       - tesseract-ocr
       - catdoc
+      - imagemagick
   debian-10:
-    <<: *debian9
-  ubuntu-14.04:
     <<: *debian9
   ubuntu-16.04:
     <<: *debian9
   ubuntu-18.04:
     <<: *debian9
+  ubuntu-20.04:
+    <<: *debian9
+  centos-7: &centos7
+    dependencies:
+      - epel-release
+      - ImageMagick
+      - unzip
+      - poppler-utils
   centos-8:
-   dependencies:
-      - epel-release
-  centos-7:
-   dependencies:
-      - epel-release
+    <<: *centos7
   sles-12:
     build_dependencies:
       - sqlite3-devel
+      - ImageMagick
 before_precompile: "packaging/setup"
 after_precompile: "packaging/teardown"
 services:
@@ -33,10 +38,11 @@ services:
 installer: https://github.com/pkgr/installer.git
 wizards:
   - https://github.com/pkgr/addon-legacy-installer.git
+  - ./packaging/addons/openproject-edition
   - https://github.com/pkgr/addon-postgres
   - https://github.com/pkgr/addon-apache2.git
-  - https://github.com/finnlabs/addon-repositories.git
+  - ./packaging/addons/repositories
   - https://github.com/pkgr/addon-smtp.git
   - https://github.com/pkgr/addon-memcached.git
-  - https://github.com/opf/addon-openproject.git
+  - ./packaging/addons/openproject
 buildpack: https://github.com/opf/heroku-buildpack-multi.git

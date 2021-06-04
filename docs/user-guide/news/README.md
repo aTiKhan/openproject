@@ -11,7 +11,9 @@ keywords: news
 
 On the news page, you can see the latest news in a project in reverse chronological order. News communicate general topics to all team members.
 
-<div class="glossary"> **News** are defined as a module that allows the publication and use of news entries.</div>
+<div class="glossary">
+**News** are defined as a module that allows the publication and use of news entries.
+</div>
 
 They can be displayed on the main project overview page.
 
@@ -19,7 +21,7 @@ They can be displayed on the main project overview page.
 | ------------------------------------------- | ------------------------------------------------- |
 | [Comment on news](#comment-on-news)         | How to comment news in a project?                 |
 | [Watch news](#watch-a-news-entry)           | How to add yourself as a watcher to a news entry? |
-| [Edit a news entry](#edi-a-news-entry)      | How to edit an existing news entry?               |
+| [Edit a news entry](#edit-a-news-entry)     | How to edit an existing news entry?               |
 | [Add a news entry](#add-a-news-entry)       | How to create a new news entry?                   |
 | [Delete a news entry](#delete-a-news-entry) | How to delete a news entry?                       |
 
@@ -70,13 +72,13 @@ On the OpenProject landing page of the application, you have a latest news secti
 
 Clicking on the title of a news will bring you to the news details in the corresponding project.
 
-![latest-news](latest-news-1567427351673.png)
+![news-widget-landing-page](news-widget-landing-page.png)
 
 ## Latest news section on the project overview page
 
 You can also include your latest news from a project on the Project overview page.
 
-Find out how to [configure your Project overview](#project-overview) page.
+Find out how to [configure your Project overview](../project-overview/#news-widget) page.
 
-![latest-news-project-overview](1567427575338.png)
+![latest-news-project-overview](latest-news-project-overview.png)
 

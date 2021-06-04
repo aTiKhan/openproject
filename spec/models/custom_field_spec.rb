@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -139,7 +139,6 @@ describe CustomField, type: :model do
 
     describe "WITH a text field
               WITH an invalid regexp" do
-
       before do
         field.field_format = 'text'
         field.regexp = '[0-9}'
@@ -194,7 +193,7 @@ describe CustomField, type: :model do
       before do
         field.field_format = 'user'
         allow(project)
-          .to receive(:users)
+          .to receive(:principals)
           .and_return([user1, user2])
 
         allow(Principal)
@@ -363,6 +362,80 @@ describe CustomField, type: :model do
       end
 
       it_behaves_like 'saving updates field\'s updated_at'
+    end
+  end
+
+  describe '#multi_value_possible?' do
+    context 'with a wp list cf' do
+      let(:field) { FactoryBot.build_stubbed :list_wp_custom_field }
+
+      it 'is true' do
+        expect(field)
+          .to be_multi_value_possible
+      end
+    end
+
+    context 'with a wp user cf' do
+      let(:field) { FactoryBot.build_stubbed :user_wp_custom_field }
+
+      it 'is true' do
+        expect(field)
+          .to be_multi_value_possible
+      end
+    end
+
+    context 'with a wp int cf' do
+      let(:field) { FactoryBot.build_stubbed :int_wp_custom_field }
+
+      it 'is true' do
+        expect(field)
+          .not_to be_multi_value_possible
+      end
+    end
+
+    context 'with a project list cf' do
+      let(:field) { FactoryBot.build_stubbed :list_project_custom_field }
+
+      it 'is true' do
+        expect(field)
+          .to be_multi_value_possible
+      end
+    end
+
+    context 'with a project user cf' do
+      let(:field) { FactoryBot.build_stubbed :user_project_custom_field }
+
+      it 'is true' do
+        expect(field)
+          .to be_multi_value_possible
+      end
+    end
+
+    context 'with a project int cf' do
+      let(:field) { FactoryBot.build_stubbed :int_project_custom_field }
+
+      it 'is true' do
+        expect(field)
+          .not_to be_multi_value_possible
+      end
+    end
+
+    context 'with a time_entry user cf' do
+      let(:field) { FactoryBot.build_stubbed :time_entry_custom_field, field_format: 'user' }
+
+      it 'is true' do
+        expect(field)
+          .not_to be_multi_value_possible
+      end
+    end
+
+    context 'with a time_entry list cf' do
+      let(:field) { FactoryBot.build_stubbed :time_entry_custom_field, field_format: 'list' }
+
+      it 'is true' do
+        expect(field)
+          .not_to be_multi_value_possible
+      end
     end
   end
 

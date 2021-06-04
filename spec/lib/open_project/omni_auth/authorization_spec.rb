@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -34,6 +34,7 @@ describe OpenProject::OmniAuth::Authorization do
     let(:user)  { FactoryBot.create :user, mail: 'foo@bar.de' }
     let(:state) { Struct.new(:number, :user_email, :uid).new 0, nil, nil }
     let(:collector) { [] }
+    let!(:existing_callbacks) { OpenProject::OmniAuth::Authorization.after_login_callbacks.dup }
 
     before do
       OpenProject::OmniAuth::Authorization.after_login_callbacks.clear
@@ -53,7 +54,13 @@ describe OpenProject::OmniAuth::Authorization do
     end
 
     after do
+      # Reset existing callbacks to avoid sideeffects
       OpenProject::OmniAuth::Authorization.after_login_callbacks.clear
+      callbacks = OpenProject::OmniAuth::Authorization.after_login_callbacks
+
+      existing_callbacks.each do |callback_block|
+        callbacks << callback_block
+      end
     end
 
     it 'triggers every callback setting uid to "bar", number to 42 and user_email to foo@bar.de' do

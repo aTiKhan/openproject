@@ -1,4 +1,4 @@
-import {GroupObject} from 'core-app/modules/hal/resources/wp-collection-resource';
+import { GroupObject } from 'core-app/modules/hal/resources/wp-collection-resource';
 
 export function groupIdentifier(group:GroupObject) {
   let value = group.value || 'nullValue';
@@ -16,7 +16,7 @@ export function groupIdentifier(group:GroupObject) {
 }
 
 export function groupName(group:GroupObject) {
-  let value = group.value;
+  const value = group.value;
   if (value === null) {
     return '-';
   } else {
@@ -33,4 +33,18 @@ export function groupByProperty(group:GroupObject):string {
  */
 export function groupedRowClassName(groupIndex:number) {
   return `__row-group-${groupIndex}`;
+}
+
+/**
+ * Get the group type from its identifier.
+ */
+export function groupTypeFromIdentifier(groupIdentifier:string) {
+  return groupIdentifier.split('-')[0];
+}
+
+/**
+ * Get the group id from its identifier.
+ */
+export function groupIdFromIdentifier(groupIdentifier:string) {
+  return groupIdentifier.split('-').pop();
 }

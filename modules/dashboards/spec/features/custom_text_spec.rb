@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -31,13 +31,16 @@ require 'spec_helper'
 require_relative '../support/pages/dashboard'
 
 describe 'Project description widget on dashboard', type: :feature, js: true do
+  let!(:type) { FactoryBot.create :type_task, name: 'Task' }
   let!(:project) do
-    FactoryBot.create :project
+    FactoryBot.create :project, types: [type]
   end
 
   let(:permissions) do
     %i[view_dashboards
-       manage_dashboards]
+       manage_dashboards
+       add_work_packages
+      ]
   end
 
   let(:role) do
@@ -50,7 +53,7 @@ describe 'Project description widget on dashboard', type: :feature, js: true do
   let(:dashboard_page) do
     Pages::Dashboard.new(project)
   end
-  let(:image_fixture) { Rails.root.join('spec/fixtures/files/image.png') }
+  let(:image_fixture) { ::UploadedFile.load_from('spec/fixtures/files/image.png') }
   let(:editor) { ::Components::WysiwygEditor.new 'body' }
   let(:field) { TextEditorField.new(page, 'description', selector: '.inline-edit--active-field') }
 
@@ -61,6 +64,33 @@ describe 'Project description widget on dashboard', type: :feature, js: true do
   context 'for a user having edit permissions' do
     before do
       dashboard_page.visit!
+    end
+
+    it 'can use the wp create button macro within it' do
+      dashboard_page.add_widget(1, 1, :within, "Custom text")
+
+      sleep(0.1)
+
+      # As the user lacks the manage_public_queries and save_queries permission, no other widget is present
+      custom_text_widget = Components::Grids::GridArea.new('.grid--area.-widgeted:nth-of-type(1)')
+
+      within custom_text_widget.area do
+        find('.inplace-editing--container ').click
+      end
+
+      editor.insert_macro 'Insert create work package button'
+
+      expect(page).to have_selector('.op-modal')
+      select 'Task', from: 'selected-type'
+      find('.op-modal--submit-button').click
+
+      field.save!
+
+      dashboard_page.expect_and_dismiss_notification message: I18n.t('js.notice_successful_update')
+
+      within('#content') do
+        expect(page).to have_selector("a[href=\"/projects/#{project.identifier}/work_packages/new?type=#{type.id}\"]")
+      end
     end
 
     it 'can add the widget set custom text and upload attachments' do
@@ -104,7 +134,7 @@ describe 'Project description widget on dashboard', type: :feature, js: true do
 
       # The drag_attachment is written in a way that it requires to be executed with page on body
       # so we cannot have it wrapped in the within block.
-      editor.drag_attachment image_fixture, 'Image uploaded'
+      editor.drag_attachment image_fixture.path, 'Image uploaded'
 
       within custom_text_widget.area do
         expect(page).to have_selector('attachment-list-item', text: 'image.png')

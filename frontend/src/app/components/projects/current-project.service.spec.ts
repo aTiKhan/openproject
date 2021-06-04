@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -28,15 +28,23 @@
 
 /*jshint expr: true*/
 
-import {CurrentProjectService} from './current-project.service';
-import {PathHelperService} from "core-app/modules/common/path-helper/path-helper.service";
+import { CurrentProjectService } from './current-project.service';
+import { PathHelperService } from "core-app/modules/common/path-helper/path-helper.service";
 
 describe('currentProject service', function() {
   let element:JQuery;
   let currentProject:CurrentProjectService;
 
+  const apiV3Stub:any = {
+    projects: {
+      id: (id:string) => {
+        return { toString: () => '/api/v3/projects/' + id };
+      }
+    }
+  };
+
   beforeEach(() => {
-    currentProject = new CurrentProjectService(new PathHelperService());
+    currentProject = new CurrentProjectService(new PathHelperService(), apiV3Stub);
   });
 
   describe('with no meta present', () => {
@@ -51,7 +59,7 @@ describe('currentProject service', function() {
 
   describe('with a meta value present', () => {
     beforeEach(() => {
-      let html = `
+      const html = `
           <meta name="current_project" data-project-name="Foo 1234" data-project-id="1" data-project-identifier="foobar"/>
         `;
 

@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -56,11 +56,40 @@ module API
             unless metadata.file_name
               raise ::API::Errors::Validation.new(
                 :file_name,
-                "fileName #{I18n.t('activerecord.errors.messages.blank')}."
+                "fileName #{I18n.t('activerecord.errors.messages.blank')}"
               )
             end
 
             metadata
+          end
+
+          def parse_and_prepare
+            metadata = parse_metadata params[:metadata]
+
+            unless metadata
+              raise ::API::Errors::InvalidRequestBody.new(I18n.t('api_v3.errors.multipart_body_error'))
+            end
+
+            unless metadata.file_size
+              raise ::API::Errors::Validation.new(
+                :file_size,
+                "fileSize #{I18n.t('activerecord.errors.messages.blank')}"
+              )
+            end
+
+            with_handled_create_errors do
+              create_attachment metadata
+            end
+          end
+
+          def create_attachment(metadata)
+            Attachment.create_pending_direct_upload(
+              file_name: metadata.file_name,
+              container: container,
+              author: current_user,
+              content_type: metadata.content_type,
+              file_size: metadata.file_size
+            )
           end
 
           def parse_and_create
@@ -87,14 +116,28 @@ module API
             end
           end
 
+          def check_permissions(permissions)
+            if permissions.empty?
+              raise API::Errors::Unauthorized unless container.attachments_addable?(current_user)
+            else
+              authorize_any(permissions, projects: container.project)
+            end
+          end
+
+          def require_direct_uploads
+            unless OpenProject::Configuration.direct_uploads?
+              raise API::Errors::NotFound, message: "Only available if direct uploads are enabled."
+            end
+          end
+
           def with_handled_create_errors
             yield
-          rescue ActiveRecord::RecordInvalid => error
-            raise ::API::Errors::ErrorBase.create_and_merge_errors(error.record.errors)
-          rescue StandardError => error
-            log_attachment_saving_error(error)
+          rescue ActiveRecord::RecordInvalid => e
+            raise ::API::Errors::ErrorBase.create_and_merge_errors(e.record.errors)
+          rescue StandardError => e
+            log_attachment_saving_error(e)
             message =
-              if error&.class&.to_s == 'Errno::EACCES'
+              if e&.class&.to_s == 'Errno::EACCES'
                 I18n.t('api_v3.errors.unable_to_create_attachment_permissions')
               else
                 I18n.t('api_v3.errors.unable_to_create_attachment')
@@ -118,21 +161,26 @@ module API
           -> do
             attachments = container.attachments
             AttachmentCollectionRepresenter.new(attachments,
-                                                get_attachment_self_path,
+                                                self_link: get_attachment_self_path,
                                                 current_user: current_user)
           end
         end
 
         def self.create(permissions = [])
           -> do
-            if permissions.empty?
-              raise API::Errors::Unauthorized unless container.attachments_addable?(current_user)
-            else
-              authorize_any(permissions, projects: container.project)
-            end
+            check_permissions permissions
 
             ::API::V3::Attachments::AttachmentRepresenter.new(parse_and_create,
                                                               current_user: current_user)
+          end
+        end
+
+        def self.prepare(permissions = [])
+          -> do
+            require_direct_uploads
+            check_permissions permissions
+
+            ::API::V3::Attachments::AttachmentUploadRepresenter.new(parse_and_prepare, current_user: current_user)
           end
         end
       end

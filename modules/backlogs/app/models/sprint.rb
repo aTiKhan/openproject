@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -38,9 +38,6 @@ class Sprint < Version
   scope :order_by_date, -> {
     reorder(Arel.sql("start_date ASC NULLS LAST, effective_date ASC NULLS LAST"))
   }
-  scope :order_by_name, -> {
-    order Arel.sql("#{Version.table_name}.name ASC")
-  }
 
   scope :apply_to, lambda { |project|
     where("#{Version.table_name}.project_id = #{project.id}" +
@@ -56,17 +53,17 @@ class Sprint < Version
 
   scope :displayed_left, lambda { |project|
     joins(sanitize_sql_array([
-      "LEFT OUTER JOIN (SELECT * from #{VersionSetting.table_name}" +
-        ' WHERE project_id = ? ) version_settings' +
-        ' ON version_settings.version_id = versions.id',
-      project.id])
-    )
+                               "LEFT OUTER JOIN (SELECT * from #{VersionSetting.table_name}" +
+                                 ' WHERE project_id = ? ) version_settings' +
+                                 ' ON version_settings.version_id = versions.id',
+                               project.id
+                             ]))
       .where([
-        '(version_settings.project_id = ? AND version_settings.display = ?)' +
-          ' OR (version_settings.project_id is NULL)',
-        project.id,
-        VersionSetting::DISPLAY_LEFT
-      ])
+               '(version_settings.project_id = ? AND version_settings.display = ?)' +
+                 ' OR (version_settings.project_id is NULL)',
+               project.id,
+               VersionSetting::DISPLAY_LEFT
+             ])
       .joins("
         LEFT OUTER JOIN (SELECT * FROM #{VersionSetting.table_name}) AS vs
         ON vs.version_id = #{Version.table_name}.id AND vs.project_id = #{Version.table_name}.project_id
@@ -108,16 +105,8 @@ class Sprint < Version
   def wiki_page
     return '' unless project.wiki
 
+    create_wiki_page(name) unless project.wiki.find_page(name)
     update_attribute(:wiki_page_title, name) if wiki_page_title.blank?
-
-    page = project.wiki.find_page(wiki_page_title)
-    template = project.wiki.find_page(Setting.plugin_openproject_backlogs['wiki_template'])
-
-    if template and not page
-      page = project.wiki.pages.build(title: wiki_page_title)
-      page.build_content(text: "h1. #{name}\n\n#{template.text}")
-      page.save!
-    end
 
     wiki_page_title
   end
@@ -141,22 +130,22 @@ class Sprint < Version
     # Assume a sprint is active if it's only 2 days old
     return true if bd.remaining_hours.size <= 2
 
-    WorkPackage.exists?(['version_id = ? and ((updated_on between ? and ?) or (created_on between ? and ?))',
+    WorkPackage.exists?(['version_id = ? and ((updated_at between ? and ?) or (created_at between ? and ?))',
                          id, -2.days.from_now, Time.now, -2.days.from_now, Time.now])
   end
 
   def burndown(project, burn_direction = nil)
-    return nil unless self.has_burndown?
+    return nil unless has_burndown?
 
     @cached_burndown ||= Burndown.new(self, project, burn_direction)
   end
 
   def self.generate_burndown(only_current = true)
-    if only_current
-      conditions = ['? BETWEEN start_date AND effective_date', Date.today]
-    else
-      conditions = '1 = 1'
-    end
+    conditions = if only_current
+                   ['? BETWEEN start_date AND effective_date', Date.today]
+                 else
+                   '1 = 1'
+                 end
 
     Version.where(conditions).each(&:burndown)
   end
@@ -165,5 +154,20 @@ class Sprint < Version
     # for reasons beyond me,
     # the default_scope needs to be explicitly applied.
     Impediment.default_scope.where(version_id: self, project_id: project)
+  end
+
+  private
+
+  def create_wiki_page(page_title)
+    template = project.wiki.find_page(Setting.plugin_openproject_backlogs['wiki_template'])
+    page_text = if template
+                  "h1. #{name}\n\n#{template.text}"
+                else
+                  "h1. #{name}"
+                end
+
+    page = project.wiki.pages.build(title: page_title)
+    page.build_content(text: page_text)
+    page.save!
   end
 end

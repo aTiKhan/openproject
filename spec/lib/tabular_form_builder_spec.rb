@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -32,13 +33,13 @@ require 'ostruct'
 describe TabularFormBuilder do
   include Capybara::RSpecMatchers
 
-  let(:helper) { ActionView::Base.new(ActionView::LookupContext.new('')) }
+  let(:helper) { ActionView::Base.new(ActionView::LookupContext.new(''), {}, nil) }
   let(:resource) do
     FactoryBot.build(:user,
-                     firstname:  'JJ',
-                     lastname:   'Abrams',
-                     login:      'lost',
-                     mail:       'jj@lost-mail.com',
+                     firstname: 'JJ',
+                     lastname: 'Abrams',
+                     login: 'lost',
+                     mail: 'jj@lost-mail.com',
                      failed_login_count: 45)
   end
   let(:builder) { TabularFormBuilder.new(:user, resource, helper, {}) }
@@ -61,6 +62,23 @@ describe TabularFormBuilder do
           id="user_name" name="user[name]" title="Name" type="text"
           value="JJ Abrams" />
       }).at_path('input')
+    end
+
+    context 'with help text' do
+      let(:options) { { title: 'Name', class: 'custom-class', help_text: { attribute: 'foo', 'attribute-scope': 'bar' } } }
+
+      it 'will output a label with an attribute-help-text tag' do
+        expect(output).to be_html_eql(%{
+          <label class="form--label"
+                 for="user_name"
+                 title="Name">
+            Name
+            <attribute-help-text data-attribute="foo"
+                                 data-attribute-scope="bar">
+            </attribute-help-text>
+          </label>
+        }).at_path('label')
+      end
     end
 
     context 'with affixes' do
@@ -619,14 +637,14 @@ JJ Abrams</textarea>
       context 'with ActiveModel and without specified label' do
         let(:resource) do
           FactoryBot.build_stubbed(:user,
-                                   firstname:  'JJ',
-                                   lastname:   'Abrams',
-                                   login:      'lost',
-                                   mail:       'jj@lost-mail.com',
+                                   firstname: 'JJ',
+                                   lastname: 'Abrams',
+                                   login: 'lost',
+                                   mail: 'jj@lost-mail.com',
                                    failed_login_count: 45)
         end
 
-        it 'uses the human attibute name' do
+        it 'uses the human attribute name' do
           expected_label_like(User.human_attribute_name(:name))
         end
 

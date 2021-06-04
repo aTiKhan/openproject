@@ -1,4 +1,5 @@
 # encoding: UTF-8
+
 # Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
   s.name        = 'openproject-meeting'
@@ -16,5 +17,5 @@ Gem::Specification.new do |s|
   s.files = Dir['{app,config,db,lib,doc}/**/*', 'README.md']
   s.test_files = Dir['spec/**/*']
 
-  s.add_dependency 'icalendar', '~> 2.6.1'
+  s.add_dependency 'icalendar', '~> 2.7.0'
 end

@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,22 +26,22 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {CollectionResource} from 'core-app/modules/hal/resources/collection-resource';
-import {States} from '../states.service';
-import {StateService, TransitionService} from '@uirouter/core';
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild} from "@angular/core";
-import {QueryDmService} from 'core-app/modules/hal/dm-services/query-dm.service';
-import {LoadingIndicatorService} from "core-app/modules/common/loading-indicator/loading-indicator.service";
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
-import {PathHelperService} from 'core-app/modules/common/path-helper/path-helper.service';
-import {WorkPackageStaticQueriesService} from 'core-components/wp-query-select/wp-static-queries.service';
-import {QueryResource} from 'core-app/modules/hal/resources/query-resource';
-import {LinkHandling} from "core-app/modules/common/link-handling/link-handling";
-import {CurrentProjectService} from "core-components/projects/current-project.service";
-import {keyCodes} from 'core-app/modules/common/keyCodes.enum';
-import {MainMenuToggleService} from "core-components/main-menu/main-menu-toggle.service";
-import {MainMenuNavigationService} from "core-components/main-menu/main-menu-navigation.service";
-import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
+import { CollectionResource } from 'core-app/modules/hal/resources/collection-resource';
+import { States } from '../states.service';
+import { StateService, TransitionService } from '@uirouter/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from "@angular/core";
+import { LoadingIndicatorService } from "core-app/modules/common/loading-indicator/loading-indicator.service";
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
+import { PathHelperService } from 'core-app/modules/common/path-helper/path-helper.service';
+import { WorkPackageStaticQueriesService } from 'core-components/wp-query-select/wp-static-queries.service';
+import { QueryResource } from 'core-app/modules/hal/resources/query-resource';
+import { LinkHandling } from "core-app/modules/common/link-handling/link-handling";
+import { CurrentProjectService } from "core-components/projects/current-project.service";
+import { keyCodes } from 'core-app/modules/common/keyCodes.enum';
+import { MainMenuToggleService } from "core-components/main-menu/main-menu-toggle.service";
+import { MainMenuNavigationService } from "core-components/main-menu/main-menu-navigation.service";
+import { UntilDestroyedMixin } from "core-app/helpers/angular/until-destroyed.mixin";
+import { APIV3Service } from "core-app/modules/apiv3/api-v3.service";
 
 export type QueryCategory = 'starred'|'public'|'private'|'default';
 
@@ -107,7 +107,7 @@ export class WorkPackageQuerySelectDropdownComponent extends UntilDestroyedMixin
 
   constructor(readonly ref:ChangeDetectorRef,
               readonly element:ElementRef,
-              readonly QueryDm:QueryDmService,
+              readonly apiV3Service:APIV3Service,
               readonly $state:StateService,
               readonly $transitions:TransitionService,
               readonly I18n:I18nService,
@@ -157,7 +157,7 @@ export class WorkPackageQuerySelectDropdownComponent extends UntilDestroyedMixin
   }
 
   private transformQueries(collection:CollectionResource<QueryResource>) {
-    let loadedQueries:IAutocompleteItem[] = collection.elements
+    const loadedQueries:IAutocompleteItem[] = collection.elements
       .map(query => {
         return { label: query.name, query: query, query_props: null };
       });
@@ -171,7 +171,7 @@ export class WorkPackageQuerySelectDropdownComponent extends UntilDestroyedMixin
   // Sort every category array alphabetically, except the default queries
   private sortQueries(items:IAutocompleteItem[]):IAutocompleteItem[] {
     // Concat all categories in the right order
-    let categorized:{ [category:string]:IAutocompleteItem[] } = {
+    const categorized:{ [category:string]:IAutocompleteItem[] } = {
       // Starred / favored
       starred: [],
       // default
@@ -219,8 +219,11 @@ export class WorkPackageQuerySelectDropdownComponent extends UntilDestroyedMixin
   }
 
   private loadQueries() {
-    return this.loadingPromise = this.QueryDm
-      .listNonHidden(this.CurrentProject.identifier)
+    return this.loadingPromise = this
+      .apiV3Service
+      .queries
+      .filterNonHidden(this.CurrentProject.identifier)
+      .toPromise()
       .then(collection => {
 
         // Update the complete collection
@@ -232,7 +235,7 @@ export class WorkPackageQuerySelectDropdownComponent extends UntilDestroyedMixin
         // To search an empty string would expand all categories again every time
         // Remember all previously hidden categories and set them again after updating the menu
         _.each(this.hiddenCategories, category => {
-          let thisCategory:string = jQuery(category).attr("category")!;
+          const thisCategory:string = jQuery(category).attr("category")!;
           this.expandCollapseCategory(thisCategory);
         });
 
@@ -287,16 +290,16 @@ export class WorkPackageQuerySelectDropdownComponent extends UntilDestroyedMixin
         // e.g., https://community.openproject.com/wp/28197
         if (sourceEvent && sourceEvent.type === 'keydown') {
           this.queryResultsContainer
-            .find(`#wp-query-menu-item-${ui.item.auto_id} .wp-query-menu--item-link`)
+            .find(`#collapsible-menu-item-${ui.item.auto_id} .collapsible-menu--item-link`)
             .focus();
         }
 
         return false;
       },
-      appendTo: '.wp-query-menu--results-container',
+      appendTo: '.collapsible-menu--results-container',
       classes: {
-        'ui-autocomplete': 'wp-query-menu--search-ul -inplace',
-        'ui-menu-divider': 'wp-query-menu--category-icon'
+        'ui-autocomplete': 'collapsible-menu--search-ul -inplace',
+        'ui-menu-divider': 'collapsible-menu--category-icon'
       },
       autoFocus: false, // Don't automatically select first entry since we 'open' the autocomplete on page load
       minLength: 0
@@ -304,23 +307,23 @@ export class WorkPackageQuerySelectDropdownComponent extends UntilDestroyedMixin
   }
 
   private defineJQueryQueryComplete() {
-    let thisComponent = this;
+    const thisComponent = this;
 
     jQuery.widget('custom.querycomplete', jQuery.ui.autocomplete, {
       _create: function (this:any) {
         this._super();
-        this.widget().menu('option', 'items', '.wp-query-menu--item');
+        this.widget().menu('option', 'items', '.collapsible-menu--item');
         this._search('');
       },
       _renderItem: function (this:{}, ul:any, item:IAutocompleteItem) {
         const link = jQuery('<a>')
-          .addClass('wp-query-menu--item-link')
+          .addClass('collapsible-menu--item-link')
           .attr('href', thisComponent.buildQueryItemUrl(item))
           .text(item.label);
 
         const li = jQuery('<li>')
-          .addClass(`ui-menu-item wp-query-menu--item`)
-          .attr('id', `wp-query-menu-item-${item.auto_id}`)
+          .addClass(`ui-menu-item collapsible-menu--item`)
+          .attr('id', `collapsible-menu-item-${item.auto_id}`)
           .attr('data-category', item.category || '')
           .data('ui-autocomplete-item', item)  // Focus method of autocompleter needs this data for accessibility - if not set, it will throw errors
           .append(link)
@@ -337,11 +340,11 @@ export class WorkPackageQuerySelectDropdownComponent extends UntilDestroyedMixin
           // Check if item has same category as previous item and if not insert a new category label in the list
           if (option.category !== currentCategory) {
             currentCategory = option.category!;
-            let label = thisComponent.labelFunction(currentCategory);
+            const label = thisComponent.labelFunction(currentCategory);
 
-            ul.append(`<a tabindex="0" class="wp-query-menu--category-icon wp-query-menu--category-toggle" data-category="${currentCategory}" aria-hidden="true"></a>`);
+            ul.append(`<a tabindex="0" class="collapsible-menu--category-icon collapsible-menu--category-toggle" data-category="${currentCategory}" aria-hidden="true"></a>`);
             jQuery('<li>')
-              .addClass('ui-autocomplete--category wp-query-menu--category-toggle ellipsis')
+              .addClass('ui-autocomplete--category collapsible-menu--category-toggle ellipsis')
               .attr('title', label)
               .attr('data-category', currentCategory)
               .text(label)
@@ -353,7 +356,7 @@ export class WorkPackageQuerySelectDropdownComponent extends UntilDestroyedMixin
 
         // Scroll to selected element if search is empty
         if (thisComponent.searchInput.val() === '') {
-          let selected = thisComponent.queryResultsContainer.find('.wp-query-menu--item.selected');
+          const selected = thisComponent.queryResultsContainer.find('.collapsible-menu--item.selected');
           if (selected.length > 0) {
             setTimeout(() => selected[0].scrollIntoView({ behavior: 'auto', block: 'center' }), 20);
           }
@@ -369,8 +372,8 @@ export class WorkPackageQuerySelectDropdownComponent extends UntilDestroyedMixin
     const params = this.getQueryParams(item);
     const currentId = this.$state.params.query_id;
     const currentProps = this.$state.params.query_props;
-    let onWorkPackagesPage:boolean = this.$state.includes('work-packages');
-    let onWorkPackagesReportPage:boolean = jQuery('body').hasClass('controller-work_packages/reports');
+    const onWorkPackagesPage:boolean = this.$state.includes('work-packages');
+    const onWorkPackagesReportPage:boolean = jQuery('body').hasClass('controller-work_packages/reports');
 
     // When the current ID is selected
     const currentIdSelected = params.query_id && (currentId || '').toString() === params.query_id.toString();
@@ -391,16 +394,16 @@ export class WorkPackageQuerySelectDropdownComponent extends UntilDestroyedMixin
 
   private labelFunction(category:QueryCategory):string {
     switch (category) {
-      case 'starred':
-        return this.text.scope_starred;
-      case 'public':
-        return this.text.scope_global;
-      case 'private':
-        return this.text.scope_private;
-      case 'default':
-        return this.text.scope_default;
-      default:
-        return '';
+    case 'starred':
+      return this.text.scope_starred;
+    case 'public':
+      return this.text.scope_global;
+    case 'private':
+      return this.text.scope_private;
+    case 'default':
+      return this.text.scope_default;
+    default:
+      return '';
     }
   }
 
@@ -420,7 +423,7 @@ export class WorkPackageQuerySelectDropdownComponent extends UntilDestroyedMixin
       // Don't hide the categories themselves (Regression #28584)
       .not('.ui-autocomplete--category')
       .toggleClass('-hidden');
-    jQuery(`.wp-query-menu--category-icon[data-category="${category}"]`).toggleClass('-collapsed');
+    jQuery(`.collapsible-menu--category-icon[data-category="${category}"]`).toggleClass('-collapsed');
   }
 
   // On click of a menu item, load requested query
@@ -438,7 +441,7 @@ export class WorkPackageQuerySelectDropdownComponent extends UntilDestroyedMixin
   }
 
   private getQueryParams(item:IAutocompleteItem) {
-    let val:{ query_id:string|null, query_props:string|null, projects?:string, projectPath?:string } = {
+    const val:{ query_id:string|null, query_props:string|null, projects?:string, projectPath?:string } = {
       query_id: item.query ? _.toString(item.query.id) : null,
       query_props: item.query ? null : item.query_props,
     };
@@ -462,7 +465,7 @@ export class WorkPackageQuerySelectDropdownComponent extends UntilDestroyedMixin
   }
 
   private highlightSelected(item:IAutocompleteItem) {
-    this.highlightBySelector(`#wp-query-menu-item-${item.auto_id}`);
+    this.highlightBySelector(`#collapsible-menu-item-${item.auto_id}`);
   }
 
   private highlightBySelector(selector:string) {
@@ -487,7 +490,7 @@ export class WorkPackageQuerySelectDropdownComponent extends UntilDestroyedMixin
         // Find the item from the clicked element
         const target = jQuery(evt.target);
         const item:IAutocompleteItem = target
-          .closest('.wp-query-menu--item')
+          .closest('.collapsible-menu--item')
           .data('ui-autocomplete-item');
 
         // Either the link is clicked with a modifier, then always cancel any propagation
@@ -513,7 +516,7 @@ export class WorkPackageQuerySelectDropdownComponent extends UntilDestroyedMixin
 
         return true;
       })
-      .on('click keydown', '.wp-query-menu--category-toggle', (evt:JQuery.TriggeredEvent) => {
+      .on('click keydown', '.collapsible-menu--category-toggle', (evt:JQuery.TriggeredEvent) => {
         if (evt.type === 'keydown' && evt.which !== keyCodes.ENTER) {
           return true;
         }

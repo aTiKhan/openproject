@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -51,6 +51,13 @@ describe ::API::V3::HelpTexts::HelpTextRepresenter do
         "editText" => {
           "href" => edit_attribute_help_text_path(help_text.id),
           "type" => "text/html"
+        },
+        "attachments" => {
+          "href" => api_v3_paths.attachments_by_help_text(help_text.id)
+        },
+        "addAttachment" => {
+          "href" => api_v3_paths.attachments_by_help_text(help_text.id),
+          "method" => "post"
         }
       },
       "id" => help_text.id,
@@ -60,7 +67,7 @@ describe ::API::V3::HelpTexts::HelpTextRepresenter do
       "helpText" => {
         "format" => 'markdown',
         "raw" => 'This is a help text for **status** attribute.',
-        "html" => '<p>This is a help text for <strong>status</strong> attribute.</p>'
+        "html" => '<p class="op-uc-p">This is a help text for <strong>status</strong> attribute.</p>'
       }
     }
   end

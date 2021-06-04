@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -44,7 +44,7 @@ describe WorkPackage::Exporter::CSV, 'integration', type: :model do
   end
   let(:query) do
     Query.new(name: '_').tap do |query|
-      query.column_names = %i(subject assigned_to updated_at)
+      query.column_names = %i(subject assigned_to updated_at estimated_hours)
     end
   end
   let(:instance) do
@@ -64,6 +64,7 @@ describe WorkPackage::Exporter::CSV, 'integration', type: :model do
         subject: "Ruby encodes ß as '\\xDF' in ISO-8859-1.",
         description: "\u2022 requires unicode.",
         assigned_to: current_user,
+        derived_estimated_hours: 15.0,
         project: project
       )
     end
@@ -83,6 +84,7 @@ describe WorkPackage::Exporter::CSV, 'integration', type: :model do
       expect(data.last).to include(work_package.description)
       expect(data.last).to include(current_user.name)
       expect(data.last).to include(work_package.updated_at.localtime.strftime("%m/%d/%Y %I:%M %p"))
+      expect(data.last).to include('(15.0)')
     end
   end
 end

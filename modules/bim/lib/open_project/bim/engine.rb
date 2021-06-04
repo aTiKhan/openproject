@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -37,7 +37,7 @@ module OpenProject::Bim
     include OpenProject::Plugins::ActsAsOpEngine
 
     register 'openproject-bim',
-             author_url: 'https://openproject.com',
+             author_url: 'https://www.openproject.com',
              settings: {
                default: {
                }
@@ -48,24 +48,35 @@ module OpenProject::Bim
                    {
                      'bim/ifc_models/ifc_models': %i[index show defaults],
                      'bim/ifc_models/ifc_viewer': %i[show]
-                   }
+                   },
+                   contract_actions: { ifc_models: %i[read] }
         permission :manage_ifc_models,
-                   {'bim/ifc_models/ifc_models': %i[index show destroy edit update create new]},
-                   dependencies: %i[view_ifc_models]
-
+                   { 'bim/ifc_models/ifc_models': %i[index show destroy edit update create new] },
+                   dependencies: %i[view_ifc_models],
+                   contract_actions: { ifc_models: %i[create update destroy] }
         permission :view_linked_issues,
-                   {'bim/bcf/issues': %i[index]},
-                   dependencies: %i[view_work_packages]
+                   { 'bim/bcf/issues': %i[index] },
+                   dependencies: %i[view_work_packages],
+                   contract_actions: { bcf: %i[read] }
         permission :manage_bcf,
-                   {'bim/bcf/issues': %i[index upload prepare_import perform_import]},
+                   { 'bim/bcf/issues': %i[index upload prepare_import configure_import perform_import] },
                    dependencies: %i[view_linked_issues
                                     view_work_packages
                                     add_work_packages
+                                    edit_work_packages],
+                   contract_actions: { bcf: %i[create update] }
+        permission :delete_bcf,
+                   {},
+                   dependencies: %i[view_linked_issues
+                                    manage_bcf
+                                    view_work_packages
+                                    add_work_packages
                                     edit_work_packages
-                                    delete_work_packages]
+                                    delete_work_packages],
+                   contract_actions: { bcf: %i[destroy] }
       end
 
-      OpenProject::AccessControl.permission(:view_work_packages).actions << 'bim/bcf/issues/redirect_to_bcf_issues_list'
+      OpenProject::AccessControl.permission(:view_work_packages).controller_actions << 'bim/bcf/issues/redirect_to_bcf_issues_list'
 
       ::Redmine::MenuManager.map(:project_menu) do |menu|
         menu.push(:ifc_models,
@@ -86,14 +97,15 @@ module OpenProject::Bim
 
     class_inflection_override('v2_1' => 'V2_1')
 
-    assets %w(bim/bcf.css bim/ifc_viewer/generic.css)
+    assets %w(bim/logo_openproject_bim_big.png)
 
-    patches %i[WorkPackage Type Journal RootSeeder Project]
+    patches %i[WorkPackage Type Journal RootSeeder Project FogFileUploader]
 
-    patch_with_namespace :OpenProject, :CustomStyles, :Design
+    patch_with_namespace :OpenProject, :CustomStyles, :ColorThemes
     patch_with_namespace :API, :V3, :Activities, :ActivityRepresenter
     patch_with_namespace :Journal, :AggregatedJournal
     patch_with_namespace :API, :V3, :Activities, :ActivitiesSharedHelpers
+    patch_with_namespace :API, :V3, :WorkPackages, :EagerLoading, :Checksum
 
     patch_with_namespace :DemoData, :QueryBuilder
     patch_with_namespace :DemoData, :ProjectSeeder
@@ -101,9 +113,6 @@ module OpenProject::Bim
     patch_with_namespace :DemoData, :WorkPackageBoardSeeder
 
     extend_api_response(:v3, :work_packages, :work_package) do
-      # extend cached_representer for bcf issue
-      cached_representer key_parts: %i(bcf_issue)
-
       include API::Bim::Utilities::PathHelper
 
       link :bcfTopic,
@@ -182,7 +191,7 @@ module OpenProject::Bim
 
     initializer 'bim.bcf.register_hooks' do
       # don't use require_dependency to not reload hooks in development mode
-      require 'open_project/xls_export/hooks/work_package_hook.rb'
+      require 'open_project/xls_export/hooks/work_package_hook'
     end
 
     initializer 'bim.bcf.register_mimetypes' do
@@ -207,8 +216,8 @@ module OpenProject::Bim
       ::WorkPackage::Exporter
         .register_for_list(:bcf, OpenProject::Bim::BcfXml::Exporter)
 
-      ::Queries::Register.filter ::Query, OpenProject::Bim::BcfIssueAssociatedFilter
-      ::Queries::Register.column ::Query, OpenProject::Bim::QueryBcfThumbnailColumn
+      ::Queries::Register.filter ::Query, ::Bim::Queries::WorkPackages::Filter::BcfIssueAssociatedFilter
+      ::Queries::Register.column ::Query, ::Bim::Queries::WorkPackages::Columns::BcfThumbnailColumn
 
       ::API::Root.class_eval do
         content_type :binary, 'application/octet-stream'

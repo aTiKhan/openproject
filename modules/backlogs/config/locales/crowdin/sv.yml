@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -19,7 +19,6 @@
 #Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #See docs/COPYRIGHT.rdoc for more details.
 #++
-#---
 sv:
   activerecord:
     attributes:
@@ -37,18 +36,12 @@ sv:
               can_only_contain_work_packages_of_current_sprint: "kan endast innehålla ID:n för arbetspaket i den aktuella sprinten."
               must_block_at_least_one_work_package: "måste innehålla ID för minst ett arbetspaket."
             parent_id:
+              parent_child_relationship_across_projects: "är ogiltig eftersom arbetspaketet '%{work_package_name}' är en backlog aktivitet och kan därför inte ha en förälder utanför det aktuella projektet."
               type_must_be_one_of_the_following: "Typen måste vara en av följande: %{type_names}."
-        sprint:
-          cannot_end_before_it_starts: "En sprint kan inte avslutas innan den startar."
-  activemodel:
-    errors:
-      models:
-        work_package:
-          attributes:
             version_id:
               task_version_must_be_the_same_as_story_version: "måste vara samma som föräldraberättelsens version."
-            parent_id:
-              parent_child_relationship_across_projects: "är ogiltig eftersom arbetspaketet '%{work_package_name}' är en backlog aktivitet och kan därför inte ha en förälder utanför det aktuella projektet."
+        sprint:
+          cannot_end_before_it_starts: "En sprint kan inte avslutas innan den startar."
   backlogs:
     add_new_story: "Ny berättelse"
     any: "någon"
@@ -106,6 +99,7 @@ sv:
   backlogs_empty_title: "Inga versioner är definierade för att användas i backlog"
   backlogs_empty_action_text: "För att komma igång med backlogs, skapa en ny version och tilldela den till en kolumn för backlogs."
   button_edit_wiki: "Redigera wiki-sidor"
+  error_backlogs_task_cannot_be_story: "The settings are invalid. The selected task type can not also be a story type."
   error_intro_plural: "Följande fel uppstod:"
   error_intro_singular: "Följande fel uppstod:"
   error_outro: "Vänligen korrigera ovanstående fel innan du skickar in igen."

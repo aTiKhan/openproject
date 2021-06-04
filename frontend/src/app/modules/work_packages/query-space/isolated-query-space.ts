@@ -1,13 +1,12 @@
-import {derive, input, InputState, State, StatesGroup} from 'reactivestates';
-import {Subject} from 'rxjs';
-import {Injectable} from '@angular/core';
-import {map} from 'rxjs/operators';
-import {QueryResource} from 'core-app/modules/hal/resources/query-resource';
-import {GroupObject, WorkPackageCollectionResource} from 'core-app/modules/hal/resources/wp-collection-resource';
-import {QueryFormResource} from "core-app/modules/hal/resources/query-form-resource";
-import {WPFocusState} from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-focus.service";
-import {QueryColumn} from "core-components/wp-query/query-column";
-import {RenderedWorkPackage} from "core-app/modules/work_packages/render-info/rendered-work-package.type";
+import { derive, input, InputState, State, StatesGroup } from 'reactivestates';
+import { Subject } from 'rxjs';
+import { Injectable } from '@angular/core';
+import { map } from 'rxjs/operators';
+import { QueryResource } from 'core-app/modules/hal/resources/query-resource';
+import { GroupObject, WorkPackageCollectionResource } from 'core-app/modules/hal/resources/wp-collection-resource';
+import { QueryFormResource } from "core-app/modules/hal/resources/query-form-resource";
+import { QueryColumn } from "core-components/wp-query/query-column";
+import { RenderedWorkPackage } from "core-app/modules/work_packages/render-info/rendered-work-package.type";
 
 @Injectable()
 export class IsolatedQuerySpace extends StatesGroup {
@@ -47,9 +46,6 @@ export class IsolatedQuerySpace extends StatesGroup {
   renderedWorkPackageIds:State<string[]> = derive(this.renderedWorkPackages, $ => $.pipe(
     map(rows => rows.map(row => row.workPackageId!.toString())))
   );
-
-  // Current focused work package (e.g, row preselected for details button)
-  focusedWorkPackage:InputState<WPFocusState> = input<WPFocusState>();
 
   // Subject used to unregister all listeners of states above.
   stopAllSubscriptions = new Subject();

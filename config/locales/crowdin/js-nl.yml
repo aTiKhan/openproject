@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -33,10 +33,24 @@ nl:
         single: "Selecteer \"%{name}\""
       remove: "Verwijder %{name}"
       active: "Actieve %{label} %{name}"
+    backup:
+      attachments_disabled: Attachments may not be included since they exceed the maximum overall size allowed. You can change this via the configuration (requires a server restart).
+      info: >
+        You can trigger a backup here. The process can take some time depending on the amount of data (especially attachments) you have. You will receive an email once it's ready.
+      note: >
+        A new backup will override any previous one. Only a limited number of backups per day can be requested.
+      last_backup: Last backup
+      last_backup_from: Last backup from
+      title: Backup OpenProject
+      options: Opties
+      include_attachments: Include attachments
+      download_backup: Download backup
+      request_backup: Request backup
     close_popup_title: "Popup sluiten"
     close_filter_title: "Sluit filter"
     close_form_title: "Sluit formulier"
     button_add_watcher: "Watcher toevoegen"
+    button_add: "Toevoegen"
     button_back: "Terug"
     button_back_to_list_view: "Terug naar het overzicht"
     button_cancel: "Annuleren"
@@ -54,6 +68,8 @@ nl:
     button_duplicate: "Dupliceren"
     button_edit: "Wijzig"
     button_filter: "Filter"
+    button_collapse_all: "Alles inklappen"
+    button_expand_all: "Alles uitklappen"
     button_advanced_filter: "Geavanceerd filter"
     button_list_view: "Lijstweergave"
     button_show_view: "Fullscreen weergave"
@@ -71,6 +87,7 @@ nl:
     button_update: "Bijwerken"
     button_export-pdf: "Download PDF"
     button_export-atom: "Download Atom"
+    button_create: "Maken"
     calendar:
       title: 'Kalender'
       too_many: 'There are %{count} work packages in total, but only %{max} can be shown.'
@@ -83,7 +100,7 @@ nl:
     caption_rate_history: "Rate history"
     clipboard:
       browser_error: "Uw browser ondersteunt kopiëren naar het klembord niet. Kopieer de geselecteerde tekst handmatig."
-      copied_successful: "Met succes gekopieerd naar het klembord!"
+      copied_successful: "Successfully copied to clipboard!"
     chart:
       type: 'Chart type'
       axis_criteria: 'Axis criteria'
@@ -115,6 +132,11 @@ nl:
         manual: 'Schakel naar de bron van het Markdown'
         wysiwyg: 'Schakel over naar de WYSIWYG-Editor'
       macro:
+        error: 'Cannot expand macro: %{message}'
+        attribute_reference:
+          macro_help_tooltip: 'This text segment is being dynamically rendered by a macro.'
+          not_found: 'Requested resource could not be found'
+          invalid_attribute: "The selected attribute '%{name}' does not exist."
         child_pages:
           button: 'Links naar onderliggende pagina ''s'
           include_parent: 'Inclusief bovenliggende'
@@ -166,7 +188,8 @@ nl:
       enterprise:
         trial:
           confirmation: "Confirmation of email address"
-          confirmation_info: "We sent you an email. Please check your emails and click the confirmation link provided to start your 14 days trial."
+          confirmation_info: >
+            We sent you an email on %{date} to %{email}. Please check your inbox and click the confirmation link provided to start your 14 days trial.
           form:
             general_consent: >
               I agree with the <a target="_blank" href="%{link_terms}">terms of service</a> and the <a target="_blank" href="%{link_privacy}">privacy policy</a>.
@@ -181,9 +204,10 @@ nl:
             label_starts_at: "Starts at"
             label_expires_at: "Verloopt op"
             receive_newsletter: I want to receive the OpenProject <a target="_blank" href="%{link}">newsletter</a>.
+            taken_domain: There can only be one active trial per domain.
+            taken_email: Each user can only create one trial.
           email_not_received: "You did not receive an email? You can resend the email with the link on the right."
           try_another_email: "Or try it with another email address."
-          try_another_email_hint: "Please be aware that your previous email address gets invalid if you try again with a new one."
           next_steps: "Next steps"
           resend_link: "Opnieuw verzenden"
           resend_success: "Email has been resent. Please check your emails and click the confirmation link provided."
@@ -197,7 +221,7 @@ nl:
         upsale:
           become_hero: "Word een held!"
           benefits:
-            description: "Wat zijn de voordelen?"
+            description: "What are the benefits of the Enterprise on-premises Edition?"
             high_security: "Security features"
             high_security_text: "Single sign on (SAML, OpenID Connect, CAS), two-factor authentication and automatic sync of LDAP groups."
             installation: "Installation support"
@@ -248,7 +272,6 @@ nl:
     general_text_yes: "Ja"
     general_text_No: "Nee"
     general_text_Yes: "Ja"
-    global_roles: Globale functies
     hal:
       error:
         update_conflict_refresh: "Click here to refresh the resource and update to the newest version."
@@ -262,13 +285,13 @@ nl:
           text_new_features: "Read about new features and product updates."
           learn_about: "Learn more about the new features"
           standard:
-            learn_about_link: https://www.openproject.org/openproject-10-4
+            learn_about_link: https://www.openproject.org/openproject-11-3-release
             current_new_feature_html: >
-              The release contains various new features and improvements: <br><br> <ul> <li>Default <b>design templates</b> to select a light or dark theme (premium feature).</li> <li>New <b>time tracking widget</b> for <i>My page</i> to show spent time in a bar chart.</li> <li><b>XLS-exports for cost reports</b> and formatted text in PDF export of work packages.</li> <li><b>Improved design and usability</b>, i.e. tabs and more in project settings and administration.</li> </ul>
+              The release contains various new features and improvements: <br> <ul class="%{list_styling_class}"> <li>New button in header navigation to create projects, users and work packages.</li> <li>A new invite modal for users, groups and placeholder users allows to easily add or invite new users and assign them to work packages.</li> <li>GitHub integration into OpenProject.</li> <li>API v3 extensions for groups and more, i.e. create, read, update and delete groups and group members through the API.</li> <li>Multi-selection for project custom fields of type list.</li> <li>Creation of backup from the web interface.</li> </ul>
           bim:
-            learn_about_link: https://www.openproject.org/openproject-bim-10-4
+            learn_about_link: https://www.openproject.org/openproject-11-3-release
             current_new_feature_html: >
-              OpenProject contains a <b>new IFC module to integrate 3D models</b> into your project management application and to work collaboratively with these files with your team without installation of separate costly software or licenses. <br><br> <ul> <li><b>Import IFC files</b> of building models into your OpenProject application.</li> <li><b>Open 3D models and visualize building models</b> in your browser.</li> <li> Easily <b>work on multiple IFC files</b> with your team directly in OpenProject without installation of separate costly software. </li> </ul>
+              The release contains various new features and improvements: <br> <ul class="%{list_styling_class}"> <li>BIM: Improved performance of the IFC model viewer.</li> <li>BIM: The IFC viewer now supports double precision models, which is great for large construction sites such as bridges, roads etc.</li> <li>BIM: Toggle button for switching between perspective and orthogonal mode.</li> <li>BIM: A menu for editing, deleting or flipping section planes.</li> <li>New button in header navigation to create projects, users and work packages.</li> <li>A new invite modal for users, groups and placeholder users allows to easily add or invite new users and assign them to work packages.</li> <li>API v3 extensions for groups and more, i.e. create, read, update and delete groups and group members through the API.</li> <li>Multi-selection for project custom fields of type list.</li> <li>Creation of backup from the web interface.</li> </ul>
     label_activate: "Activeren"
     label_add_column_after: "Kolom toevoegen na"
     label_add_column_before: "Kolom toevoegen voor"
@@ -279,7 +302,7 @@ nl:
     label_add_row_before: "Rij voor toevoegen"
     label_add_selected_columns: "Geselecteerde kolommen toevoegen"
     label_added_by: "toegevoegd door"
-    label_added_time_by: "Toegevoegd door %{author} %{age}"
+    label_added_time_by: "Added by <a href=%{authorLink}>%{author}</a> at %{age}"
     label_ago: "dagen geleden"
     label_all: "alle"
     label_all_work_packages: "alle werkpakketten"
@@ -320,9 +343,11 @@ nl:
     label_expand_all: "Alles uitklappen"
     label_expand_project_menu: "Menu project uitvouwen"
     label_export: "Exporteren"
+    label_export_preparing: "The export is being prepared and will be downloaded shortly."
     label_filename: "Bestand"
     label_filesize: "Grootte"
     label_general: "Algemeen"
+    label_global_roles: "Globale functies"
     label_greater_or_equal: ">="
     label_group: 'Groep'
     label_group_by: "Groeperen op"
@@ -352,7 +377,7 @@ nl:
     label_next: "Volgende"
     label_no_color: "Geen kleur"
     label_no_data: "Geen gegevens om weer te geven"
-    label_no_due_date: "geen einddatum"
+    label_no_due_date: "no finish date"
     label_no_start_date: "geen startdatum"
     label_no_value: "Geen waarde"
     label_none: "geen"
@@ -371,6 +396,7 @@ nl:
     label_quote_comment: "Citeer dit commentaar"
     label_recent: "Recent"
     label_reset: "Herstel"
+    label_remove: "Verwijder"
     label_remove_column: "Kolom verwijderen"
     label_remove_columns: "Verwijder geselecteerde kolommen"
     label_remove_row: "Rij verwijderen"
@@ -392,9 +418,10 @@ nl:
     label_public_query: "Publiek"
     label_sum: "Som"
     label_sum_for: "Som voor"
+    label_total_sum: "Total sum"
     label_subject: "Onderwerp"
     label_this_week: "deze week"
-    label_today: "vandaag"
+    label_today: "Today"
     label_time_entry_plural: "Bestede tijd"
     label_up: "Omhoog"
     label_user_plural: "Gebruikers"
@@ -404,8 +431,10 @@ nl:
     label_total_amount: "Totaal: %{amount}"
     label_updated_on: "bijgewerkt op"
     label_value_derived_from_children: "(value derived from children)"
+    label_children_derived_duration: "Work package's children derived duration"
     label_warning: "Waarschuwing"
     label_work_package: "Werkpakket"
+    label_work_package_parent: "Parent work package"
     label_work_package_plural: "Werkpakketten"
     label_watch: "Volgen"
     label_watch_work_package: "Bekijk werkpakket"
@@ -452,6 +481,7 @@ nl:
         help_menu: 'In het menu <b>Help</b> vindt u een handleiding en aanvullende help-bronnen. <br> genieten van uw werk met OpenProject!'
         members: 'Nodig nieuwe <b>leden,</b> uit voor uw project.'
         project_selection: 'Please click on one of the projects with useful demo data to get started. <br> The <b>Demo project</b> suits best for classical project management, while the <b>Scrum project</b> is better for Agile project management.'
+        quick_add_button: 'Create a new project or invite coworkers.'
         sidebar_arrow: "U kunt met de pijl terug navigeren naar het <b>Hoofd menu</b> van het project."
         welcome: 'Neem drie minuten introductie rondleiding om de meeste <b>belangrijke kenmerken </b> te leren. <br> het is raadzaam de stappen uit te voeren tot het einde. U kunt de tour ieder moment opnieuw doen.'
         wiki: 'U kunt binnen de <b>Wiki</b> kennis delen en documenteren samen met uw team.'
@@ -467,7 +497,7 @@ nl:
           drag: 'Drag & Drop your cards within a list to re-order, or to another list. A double click will open the details view.'
         wp:
           toggler: "Laten we nu eens een kijkje op de <b>werk pakket</b> -sectie, die je een meer gedetailleerde weergave van uw werk geeft."
-          list: 'Dit is de <b>werk pakket</b> Lijst met het belangrijke werk dat binnen uw project, zoals taken, functies, mijlpalen, bugs, en meer. <br> u kunt het maken of bewerken van een werkpakket rechtstreeks vanuit deze lijst. Om de details te bekijken kunt u dubbelklikken op een rij.'
+          list: 'This is the <b>Work package</b> list with the important work within your project, such as tasks, milestones, phases, and more. <br> You can create or edit a work package directly within this list. To see its details you can double click on a row.'
           full_view: 'In de <b>werk pakket details</b> vindt u alle relevante informatie, zoals beschrijving, de status en de prioriteit, de activiteiten, de afhankelijkheden of de opmerkingen.'
           back_button: 'Met de pijltjestoetsen kunt u navigeren naar de pakketlijst werk.'
           create_button: 'De <b>maken</b> -knop zal een nieuw werkpakket aan uw project toevoegen.'
@@ -492,6 +522,11 @@ nl:
       context: 'Context van het project'
       work_package_belongs_to: 'Dit werkpakket behoort tot project %{projectname}.'
       click_to_switch_context: 'Open dit werkpakket in dat project.'
+      confirm_template_load: 'Switching the template will reload the page and you will lose all input to this form. Continue?'
+      use_template: "Use template"
+      no_template_selected: "(None)"
+      copy:
+        copy_options: "Copy options"
       autocompleter:
         label: 'Project auto aanvullen'
     text_are_you_sure: "Weet u het zeker?"
@@ -502,7 +537,7 @@ nl:
         reset_title: "Reset formulier configuratie"
         confirm_reset: >
           Waarschuwing: Weet u zeker dat u de configuratie van het formulier wilt herstellen? Dit herstelt de kenmerken hun standaardgroep, deselecteerd de selectievakjes van de zichtbaarheid, en schakeld alle aangepaste velden uit.
-        upgrade_to_ee: "Upgrade naar Enterprise Edition"
+        upgrade_to_ee: "Upgrade to Enterprise on-premises Edition"
         upgrade_to_ee_text: "Wow! Als u deze functie nodig heeft bent u een super pro! Zou u de opensource ontwikkelaars willen ondersteunen door een licentie te nemen op de enterprice edition?"
         more_information: "Meer informatie"
         nevermind: "Geen aandacht"
@@ -519,7 +554,7 @@ nl:
       duration: 'Duur'
       spent_on: 'Datum'
       hours: 'Uren'
-      label: 'Time entry'
+      title: 'Gelogde tijd'
     two_factor_authentication:
       label_two_factor_authentication: 'Twee-factor-authenticatie'
     watchers:
@@ -575,11 +610,18 @@ nl:
     relations_autocomplete:
       placeholder: "Type to search"
       parent_placeholder: "Choose new parent or press escape to cancel."
+    autocompleter:
+      placeholder: "Type to search"
+      notFoundText: "No items found"
+      typeToSearchText: "Type to search"
     repositories:
       select_tag: 'Selecteer label'
       select_branch: 'Selecteer pad'
     field_value_enter_prompt: "Breng een waarde in voor veld '%{field}'"
     project_menu_details: "Details"
+    scheduling:
+      manual: 'Manual scheduling'
+      automatic: 'Automatic scheduling'
     sort:
       sorted_asc: 'Oplopende sorteervolgorde toegepast, '
       sorted_dsc: 'Aflopende sorteervolgorde toegepast, '
@@ -745,6 +787,7 @@ nl:
         startDate: "Startdatum"
         status: "Status"
         subject: "Onderwerp"
+        subproject: "Subproject"
         title: "Titel"
         type: "Type"
         updatedAt: "Bijgewerkt op"
@@ -790,6 +833,9 @@ nl:
           not_found: "Deze weergave bestaat niet"
           duplicate_query_title: "Naam van deze weergave bestaat al. Toch wijzigen?"
         text_no_results: "Geen overeenkomende weergaven werden gevonden."
+      scheduling:
+        is_parent: "The dates of this work package are automatically deduced from its children. Activate 'Manual scheduling' to set the dates."
+        is_switched_from_manual_to_automatic: "The dates of this work package may need to be recalculated after switching from manual to automatic scheduling due to relationships with other work packages."
       table:
         configure_button: 'Configureer werkpakkettabel'
         summary: "Tabel met rijen van werkpakket en kolommen werk pakket kenmerken."
@@ -823,7 +869,7 @@ nl:
           automatic: 'Automatic'
           manually: 'Manually'
           warning: 'You will lose your previous sorting when activating the automatic sorting mode.'
-        columns_help_text: "Use the input above to add columns to your table view. You can drag and drop the columns to reorder them."
+        columns_help_text: "Use the input field above to add columns to your table view. You can drag and drop the columns to reorder them."
         upsale:
           attribute_highlighting: 'Moeten bepaalde werkpakketten te onderscheiden zijn van de massa?'
           relation_columns: 'Nodig om te zien van betrekkingen in de pakketlijst werk?'
@@ -878,10 +924,14 @@ nl:
         has_children: "Het werkpakket heeft %{childUnits}:"
         confirm_deletion_children: "Ik erken dat alle onderliggende werkpakketten van de weergegeven werkpakketten verwijderd worden."
         deletes_children: "Alle onderliggende werkpakketten en hun nakomelingen ook worden verwijderd."
+      destroy_time_entry:
+        title: "Confirm deletion of time entry"
+        text: "Are you sure you want to delete the following time entry?"
     notice_no_results_to_display: "Geen zichtbare resultaten om weer te geven."
     notice_successful_create: "Aanmaak geslaagd."
     notice_successful_delete: "Verwijdering geslaagd."
     notice_successful_update: "Succesvolle wijziging."
+    notice_job_started: "job started."
     notice_bad_request: "Foute ingave."
     relations:
       empty: Er bestaat geen relatie
@@ -915,9 +965,9 @@ nl:
         one: "één onderliggend werkpakket"
         other: "%{count} werkpakket kinderen"
       hour:
-        zero: "0 h"
         one: "1 h"
         other: "%{count} h"
+        zero: "0 h"
     zen_mode:
       button_activate: 'Zen-modus activeren'
       button_deactivate: 'Deactiveren van zen modus'
@@ -935,3 +985,78 @@ nl:
       card: 'Cards'
       list: 'Table'
       timeline: 'Gantt'
+    invite_user_modal:
+      back: 'Terug'
+      invite: 'Invite'
+      title:
+        invite: 'Gebruiker uitnodigen'
+        invite_to_project: 'Invite %{type} to %{project}'
+        User: 'user'
+        Group: 'group'
+        PlaceholderUser: 'placeholder user'
+        invite_principal_to_project: 'Invite %{principal} to %{project}'
+      project:
+        label: 'Project'
+        required: 'Please select a project'
+        lacking_permission: 'Please select a different project since you lack permissions to assign users to the currently selected.'
+        lacking_permission_info: 'You lack the permission to assign users to the project you are currently in. You need to select a different one.'
+        next_button: 'Volgende'
+        no_results: 'No projects were found'
+        no_invite_rights: 'You are not allowed to invite members to this project'
+      type:
+        required: 'Please select the type to be invited'
+        user:
+          title: 'Gebruiker'
+          description: 'Permissions based on the assigned role in the selected project'
+        group:
+          title: 'Groep'
+          description: 'Permissions based on the assigned role in the selected project'
+        placeholder:
+          title: 'Placeholder user'
+          title_no_ee: 'Placeholder user (Enterprise Edition only feature)'
+          description: 'Has no access to the project and no emails are sent out.'
+          description_no_ee: 'Has no access to the project and no emails are sent out. <br>Check out the <a href="%{eeHref}" target="_blank">Enterprise Edition</a>'
+      principal:
+        label:
+          name_or_email: 'Name or email address'
+          name: 'Naam'
+        already_member_message: 'Already a member of %{project}'
+        no_results_user: 'No users were found'
+        invite_user: 'Invite:'
+        change_user_selection: 'Change e-mail-address or select an existing user'
+        no_results_placeholder: 'No placeholders were found'
+        change_placeholder_selection: 'Change name or select an existing placeholder'
+        create_new_placeholder: 'Create new placeholder:'
+        no_results_group: 'No groups were found'
+        change_group_selection: 'Change name or select an existing group'
+        next_button: 'Volgende'
+        required:
+          user: 'Please select a user'
+          placeholder: 'Please select a placeholder'
+          group: 'Please select a group'
+      role:
+        label: 'Role in %{project}'
+        no_roles_found: 'No roles were found'
+        description: 'This is the role that %{principal} will receive when they join your project. The role defines which actions they are allowed to take and which information they are allowed to see. <a href="https://docs.openproject.org/system-admin-guide/users-permissions/roles-permissions/#roles-and-permissions" target="_blank"> Learn more about roles and permissions. </a>'
+        required: 'Please select a role'
+        next_button: 'Volgende'
+      message:
+        label: 'Invitation message'
+        description: 'We will send an email to %{principal}, to which you can add a personal message here. An explanation for the invitation could be useful, or perhaps a bit of information regarding the project to help them get started.'
+        next_button: 'Review invitation'
+      summary:
+        next_button: 'Verstuur uitnodiging'
+      success:
+        title: '%{principal} was invited!'
+        description:
+          user: 'The user can now log in to access %{project}. Meanwhile you can already plan with that user and assign work packages for instance.'
+          placeholder: 'The placeholder can now be used in %{project}. Meanwhile you can already plan with that user and assign work packages for instance.'
+          group: 'The group is now a part of %{project}. Meanwhile you can already plan with that group and assign work packages for instance.'
+        next_button: 'Verdergaan'
+    forms:
+      submit_success_message: 'The form was successfully submitted'
+      load_error_message: 'There was an error loading the form'
+      validation_error_message: 'Please fix the errors present in the form'
+      advanced_settings: 'Geavanceerde instellingen'
+
+

@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,18 +24,18 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {OpenprojectHalModule} from 'core-app/modules/hal/openproject-hal.module';
-import {async, TestBed} from '@angular/core/testing';
-import {NotificationsService} from 'core-app/modules/common/notifications/notifications.service';
-import {ConfigurationService} from 'core-app/modules/common/config/configuration.service';
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
+import { OpenprojectHalModule } from 'core-app/modules/hal/openproject-hal.module';
+import { TestBed, waitForAsync } from '@angular/core/testing';
+import { NotificationsService } from 'core-app/modules/common/notifications/notifications.service';
+import { ConfigurationService } from 'core-app/modules/common/config/configuration.service';
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
 
 describe('NotificationsService', function () {
   var notificationsService:NotificationsService;
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     // noinspection JSIgnoredPromiseFromCall
     TestBed.configureTestingModule({
       imports: [
@@ -49,14 +49,14 @@ describe('NotificationsService', function () {
     })
       .compileComponents()
       .then(() => {
-        notificationsService = TestBed.get(NotificationsService);
+        notificationsService = TestBed.inject(NotificationsService);
       });
   }));
 
   it('should be able to create warnings', function () {
     var notification = notificationsService.addWarning('warning!');
 
-    expect(notification).toEqual({message: 'warning!', type: 'warning'});
+    expect(notification).toEqual({ message: 'warning!', type: 'warning' });
   });
 
   it('should be able to create error messages with errors', function () {

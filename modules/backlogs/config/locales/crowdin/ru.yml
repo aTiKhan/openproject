@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -19,7 +19,6 @@
 #Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #See docs/COPYRIGHT.rdoc for more details.
 #++
-#---
 ru:
   activerecord:
     attributes:
@@ -37,18 +36,12 @@ ru:
               can_only_contain_work_packages_of_current_sprint: "может содержать только идентификаторы рабочих пакетов в текущем спринте."
               must_block_at_least_one_work_package: "должен содержаться идентификатор по крайней мере одного билета."
             parent_id:
+              parent_child_relationship_across_projects: "недействителен, поскольку пакет работ '%{work_package_name}' - это невыполненное задание и, следовательно, не может иметь родителя за пределами текущего проекта."
               type_must_be_one_of_the_following: "Тип должен быть одним из следующих: %{type_names}."
-        sprint:
-          cannot_end_before_it_starts: "Спринт не может заканчиваться до того, как начнется."
-  activemodel:
-    errors:
-      models:
-        work_package:
-          attributes:
             version_id:
               task_version_must_be_the_same_as_story_version: "должен быть таким же, как этап родительской истории."
-            parent_id:
-              parent_child_relationship_across_projects: "недействителен, поскольку пакет работ '%{work_package_name}' - это невыполненное задание и, следовательно, не может иметь родителя за пределами текущего проекта."
+        sprint:
+          cannot_end_before_it_starts: "Спринт не может заканчиваться до того, как начнется."
   backlogs:
     add_new_story: "Новая история"
     any: "любой"
@@ -106,6 +99,7 @@ ru:
   backlogs_empty_title: "Для невыполненных работ не задано ни одного этапа"
   backlogs_empty_action_text: "Чтобы пользоваться модулем невыполненной работы, создайте этап и назначьте его столбцу невыполненной работы."
   button_edit_wiki: "Редактировать wiki-страницу"
+  error_backlogs_task_cannot_be_story: "Недопустимые настройки. Выбранный тип задачи не может быть типом истории."
   error_intro_plural: "Найдены следующие ошибки:"
   error_intro_singular: "Найдена следующая ошибка:"
   error_outro: "Исправьте вышеуказанные ошибки перед повторной отправкой."

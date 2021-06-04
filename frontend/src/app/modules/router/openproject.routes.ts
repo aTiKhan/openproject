@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,18 +24,23 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {StateDeclaration, StateService, Transition, TransitionService, UIRouter} from '@uirouter/core';
-import {INotification, NotificationsService} from "core-app/modules/common/notifications/notifications.service";
-import {CurrentProjectService} from "core-components/projects/current-project.service";
-import {Injector} from "@angular/core";
-import {FirstRouteService} from "core-app/modules/router/first-route-service";
-import {Ng2StateDeclaration, StatesModule} from "@uirouter/angular";
-import {appBaseSelector, ApplicationBaseComponent} from "core-app/modules/router/base/application-base.component";
-import {BackRoutingService} from "core-app/modules/common/back-routing/back-routing.service";
+import { StateDeclaration, StateService, Transition, TransitionService, UIRouter } from '@uirouter/core';
+import { INotification, NotificationsService } from "core-app/modules/common/notifications/notifications.service";
+import { CurrentProjectService } from "core-components/projects/current-project.service";
+import { Injector } from "@angular/core";
+import { FirstRouteService } from "core-app/modules/router/first-route-service";
+import { Ng2StateDeclaration, StatesModule } from "@uirouter/angular";
+import { appBaseSelector, ApplicationBaseComponent } from "core-app/modules/router/base/application-base.component";
+import { BackRoutingService } from "core-app/modules/common/back-routing/back-routing.service";
 
 export const OPENPROJECT_ROUTES:Ng2StateDeclaration[] = [
+  {
+    name: 'new_project.**',
+    url: '/projects/new',
+    loadChildren: () => import('../projects/openproject-projects.module').then(m => m.OpenprojectProjectsModule)
+  },
   {
     name: 'root',
     url: '/{projects}/{projectPath}',
@@ -63,6 +68,42 @@ export const OPENPROJECT_ROUTES:Ng2StateDeclaration[] = [
     url: '/bcf',
     loadChildren: () => import('../bim/ifc_models/openproject-ifc-models.module').then(m => m.OpenprojectIFCModelsModule)
   },
+  {
+    name: 'backlogs.**',
+    parent: 'root',
+    url: '/backlogs',
+    loadChildren: () => import('../backlogs/openproject-backlogs.module').then(m => m.OpenprojectBacklogsModule)
+  },
+  {
+    name: 'backlogs_sprint.**',
+    parent: 'root',
+    url: '/sprints',
+    loadChildren: () => import('../backlogs/openproject-backlogs.module').then(m => m.OpenprojectBacklogsModule)
+  },
+  {
+    name: 'reporting.**',
+    parent: 'root',
+    url: '/cost_reports',
+    loadChildren: () => import('../reporting/openproject-reporting.module').then(m => m.OpenprojectReportingModule)
+  },
+  {
+    name: 'job-statuses.**',
+    parent: 'root',
+    url: '/job_statuses',
+    loadChildren: () => import('../job-status/openproject-job-status.module').then(m => m.OpenProjectJobStatusModule)
+  },
+  {
+    name: 'project_settings.**',
+    parent: 'root',
+    url: '/settings/generic',
+    loadChildren: () => import('../projects/openproject-projects.module').then(m => m.OpenprojectProjectsModule)
+  },
+  {
+    name: 'project_copy.**',
+    parent: 'root',
+    url: '/copy',
+    loadChildren: () => import('../projects/openproject-projects.module').then(m => m.OpenprojectProjectsModule)
+  },
 ];
 
 /**
@@ -88,7 +129,7 @@ export function updateMenuItem(menuItemClass:string|undefined, action:'add'|'rem
     return;
   }
 
-  let menuItem = jQuery('#main-menu .' + menuItemClass)[0];
+  const menuItem = jQuery('#main-menu .' + menuItemClass)[0];
 
   if (!menuItem) {
     return;
@@ -135,7 +176,7 @@ export function initializeUiRouterListeners(injector:Injector) {
 
   // Check whether we are running within our complete app, or only within some other bootstrapped
   // component
-  let wpBase = document.querySelector(appBaseSelector);
+  const wpBase = document.querySelector(appBaseSelector);
 
   // Uncomment to trace route changes
   // const uiRouter = injector.get(UIRouter);
@@ -193,18 +234,21 @@ export function initializeUiRouterListeners(injector:Injector) {
     }
 
     // Abort the transition and move to the url instead
+    // Only move to the URL if we're not coming from an initial URL load
+    // (cases like /work_packages/invalid/activity which render a 403 without frontend,
+    // but trigger the ui-router state)
+    //
+    // The FirstRoute service remembers the first angular route we went to
+    // but for pages without any angular routes, this will stay empty.
+    // So we also allow routes to happen after some delay
     if (wpBase === null) {
-
-      // Only move to the URL if we're not coming from an initial URL load
-      // (cases like /work_packages/invalid/activity which render a 403 without frontend,
-      // but trigger the ui-router state)
-      const source = transition.options().source;
 
       // Get the current path and compare
       const path = window.location.pathname;
+      const pathWithSearch = path + window.location.search;
       const target = stateService.href(toState, toParams);
 
-      if (target && path !== target) {
+      if (target && path !== target && pathWithSearch !== target) {
         window.location.href = target;
         return false;
       }

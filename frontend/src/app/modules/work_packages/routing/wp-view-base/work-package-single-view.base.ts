@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,36 +26,37 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {ChangeDetectorRef, Injector} from '@angular/core';
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
-import {PathHelperService} from 'core-app/modules/common/path-helper/path-helper.service';
-import {WorkPackageViewFocusService} from 'core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-focus.service';
-import {WorkPackageResource} from 'core-app/modules/hal/resources/work-package-resource';
-import {ProjectCacheService} from 'core-components/projects/project-cache.service';
-import {OpTitleService} from 'core-components/html/op-title.service';
-import {AuthorisationService} from "core-app/modules/common/model-auth/model-auth.service";
-import {WorkPackageCacheService} from "core-components/work-packages/work-package-cache.service";
-import {States} from "core-components/states.service";
-import {KeepTabService} from "core-components/wp-single-view-tabs/keep-tab/keep-tab.service";
+import { ChangeDetectorRef, Injector } from '@angular/core';
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
+import { PathHelperService } from 'core-app/modules/common/path-helper/path-helper.service';
+import { WorkPackageViewFocusService } from 'core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-focus.service';
+import { WorkPackageResource } from 'core-app/modules/hal/resources/work-package-resource';
+import { OpTitleService } from 'core-components/html/op-title.service';
+import { AuthorisationService } from 'core-app/modules/common/model-auth/model-auth.service';
+import { States } from 'core-components/states.service';
+import { KeepTabService } from 'core-components/wp-single-view-tabs/keep-tab/keep-tab.service';
 
-import {HalResourceEditingService} from "core-app/modules/fields/edit/services/hal-resource-editing.service";
-import {WorkPackageNotificationService} from "core-app/modules/work_packages/notifications/work-package-notification.service";
-import {InjectField} from "core-app/helpers/angular/inject-field.decorator";
-import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
+import { HalResourceEditingService } from 'core-app/modules/fields/edit/services/hal-resource-editing.service';
+import { WorkPackageNotificationService } from 'core-app/modules/work_packages/notifications/work-package-notification.service';
+import { InjectField } from 'core-app/helpers/angular/inject-field.decorator';
+import { UntilDestroyedMixin } from 'core-app/helpers/angular/until-destroyed.mixin';
+import { APIV3Service } from 'core-app/modules/apiv3/api-v3.service';
+import { HookService } from 'core-app/modules/plugins/hook-service';
 
 export class WorkPackageSingleViewBase extends UntilDestroyedMixin {
 
-  @InjectField() wpCacheService:WorkPackageCacheService;
   @InjectField() states:States;
-  @InjectField() I18n:I18nService;
+  @InjectField() I18n!:I18nService;
   @InjectField() keepTab:KeepTabService;
   @InjectField() PathHelper:PathHelperService;
   @InjectField() halEditing:HalResourceEditingService;
   @InjectField() wpTableFocus:WorkPackageViewFocusService;
   @InjectField() notificationService:WorkPackageNotificationService;
-  @InjectField() projectCacheService:ProjectCacheService;
   @InjectField() authorisationService:AuthorisationService;
   @InjectField() cdRef:ChangeDetectorRef;
+  @InjectField() readonly titleService:OpTitleService;
+  @InjectField() readonly apiV3Service:APIV3Service;
+  @InjectField() readonly hooks:HookService;
 
   // Static texts
   public text:any = {};
@@ -67,9 +68,8 @@ export class WorkPackageSingleViewBase extends UntilDestroyedMixin {
   public focusAnchorLabel:string;
   public showStaticPagePath:string;
 
-  @InjectField() readonly titleService:OpTitleService;
-
-  constructor(public injector:Injector, protected workPackageId:string) {
+  constructor(public injector:Injector,
+              protected workPackageId:string) {
     super();
     this.initializeTexts();
   }
@@ -80,12 +80,11 @@ export class WorkPackageSingleViewBase extends UntilDestroyedMixin {
    */
   protected observeWorkPackage() {
     /** Require the work package once to ensure we're displaying errors */
-    this.wpCacheService.require(this.workPackageId)
-      .catch((error) => this.notificationService.handleRawError(error));
-
-    /** Stream updates of the work package */
-    this.wpCacheService.state(this.workPackageId)
-      .values$()
+    this
+      .apiV3Service
+      .work_packages
+      .id(this.workPackageId)
+      .requireAndStream()
       .pipe(
         this.untilDestroyed()
       )
@@ -93,7 +92,9 @@ export class WorkPackageSingleViewBase extends UntilDestroyedMixin {
         this.workPackage = wp;
         this.init();
         this.cdRef.detectChanges();
-      });
+      },
+      (error) => this.notificationService.handleRawError(error)
+      );
   }
 
   /**
@@ -111,10 +112,14 @@ export class WorkPackageSingleViewBase extends UntilDestroyedMixin {
    */
   protected init() {
     // Set elements
-    this.projectCacheService
-      .require(this.workPackage.project.idFromLink)
-      .then(() => {
+    this
+      .apiV3Service
+      .projects
+      .id(this.workPackage.project)
+      .requireAndStream()
+      .subscribe(() => {
         this.projectIdentifier = this.workPackage.project.identifier;
+        this.cdRef.detectChanges();
       });
 
     // Set authorisation data
@@ -147,13 +152,5 @@ export class WorkPackageSingleViewBase extends UntilDestroyedMixin {
     });
 
     return this.focusAnchorLabel = tabLabel;
-  }
-
-  public canViewWorkPackageWatchers() {
-    return !!(this.workPackage && this.workPackage.watchers);
-  }
-
-  public get isEditable() {
-    return this.workPackage.isEditable;
   }
 }

@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -56,6 +56,7 @@ module Components
       end
 
       def open!
+        SeleniumHubWaiter.wait
         scroll_to_and_click trigger
         expect_open
       end
@@ -88,27 +89,27 @@ module Components
       end
 
       def expect_disabled_tab(name)
-        expect(page).to have_selector("#{selector} li.-disabled", text: name.upcase)
+        expect(page).to have_selector("#{selector} [data-qa-tab-disabled]", text: name.upcase)
       end
 
       def selected_tab(name)
-        page.find("#{selector} .tab-show.selected", text: name.upcase)
+        page.find("#{selector} .op-tab-row--link_selected", text: name.upcase)
         page.find("#{selector} .tab-content[data-tab-name='#{name}']")
       end
 
       def switch_to(target)
         # Switching too fast may result in the click handler not yet firing
         # so wait a bit initially
-        sleep 1
+        SeleniumHubWaiter.wait
 
         retry_block do
-          find("#{selector} .tab-show", text: target.upcase, wait: 10).click
+          find("#{selector} .op-tab-row--link", text: target.upcase, wait: 2).click
           selected_tab(target)
         end
       end
 
       def selector
-        '.wp-table--configuration-modal'
+        '.op-modal'
       end
 
       private

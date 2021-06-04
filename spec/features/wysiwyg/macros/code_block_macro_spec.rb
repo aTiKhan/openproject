@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -28,27 +28,29 @@
 
 require 'spec_helper'
 
-describe 'Wysiwyg code block macro', type: :feature, js: true do
-  using_shared_fixtures :admin
+describe 'Wysiwyg code block macro',
+         type: :feature,
+         js: true do
+  shared_let(:admin) { FactoryBot.create :admin }
   let(:user) { admin }
   let(:project) { FactoryBot.create(:project, enabled_module_names: %w[wiki]) }
   let(:editor) { ::Components::WysiwygEditor.new }
 
-  let(:snippet) {
+  let(:snippet) do
     <<~RUBY
       def foobar
         'some ruby code'
       end
     RUBY
-  }
+  end
 
-  let(:expected) {
+  let(:expected) do
     <<~EXPECTED
       ```ruby
       #{snippet.strip}
       ```
     EXPECTED
-  }
+  end
 
   before do
     login_as(user)
@@ -65,12 +67,12 @@ describe 'Wysiwyg code block macro', type: :feature, js: true do
           editor.set_markdown expected
 
           # Expect first macro saved to editor
-          expect(container).to have_selector('.op-ckeditor--code-block', text: snippet)
-          expect(container).to have_selector('.op-ckeditor--code-block-language', text: 'ruby')
+          expect(container).to have_selector('.op-uc-code-block', text: snippet)
+          expect(container).to have_selector('.op-uc-code-block--language', text: 'ruby')
 
           editor.set_markdown "#{expected}\n#{expected}"
-          expect(container).to have_selector('.op-ckeditor--code-block', text: snippet, count: 2)
-          expect(container).to have_selector('.op-ckeditor--code-block-language', text: 'ruby', count: 2)
+          expect(container).to have_selector('.op-uc-code-block', text: snippet, count: 2)
+          expect(container).to have_selector('.op-uc-code-block--language', text: 'ruby', count: 2)
         end
 
         click_on 'Save'
@@ -81,12 +83,14 @@ describe 'Wysiwyg code block macro', type: :feature, js: true do
           expect(page).to have_selector('pre.highlight-ruby', count: 2)
         end
 
+        SeleniumHubWaiter.wait
         # Edit page again, expect widget
         click_on 'Edit'
+        # SeleniumHubWaiter.wait
 
         editor.in_editor do |container,|
-          expect(container).to have_selector('.op-ckeditor--code-block', text: snippet, count: 2)
-          expect(container).to have_selector('.op-ckeditor--code-block-language', text: 'ruby', count: 2)
+          expect(container).to have_selector('.op-uc-code-block', text: snippet, count: 2)
+          expect(container).to have_selector('.op-uc-code-block--language', text: 'ruby', count: 2)
         end
       end
 
@@ -94,14 +98,14 @@ describe 'Wysiwyg code block macro', type: :feature, js: true do
         editor.in_editor do |container,|
           editor.click_toolbar_button 'Insert code snippet'
 
-          expect(page).to have_selector('.op-modal--macro-modal')
+          expect(page).to have_selector('.op-modal')
 
           # CM wraps an accessor to the editor instance on the outer container
           cm = page.find('.CodeMirror')
           page.execute_script('arguments[0].CodeMirror.setValue(arguments[1]);', cm.native, 'asdf')
           find('.op-modal--submit-button').click
 
-          expect(container).to have_selector('.op-ckeditor--code-block', text: 'asdf')
+          expect(container).to have_selector('.op-uc-code-block', text: 'asdf')
 
           click_on 'Save'
           expect(page).to have_selector('.flash.notice')
@@ -109,10 +113,11 @@ describe 'Wysiwyg code block macro', type: :feature, js: true do
           wp = WikiPage.last
           expect(wp.content.text.gsub("\r\n", "\n")).to eq("```text\nasdf\n```")
 
+          SeleniumHubWaiter.wait
           click_on 'Edit'
 
           editor.in_editor do |container,|
-            expect(container).to have_selector('.op-ckeditor--code-block', text: 'asdf')
+            expect(container).to have_selector('.op-uc-code-block', text: 'asdf')
           end
 
           click_on 'Save'
@@ -128,7 +133,7 @@ describe 'Wysiwyg code block macro', type: :feature, js: true do
         editor.in_editor do |container,|
           editor.click_toolbar_button 'Insert code snippet'
 
-          expect(page).to have_selector('.op-modal--macro-modal')
+          expect(page).to have_selector('.op-modal')
 
           # CM wraps an accessor to the editor instance on the outer container
           cm = page.find('.CodeMirror')
@@ -143,8 +148,8 @@ describe 'Wysiwyg code block macro', type: :feature, js: true do
           find('.op-modal--submit-button').click
 
           # Expect macro saved to editor
-          expect(container).to have_selector('.op-ckeditor--code-block', text: snippet)
-          expect(container).to have_selector('.op-ckeditor--code-block-language', text: 'ruby')
+          expect(container).to have_selector('.op-uc-code-block', text: snippet)
+          expect(container).to have_selector('.op-uc-code-block--language', text: 'ruby')
         end
 
         # Save wiki page
@@ -162,17 +167,18 @@ describe 'Wysiwyg code block macro', type: :feature, js: true do
         end
 
         # Edit page again, expect widget
+        SeleniumHubWaiter.wait
         click_on 'Edit'
 
         editor.in_editor do |container,|
-          expect(container).to have_selector('.op-ckeditor--code-block', text: snippet)
-          expect(container).to have_selector('.op-ckeditor--code-block-language', text: 'ruby')
+          expect(container).to have_selector('.op-uc-code-block', text: snippet)
+          expect(container).to have_selector('.op-uc-code-block--language', text: 'ruby')
 
-          widget = container.find('.op-ckeditor--code-block')
+          widget = container.find('.op-uc-code-block')
           page.driver.browser.action.double_click(widget.native).perform
-          expect(page).to have_selector('.op-modal--macro-modal')
+          expect(page).to have_selector('.op-modal')
 
-          expect(page).to have_selector('.op-ckeditor--code-block-language', text: 'ruby')
+          expect(page).to have_selector('.op-uc-code-block--language', text: 'ruby')
           expect(page).to have_selector('.cm-keyword', text: 'def')
           expect(page).to have_selector('.cm-def', text: 'foobar')
         end

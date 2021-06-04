@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,29 +26,38 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {OPContextMenuService} from "core-components/op-context-menu/op-context-menu.service";
-import {Directive, ElementRef} from "@angular/core";
-import {OpContextMenuTrigger} from "core-components/op-context-menu/handlers/op-context-menu-trigger.directive";
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
-import {StateService} from "@uirouter/core";
+import { OPContextMenuService } from "core-components/op-context-menu/op-context-menu.service";
+import { Directive, ElementRef } from "@angular/core";
+import { OpContextMenuTrigger } from "core-components/op-context-menu/handlers/op-context-menu-trigger.directive";
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
+import { StateService } from "@uirouter/core";
 
-import {WorkPackageFiltersService} from "core-components/filters/wp-filters/wp-filters.service";
+import { WorkPackageFiltersService } from "core-components/filters/wp-filters/wp-filters.service";
 import {
-  bimListViewIdentifier, bimSplitViewIdentifier,
+  bimListViewIdentifier, bimSplitViewListIdentifier, bimSplitViewCardsIdentifier, bimTableViewIdentifier,
   bimViewerViewIdentifier,
   BimViewService
 } from "core-app/modules/bim/ifc_models/pages/viewer/bim-view.service";
+import { ViewerBridgeService } from "core-app/modules/bim/bcf/bcf-viewer-bridge/viewer-bridge.service";
+import {
+  WorkPackageViewDisplayRepresentationService,
+  wpDisplayCardRepresentation,
+  wpDisplayListRepresentation,
+} from "core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-display-representation.service";
 
 @Directive({
   selector: '[bimViewDropdown]'
 })
 export class BimViewToggleDropdownDirective extends OpContextMenuTrigger {
+
   constructor(readonly elementRef:ElementRef,
               readonly opContextMenu:OPContextMenuService,
               readonly bimView:BimViewService,
               readonly I18n:I18nService,
               readonly state:StateService,
-              readonly wpFiltersService:WorkPackageFiltersService) {
+              readonly wpFiltersService:WorkPackageFiltersService,
+              readonly viewerBridgeService:ViewerBridgeService,
+              readonly wpDisplayRepresentation:WorkPackageViewDisplayRepresentationService) {
 
     super(elementRef, opContextMenu);
   }
@@ -67,9 +76,11 @@ export class BimViewToggleDropdownDirective extends OpContextMenuTrigger {
 
   private buildItems() {
     const current = this.bimView.current;
-    const viewRoute = this.state.current.data.viewRoute;
+    const items = this.viewerBridgeService.shouldShowViewer ?
+      [bimViewerViewIdentifier, bimListViewIdentifier, bimSplitViewCardsIdentifier, bimSplitViewListIdentifier, bimTableViewIdentifier] :
+      [bimListViewIdentifier, bimTableViewIdentifier];
 
-    this.items = [bimViewerViewIdentifier, bimListViewIdentifier, bimSplitViewIdentifier]
+    this.items = items
       .map(key => {
         return {
           hidden: key === current,
@@ -82,15 +93,32 @@ export class BimViewToggleDropdownDirective extends OpContextMenuTrigger {
             }
 
             switch (key) {
-              case bimListViewIdentifier:
-                this.state.go('bim.partitioned.list');
-                break;
-              case bimViewerViewIdentifier:
-                this.state.go('bim.partitioned.model');
-                break;
-              case bimSplitViewIdentifier:
-                this.state.go('bim.partitioned.split');
-                break;
+            // This project controls the view representation of the data through
+            // the wpDisplayRepresentation service that modifies the QuerySpace
+            // to inform the rest of the app about which display mode is currently
+            // active (this.querySpace.query.live$).
+            // Under the hood it is done by modifying the params of actual route.
+            // Because of that, it is not possible to call this.state.go and
+            // this.wpDisplayRepresentation.setDisplayRepresentation at the same
+            // time, it raises a route error (The transition has been superseded by
+            // a different transition...). To avoid this error, we are passing
+            // a cards params to inform the view about the display representation mode
+            // it has to show (cards or list).
+            case bimListViewIdentifier:
+              this.state.go('bim.partitioned.list', { cards: true });
+              break;
+            case bimTableViewIdentifier:
+              this.state.go('bim.partitioned.list', { cards: false });
+              break;
+            case bimViewerViewIdentifier:
+              this.state.go('bim.partitioned.model');
+              break;
+            case bimSplitViewCardsIdentifier:
+              this.state.go('bim.partitioned.split', { cards: true });
+              break;
+            case bimSplitViewListIdentifier:
+              this.state.go('bim.partitioned.split', { cards: false });
+              break;
             }
 
             return true;

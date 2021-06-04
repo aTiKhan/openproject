@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -67,9 +67,9 @@ describe 'project menu', type: :feature do
         end
 
         it 'leads to cost reports' do
-          click_on 'Cost reports'
+          click_on 'Time and costs'
 
-          expect(page).to have_selector('.button--dropdown-text', text: 'Ponyo')
+          expect(page).to have_selector('.op-app-menu--item-title', text: 'Ponyo')
         end
       end
 
@@ -96,7 +96,7 @@ describe 'project menu', type: :feature do
           # doing what no human can - click on invisible items.
           # This way, we avoid having to use selenium and by that increase stability.
           within '#more-menu', visible: false do
-            click_on 'Cost reports', visible: false
+            click_on 'Time and costs', visible: false
           end
 
           # to make sure we're not seeing the project cost reports:

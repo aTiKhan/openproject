@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -50,7 +50,7 @@ class MyController < ApplicationController
   def account; end
 
   def update_account
-    write_settings @user, request, permitted_params, params
+    write_settings
 
     # If mail changed, expire all other sessions
     if @user.previous_changes['mail'] && ::Sessions::DropOtherSessionsService.call(@user, session)
@@ -62,7 +62,7 @@ class MyController < ApplicationController
   def settings; end
 
   def update_settings
-    write_settings @user, request, permitted_params, params
+    write_settings
   end
 
   # Manage user's password
@@ -123,7 +123,7 @@ class MyController < ApplicationController
   end
 
   def default_breadcrumb
-    l(:label_my_account)
+    I18n.t(:label_my_account)
   end
 
   def show_local_breadcrumb
@@ -134,7 +134,7 @@ class MyController < ApplicationController
 
   def redirect_if_password_change_not_allowed_for(user)
     unless user.change_password_allowed?
-      flash[:error] = l(:notice_can_t_change_password)
+      flash[:error] = I18n.t(:notice_can_t_change_password)
       redirect_to action: 'account'
       return true
     end
@@ -146,15 +146,17 @@ class MyController < ApplicationController
     if update_service.call(mail_notification: permitted_params.user[:mail_notification],
                            self_notified: params[:self_notified] == '1',
                            notified_project_ids: params[:notified_project_ids])
-      flash[:notice] = l(:notice_account_updated)
+      flash[:notice] = I18n.t(:notice_account_updated)
       redirect_to(action: redirect_to)
     end
   end
 
-  def write_settings(current_user, request, permitted_params, params)
+  def write_settings
+    user_params = permitted_params.my_account_settings
+
     result = Users::UpdateService
-             .new(current_user: current_user)
-             .call(permitted_params, params)
+             .new(user: current_user, model: current_user)
+             .call(user_params.to_h)
 
     if result&.success
       flash[:notice] = t(:notice_account_updated)

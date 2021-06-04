@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -60,7 +60,8 @@ describe OpenProject::Configuration do
                                           'default' => { 'somesetting' => 'foo' },
                                           'test' => {},
                                           'someother' => { 'somesetting' => 'bar' }
-                                        }, 'test') end
+                                        }, 'test')
+      end
 
       it 'should load a default setting' do
         expect(config['somesetting']).to eq('foo')
@@ -72,7 +73,8 @@ describe OpenProject::Configuration do
         OpenProject::Configuration.send(:load_env_from_config, {
                                           'default' => {},
                                           'test' => { 'somesetting' => 'foo' }
-                                        }, 'test') end
+                                        }, 'test')
+      end
 
       it 'should load a setting' do
         expect(config['somesetting']).to eq('foo')
@@ -84,7 +86,8 @@ describe OpenProject::Configuration do
         OpenProject::Configuration.send(:load_env_from_config, {
                                           'default' => { 'somesetting' => 'foo' },
                                           'test' => { 'somesetting' => 'bar' }
-                                        }, 'test') end
+                                        }, 'test')
+      end
 
       it 'should load the overriding value' do
         expect(config['somesetting']).to eq('bar')
@@ -182,7 +185,7 @@ describe OpenProject::Configuration do
       OpenProject::Configuration.load(env: 'test')
     end
 
-    it 'should return the overriden the setting within the block' do
+    it 'should return the overridden the setting within the block' do
       expect(OpenProject::Configuration['somesetting']).to eq('foo')
 
       OpenProject::Configuration.with 'somesetting' => 'bar' do
@@ -203,7 +206,9 @@ describe OpenProject::Configuration do
             'address' => 'smtp.example.net',
             'port' => 25,
             'domain' => 'example.net'
-          } } }
+          }
+        }
+      }
     end
 
     context 'with delivery_method' do
@@ -476,6 +481,41 @@ describe OpenProject::Configuration do
         it 'defaults the cache store to :file_store' do
           OpenProject::Configuration.send(:configure_cache, application_config)
           expect(application_config.cache_store.first).to eq(:file_store)
+        end
+      end
+    end
+  end
+
+  context 'helpers' do
+    describe '#direct_uploads?' do
+      let(:value) { OpenProject::Configuration.direct_uploads? }
+
+      it 'should be false by default' do
+        expect(value).to be false
+      end
+
+      context 'with remote storage' do
+        def self.storage(provider)
+          {
+            attachments_storage: :fog,
+            fog: {
+              credentials: {
+                provider: provider
+              }
+            }
+          }
+        end
+
+        context 'AWS', with_config: storage('AWS') do
+          it 'should be true' do
+            expect(value).to be true
+          end
+        end
+
+        context 'Azure', with_config: storage('azure') do
+          it 'should be false' do
+            expect(value).to be false
+          end
         end
       end
     end

@@ -2,7 +2,7 @@
 
 To develop OpenProject a setup similar to that for using OpenProject in production is needed.
 
-This guide assumes that you have a Mac OS Xinstallation installation with administrative rights.
+This guide assumes that you have a Mac OS X installation with administrative rights.
 OpenProject will be installed with a PostgreSQL database.
 
 **Please note**: This guide is NOT suitable for a production setup, but only for developing with it!
@@ -17,7 +17,7 @@ We'll use [homebrew](https://brew.sh/) to install most of our requirements. Plea
 
 Use [rbenv](https://github.com/rbenv/rbenv) and [ruby-build](https://github.com/rbenv/ruby-build#readme) to install Ruby. We always require the latest ruby versions, and you can check which version is required by [checking the Gemfile](https://github.com/opf/openproject/blob/dev/Gemfile#L31) for the `ruby "~> X.Y"` statement. At the time of writing, this version is "2.6"
 
-**Install rbenv and ruby-build**
+### Install rbenv and ruby-build
 
 rbenv is a ruby version manager that lets you quickly switch between ruby versions.
 ruby-build is an addon to rbenv that installs ruby versions.
@@ -29,23 +29,23 @@ $ brew install rbenv ruby-build
 $ rbenv init
 ```
 
-**Installing ruby-2.6**
+### Installing ruby-2.7
 
-With both installed, we can now install the actual ruby version 2.6. You can check available ruby versions with `rbenv install --list`.
-At the time of this writing, the latest stable version is `2.6.6`, which we also require.
+With both installed, we can now install the actual ruby version 2.7. You can check available ruby versions with `rbenv install --list`.
+At the time of this writing, the latest stable version is `2.7.3`, which we also require.
 
 We suggest you install the version we require in the [Gemfile](https://github.com/opf/openproject/blob/dev/Gemfile). Search for the `ruby '~> X.Y.Z'` line
 and install that version.
 
 ```bash
 # Install the required version as read from the Gemfile
-rbenv install 2.6.6
+rbenv install 2.7.3
 ```
 
 This might take a while depending on whether ruby is built from source. After it is complete, you need to tell rbenv to globally activate this version
 
 ```bash
-rbenv global 2.6.6
+rbenv global 2.7.3
 ```
 
 You also need to install [bundler](https://github.com/bundler/bundler/), the ruby gem bundler.
@@ -84,7 +84,7 @@ $ createdb -O openproject openproject_test
 
 We will install the latest LTS version of Node.js via [nodenv](https://github.com/nodenv/nodenv). This is basically the same steps as for rbenv:
 
-**Install nodenv and node-build**
+### Install nodenv and node-build
 
 ```bash
 # Install
@@ -93,15 +93,21 @@ $ brew install nodenv node-build
 $ nodenv init
 ```
 
-**Install latest LTS node version**
+### Install latest LTS node version
 
 You can find the latest LTS version here: https://nodejs.org/en/download/
 
-At the time of writing this is v12.16.1. Install and activate it with:
+At the time of writing this is v14.17.0. Install and activate it with:
 
 ```bash
-nodenv install 12.16.1
-nodenv global 12.16.1
+nodenv install 14.17.0
+nodenv global 14.17.0
+```
+
+### Update NPM to the latest version
+
+```bash
+npm install npm@latest -g
 ```
 
 ## Verify your installation
@@ -110,13 +116,16 @@ You should now have an active ruby and node installation. Verify that it works w
 
 ```bash
 $ ruby --version
-ruby 2.6.6p114 (2019-10-01 revision 67812) [x86_64-darwin16]
+ruby 2.7.3p183 (2021-04-05 revision 6847ee089d) [x86_64-linux]
 
 $ bundler --version
-Bundler version 2.0.2
+Bundler version 2.1.4
 
-$ npm --version
-12.16.1
+node --version
+v14.17.0
+
+npm --version
+7.15.1
 ```
 
 # Install OpenProject
@@ -125,13 +134,6 @@ $ npm --version
 # Download the repository
 git clone https://github.com/opf/openproject.git
 cd openproject
-
-# Install gem dependencies
-# If you get errors here, you're likely missing a development dependency for your distribution
-bundle install
-
-# Install node_modules
-npm install
 ```
 
 Note that we have checked out the `dev` branch of the OpenProject repository. Development in OpenProject happens in the `dev` branch (there is no `master` branch).
@@ -165,18 +167,24 @@ test:
   database: openproject_test
 ```
 
-
-
 ## Finish the Installation of OpenProject
+
+Install code dependencies, link plugin modules and export translation files.
+- gem dependencies (If you get errors here, you're likely missing a development dependency for your distribution)
+- node_modules
+- link plugin frontend modules
+- and export frontend localization files
+
+```bash
+bin/setup_dev
+```
 
 Now, run the following tasks to migrate and seed the dev database, and prepare the test setup for running tests locally.
 
 ```bash
-RAILS_ENV=development bin/rails db:create db:migrate
-RAILS_ENV=development bin/rails db:seed db:test:prepare
+RAILS_ENV=development bin/rails db:seed
 ```
-
-
+1
 ## Run OpenProject through foreman
 
 You can run all required workers of OpenProject through `foreman`, which combines them in a single tab. This is useful for starting out,
@@ -186,7 +194,7 @@ however most developers end up running the tasks in separate shells for better u
 gem install foreman
 foreman start -f Procfile.dev
 ```
-The application will be available at `http://127.0.0.1:5000`. To customize bind address and port copy the `.env.sample` provided in the root of this
+The application will be available at `http://127.0.0.1:5000`. To customize bind address and port copy the `.env.example` provided in the root of this
 project as `.env` and [configure values][foreman-env] as required.
 
 By default a worker process will also be started. In development asynchronous execution of long-running background tasks (sending emails, copying projects,
@@ -205,7 +213,7 @@ You can access the application with the admin-account having the following crede
 
 To run OpenProject manually, you need to run the rails server and the webpack frontend bundler to:
 
-**Rails web server**
+### Rails web server
 
 ```bash
 RAILS_ENV=development bin/rails server
@@ -213,7 +221,7 @@ RAILS_ENV=development bin/rails server
 
 This will start the development server on port `3000` by default.
 
-**Angular frontend**
+### Angular frontend
 
 To run the frontend server, please run
 

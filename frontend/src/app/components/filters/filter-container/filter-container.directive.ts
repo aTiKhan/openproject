@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,28 +24,37 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
+//++
 
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, Output} from '@angular/core';
-import {WorkPackageViewFiltersService} from 'core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-filters.service';
-import {WorkPackageFiltersService} from 'core-components/filters/wp-filters/wp-filters.service';
-import {DebouncedEventEmitter} from "core-components/angular/debounced-event-emitter";
-import {QueryFilterInstanceResource} from "core-app/modules/hal/resources/query-filter-instance-resource";
-import {Observable} from "rxjs";
-import {UntilDestroyedMixin} from "core-app/helpers/angular/until-destroyed.mixin";
-import {componentDestroyed} from "@w11k/ngx-componentdestroyed";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  ViewEncapsulation
+} from '@angular/core';
+import { WorkPackageViewFiltersService } from 'core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-filters.service';
+import { WorkPackageFiltersService } from 'core-components/filters/wp-filters/wp-filters.service';
+import { DebouncedEventEmitter } from "core-components/angular/debounced-event-emitter";
+import { QueryFilterInstanceResource } from "core-app/modules/hal/resources/query-filter-instance-resource";
+import { Observable } from "rxjs";
+import { UntilDestroyedMixin } from "core-app/helpers/angular/until-destroyed.mixin";
+import { componentDestroyed } from "@w11k/ngx-componentdestroyed";
 
 @Component({
   templateUrl: './filter-container.directive.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  selector: 'filter-container',
+  selector: 'filter-container'
 })
 export class WorkPackageFilterContainerComponent extends UntilDestroyedMixin implements OnInit, OnDestroy {
-  @Input('showFilterButton') showFilterButton:boolean = false;
+  @Input('showFilterButton') showFilterButton = false;
   @Input('filterButtonText') filterButtonText:string = I18n.t('js.button_filter');
   @Output() public filtersChanged = new DebouncedEventEmitter<QueryFilterInstanceResource[]>(componentDestroyed(this));
 
-  public visible$:Observable<Boolean>;
+  public visible$:Observable<boolean>;
   public filters = this.wpTableFilters.current;
   public loaded = false;
 
@@ -70,7 +79,8 @@ export class WorkPackageFilterContainerComponent extends UntilDestroyedMixin imp
   }
 
   public replaceIfComplete(filters:QueryFilterInstanceResource[]) {
-    this.wpTableFilters.replaceIfComplete(filters);
-    this.filtersChanged.emit(this.filters);
+    const available = filters.filter(el => this.wpTableFilters.isAvailable(el));
+    this.wpTableFilters.replaceIfComplete(available);
+    this.filtersChanged.emit(available);
   }
 }

@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -27,24 +28,30 @@
 # See docs/COPYRIGHT.rdoc for more details.
 #++
 
+require Rails.root.join('config/constants/open_project/activity')
+
 module Redmine #:nodoc:
   class PluginError < StandardError
     attr_reader :plugin_id
+
     def initialize(plug_id = nil)
       super
       @plugin_id = plug_id
     end
   end
+
   class PluginNotFound < PluginError
     def to_s
       "Missing the plugin #{@plugin_id}"
     end
   end
+
   class PluginCircularDependency < PluginError
     def to_s
       "Circular plugin dependency in #{@plugin_id}"
     end
   end
+
   class PluginRequirementError < PluginError; end
 
   # Base class for Redmine plugins.
@@ -90,7 +97,7 @@ module Redmine #:nodoc:
         end
       end
     end
-    def_field :name, :description, :url, :author, :author_url, :version, :settings, :bundled
+    def_field :description, :url, :author, :author_url, :version, :settings, :bundled
     attr_reader :id
 
     # Plugin constructor
@@ -98,8 +105,6 @@ module Redmine #:nodoc:
       id = id.to_sym
       p = new(id)
       p.instance_eval(&block)
-      # Set a default name if it was not provided during registration
-      p.name(id.to_s.humanize) if p.name.nil?
 
       registered_plugins[id] = p
 
@@ -125,9 +130,23 @@ module Redmine #:nodoc:
       if RedminePluginLocator.instance.has_plugin? e.plugin_id
         # The required plugin is going to be loaded later, defer loading this plugin
         (deferred_plugins[e.plugin_id] ||= []) << [id, block]
-        return p
+        p
       else
         raise
+      end
+    end
+
+    def name(*args)
+      name = args.empty? ? instance_variable_get("@name") : instance_variable_set("@name", *args)
+
+      case name
+      when Symbol
+        ::I18n.t(name)
+      when NilClass
+        # Default name if it was not provided during registration
+        id.to_s.humanize
+      else
+        name
       end
     end
 
@@ -166,8 +185,8 @@ module Redmine #:nodoc:
       @id = id.to_sym
     end
 
-    def <=>(plugin)
-      id.to_s <=> plugin.id.to_s
+    def <=>(other)
+      id.to_s <=> other.id.to_s
     end
 
     # Sets a requirement on the OpenProject version.
@@ -192,28 +211,10 @@ module Redmine #:nodoc:
       unless required_version.satisfied_by? op_version
         raise PluginRequirementError.new("#{id} plugin requires OpenProject version #{required_version} but current version is #{op_version}.")
       end
+
       true
     end
 
-    ##
-    # Registers an assets (javascript, css file) to be injected into every page
-    # params: Hash containing associations with
-    #   type: (symbol): either :js or :css
-    #   path: (string): path to asset to include, or array with multiple asset paths
-    def global_assets(assets_hash = {})
-      assets_hash.each { |k, v| registered_global_assets[k] = Array(v) }
-    end
-
-    ##
-    # Returns a list of assets for the given type
-    # those assets shall be included into every OpenProject page
-    # params:
-    #   type (symbol): either :css, or :js
-    def registered_global_assets
-      @registered_global_assets ||= Hash.new([])
-    end
-
-    # Sets a requirement on a Redmine plugin version
     # Raises a PluginRequirementError exception if the requirement is not met
     #
     # Examples
@@ -267,16 +268,13 @@ module Redmine #:nodoc:
       hide_menu_item(menu_name, item)
     end
 
-    # N.B.: I could not find any usages of :delete_menu_item in my locally available plugins
-    deprecate delete_menu_item: 'Use :hide_menu_item instead'
-
     # Allows to hide an existing +item+ in a menu.
     #
     # +hide_if+ parameter can be a lambda accepting a project, the item will only be hidden if
     #   the condition evaluates to true.
-    def hide_menu_item(menu_name, item, hide_if: -> (*) { true })
+    def hide_menu_item(menu_name, item, hide_if: ->(*) { true })
       Redmine::MenuManager.map(menu_name) do |menu|
-        menu.add_condition(item, -> (project) { !hide_if.call(project) })
+        menu.add_condition(item, ->(project) { !hide_if.call(project) })
       end
     end
 
@@ -315,7 +313,11 @@ module Redmine #:nodoc:
     def permission(name, actions, options = {})
       if @project_scope
         mod, mod_options = @project_scope
-        OpenProject::AccessControl.map { |map| map.project_module(mod, mod_options) { |map| map.permission(name, actions, options) } }
+        OpenProject::AccessControl.map do |map|
+          map.project_module(mod, mod_options) do |map|
+            map.permission(name, actions, options)
+          end
+        end
       else
         OpenProject::AccessControl.map { |map| map.permission(name, actions, options) }
       end
@@ -350,7 +352,6 @@ module Redmine #:nodoc:
     #
     # Retrieving events:
     # Associated model(s) must implement the find_events class method.
-    # ActiveRecord models can use acts_as_activity_provider as a way to implement this class method.
     #
     # The following call should return all the scrum events visible by current user that occurred in the 5 last days:
     #   Meeting.find_events('scrums', User.current, 5.days.ago, Date.today)
@@ -358,7 +359,8 @@ module Redmine #:nodoc:
     #
     # Note that :view_scrums permission is required to view these events in the activity view.
     def activity_provider(*args)
-      Redmine::Activity.register(*args)
+      ActiveSupport::Deprecation.warn('Use ActsAsOpEngine#activity_provider instead.')
+      OpenProject::Activity.register(*args)
     end
 
     # Registers a wiki formatter.
@@ -396,20 +398,18 @@ module Redmine #:nodoc:
         target_dir = File.join(destination, dir.gsub(source, ''))
         begin
           FileUtils.mkdir_p(target_dir)
-        rescue => e
+        rescue StandardError => e
           raise "Could not create directory #{target_dir}: \n" + e
         end
       end
 
       source_files.each do |file|
-        begin
-          target = File.join(destination, file.gsub(source, ''))
-          unless File.exist?(target) && FileUtils.identical?(file, target)
-            FileUtils.cp(file, target)
-          end
-        rescue => e
-          raise "Could not copy #{file} to #{target}: \n" + e
+        target = File.join(destination, file.gsub(source, ''))
+        unless File.exist?(target) && FileUtils.identical?(file, target)
+          FileUtils.cp(file, target)
         end
+      rescue StandardError => e
+        raise "Could not copy #{file} to #{target}: \n" + e
       end
     end
 

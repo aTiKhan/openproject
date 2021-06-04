@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -73,7 +74,7 @@ class RolesController < ApplicationController
     @call = update_role(@role, permitted_params.role)
 
     if @call.success?
-      flash[:notice] = l(:notice_successful_update)
+      flash[:notice] = I18n.t(:notice_successful_update)
       redirect_to action: 'index'
     else
       render action: 'edit'
@@ -83,11 +84,11 @@ class RolesController < ApplicationController
   def destroy
     @role = Role.find(params[:id])
     @role.destroy
-    flash[:notice] = l(:notice_successful_delete)
+    flash[:notice] = I18n.t(:notice_successful_delete)
     redirect_to action: 'index'
     notify_changed_roles(:removed, @role)
-  rescue
-    flash[:error] = l(:error_can_not_remove_role)
+  rescue StandardError
+    flash[:error] = I18n.t(:error_can_not_remove_role)
     redirect_to action: 'index'
   end
 
@@ -102,7 +103,7 @@ class RolesController < ApplicationController
     calls = bulk_update_roles(@roles)
 
     if calls.all?(&:success?)
-      flash[:notice] = l(:notice_successful_update)
+      flash[:notice] = I18n.t(:notice_successful_update)
       redirect_to action: 'index'
     else
       @calls = calls

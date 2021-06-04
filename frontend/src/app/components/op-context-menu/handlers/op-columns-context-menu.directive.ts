@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,23 +26,21 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {Directive, ElementRef, Injector, Input} from '@angular/core';
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
+import { Directive, ElementRef, Injector, Input } from '@angular/core';
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
 
-import {OpContextMenuTrigger} from 'core-components/op-context-menu/handlers/op-context-menu-trigger.directive';
-import {OPContextMenuService} from 'core-components/op-context-menu/op-context-menu.service';
-import {OpContextMenuItem} from 'core-components/op-context-menu/op-context-menu.types';
-import {OpModalService} from 'core-components/op-modals/op-modal.service';
-import {WorkPackageViewColumnsService} from 'core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-columns.service';
-import {WorkPackageViewGroupByService} from 'core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-group-by.service';
-import {WorkPackageViewHierarchiesService} from 'core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-hierarchy.service';
-import {WorkPackageViewSortByService} from 'core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-sort-by.service';
-import {WorkPackageTable} from 'core-components/wp-fast-table/wp-fast-table';
-import {QueryColumn} from 'core-components/wp-query/query-column';
-import {WpTableConfigurationModalComponent} from 'core-components/wp-table/configuration-modal/wp-table-configuration.modal';
-import {QuerySharingModal} from "core-components/modals/share-modal/query-sharing.modal";
-import {ConfirmDialogService} from "core-components/modals/confirm-dialog/confirm-dialog.service";
-import {QUERY_SORT_BY_ASC, QUERY_SORT_BY_DESC} from "core-app/modules/hal/resources/query-sort-by-resource";
+import { OpContextMenuTrigger } from 'core-components/op-context-menu/handlers/op-context-menu-trigger.directive';
+import { OPContextMenuService } from 'core-components/op-context-menu/op-context-menu.service';
+import { OpModalService } from 'core-app/modules/modal/modal.service';
+import { WorkPackageViewColumnsService } from 'core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-columns.service';
+import { WorkPackageViewGroupByService } from 'core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-group-by.service';
+import { WorkPackageViewHierarchiesService } from 'core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-hierarchy.service';
+import { WorkPackageViewSortByService } from 'core-app/modules/work_packages/routing/wp-view-base/view-services/wp-view-sort-by.service';
+import { WorkPackageTable } from 'core-components/wp-fast-table/wp-fast-table';
+import { QueryColumn } from 'core-components/wp-query/query-column';
+import { WpTableConfigurationModalComponent } from 'core-components/wp-table/configuration-modal/wp-table-configuration.modal';
+import { ConfirmDialogService } from "core-components/modals/confirm-dialog/confirm-dialog.service";
+import { QUERY_SORT_BY_ASC, QUERY_SORT_BY_DESC } from "core-app/modules/hal/resources/query-sort-by-resource";
 
 @Directive({
   selector: '[opColumnsContextMenu]'
@@ -95,11 +93,11 @@ export class OpColumnsContextMenu extends OpContextMenuTrigger {
    * @param {Event} openerEvent
    */
   public positionArgs(evt:JQuery.TriggeredEvent) {
-    let additionalPositionArgs = {
+    const additionalPositionArgs = {
       of: this.$element.find('.generic-table--sort-header-outer'),
     };
 
-    let position = super.positionArgs(evt);
+    const position = super.positionArgs(evt);
     _.assign(position, additionalPositionArgs);
 
     return position;
@@ -110,7 +108,7 @@ export class OpColumnsContextMenu extends OpContextMenuTrigger {
   }
 
   private buildItems() {
-    let c = this.column;
+    const c = this.column;
 
     this.items = [
       {
@@ -191,7 +189,7 @@ export class OpColumnsContextMenu extends OpContextMenuTrigger {
         linkText: this.I18n.t('js.work_packages.query.hide_column'),
         icon: 'icon-delete',
         onClick: () => {
-          let focusColumn = this.wpTableColumns.previous(c) || this.wpTableColumns.next(c);
+          const focusColumn = this.wpTableColumns.previous(c) || this.wpTableColumns.next(c);
           this.wpTableColumns.removeColumn(c);
 
           setTimeout(() => {

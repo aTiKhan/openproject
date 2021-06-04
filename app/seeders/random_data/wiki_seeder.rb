@@ -1,4 +1,5 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) 2012-2020 the OpenProject GmbH
@@ -31,22 +32,22 @@ module RandomData
       user = User.admin.first
 
       puts ''
-      print ' ↳ Creating wikis'
+      print_status ' ↳ Creating wikis'
 
       rand(5).times do
-        print '.'
+        print_status '.'
         wiki_page = WikiPage.create(
-          wiki:  project.wiki,
+          wiki: project.wiki,
           title: Faker::Lorem.words(5).join(' ')
         )
 
         ## create some wiki contents
         rand(5).times do
-          print '.'
+          print_status '.'
           wiki_content = WikiContent.create(
-            page:    wiki_page,
-            author:  user,
-            text:    Faker::Lorem.paragraph(5, true, 3)
+            page: wiki_page,
+            author: user,
+            text: Faker::Lorem.paragraph(5, true, 3)
           )
 
           ## create some journal entries

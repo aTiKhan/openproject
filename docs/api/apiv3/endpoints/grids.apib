@@ -4,7 +4,7 @@ A grid is a layout for a page or a part of the page of the OpenProject applicati
 
 The contents is defined by `GridWidget`s. While a `GridWidget` is it's own type, it is not a resource in it's own right as it is an intrinsic part of a `Grid`.
 
-Depending on what page a grid is defined for, different widgets may be eligible to be placed on the grid. The page might also define the permissions needed for accessing, creating or modifiying the grid.
+Depending on what page a grid is defined for, different widgets may be eligible to be placed on the grid. The page might also define the permissions needed for accessing, creating or modifying the grid.
 
 Currently, the following pages employ grids:
 + /my/page: The my page every user has. Only a user can access or modify their "my page".
@@ -15,7 +15,7 @@ Currently, the following pages employ grids:
 | Link                | Description                                                          | Condition                                                                                           |
 |:-------------------:| -------------------------------------------------------------------- | ----------------------------------------------------------------                                    |
 | updateImmediately   | Directly perform edits on this grid                                  | **Permission**: depends on the page the grid is defined for                                         |
-| update              | Validate edits on the grid via a form resource before commiting      | **Permission**: depends on the page the grid is defined for                                         |
+| update              | Validate edits on the grid via a form resource before committing     | **Permission**: depends on the page the grid is defined for                                         |
 
 ## Linked Properties
 | Link          | Description                                                       | Type                | Constraints           | Supported operations | Condition                                     |

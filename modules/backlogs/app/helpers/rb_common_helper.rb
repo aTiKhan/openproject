@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -159,15 +159,17 @@ module RbCommonHelper
   end
 
   def type_name_or_empty(story)
-    story.type.nil? ? '' : h(backlogs_types_by_id[story.type_id].name)
-  end
+    return '' if story.type_id.nil?
 
-  def updated_on_with_milliseconds(story)
-    date_string_with_milliseconds(story.updated_on, 0.001) unless story.blank?
+    type = backlogs_types_by_id[story.type_id]
+    return '' if type.nil?
+
+    h(type.name)
   end
 
   def date_string_with_milliseconds(d, add = 0)
     return '' if d.blank?
+
     d.strftime('%B %d, %Y %H:%M:%S') + '.' + (d.to_f % 1 + add).to_s.split('.')[1]
   end
 
@@ -203,19 +205,11 @@ module RbCommonHelper
     end
   end
 
-  def show_burndown_link(sprint)
-    ret = ''
-
-    ret += link_to(l('backlogs.show_burndown_chart'),
-                   {},
-                   class: 'show_burndown_chart button')
-
-    ret += nonced_javascript_tag "
-            jQuery(document).ready(function(){
-              var burndown = RB.Factory.initialize(RB.Burndown, jQuery('.show_burndown_chart'));
-              burndown.setSprintId(#{sprint.id});
-            });"
-    ret.html_safe
+  def show_burndown_link(project, sprint)
+    link_to(I18n.t('backlogs.show_burndown_chart'),
+            backlogs_project_sprint_burndown_chart_path(project.identifier, sprint),
+            class: 'show_burndown_chart button',
+            target: :_blank)
   end
 
   private
@@ -240,7 +234,7 @@ module RbCommonHelper
   end
 
   def all_workflows
-    @all_workflows ||= Workflow.includes([:new_status, :old_status])
+    @all_workflows ||= Workflow.includes(%i[new_status old_status])
                        .where(role_id: User.current.roles_for_project(@project).map(&:id),
                               type_id: story_types.map(&:id))
   end

@@ -1,13 +1,14 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -93,8 +94,8 @@ class PermittedParams
 
   def custom_action
     whitelisted = params
-                  .require(:custom_action)
-                  .permit(*self.class.permitted_attributes[:custom_action])
+      .require(:custom_action)
+      .permit(*self.class.permitted_attributes[:custom_action])
 
     whitelisted.merge(params[:custom_action].slice(:actions, :conditions).permit!)
   end
@@ -109,9 +110,7 @@ class PermittedParams
 
   def group
     permitted_params = params.require(:group).permit(*self.class.permitted_attributes[:group])
-    permitted_params = permitted_params.merge(custom_field_values(:group))
-
-    permitted_params
+    permitted_params.merge(custom_field_values(:group))
   end
 
   def group_membership
@@ -124,9 +123,7 @@ class PermittedParams
 
     permitted_params = params.require(:work_package).permit(*permitted)
 
-    permitted_params = permitted_params.merge(custom_field_values(:work_package))
-
-    permitted_params
+    permitted_params.merge(custom_field_values(:work_package))
   end
 
   def member
@@ -156,8 +153,8 @@ class PermittedParams
     # Here we try to circumvent this
     p = params.require(:query).permit(*self.class.permitted_attributes[:query])
     p[:sort_criteria] = params
-                        .require(:query)
-                        .permit(sort_criteria: { '0' => [], '1' => [], '2' => [] })
+      .require(:query)
+      .permit(sort_criteria: { '0' => [], '1' => [], '2' => [] })
     p[:sort_criteria].delete :sort_criteria
     p
   end
@@ -181,47 +178,40 @@ class PermittedParams
     permitted_params.merge(params[:settings].to_unsafe_hash.slice(*all_valid_keys))
   end
 
-  def user
-    permitted_params = params.require(:user).permit(*self.class.permitted_attributes[:user])
-    permitted_params = permitted_params.merge(custom_field_values(:user))
+  def user(additional_params = [])
+    permitted_params = params.require(:user).permit(*self.class.permitted_attributes[:user] + additional_params)
+    permitted_params.merge(custom_field_values(:user))
+  end
 
-    permitted_params
+  def placeholder_user
+    params.require(:placeholder_user).permit(*self.class.permitted_attributes[:placeholder_user])
+  end
+
+  def my_account_settings
+    user.merge(pref: pref)
   end
 
   def user_register_via_omniauth
     permitted_params = params
-                       .require(:user)
-                       .permit(:login, :firstname, :lastname, :mail, :language)
-    permitted_params = permitted_params.merge(custom_field_values(:user))
-
-    permitted_params
-  end
-
-  def user_update_as_admin(external_authentication, change_password_allowed)
-    # Found group_ids in safe_attributes and added them here as I
-    # didn't know the consequences of removing these.
-    # They were not allowed on create.
-    user_create_as_admin(external_authentication, change_password_allowed, [group_ids: []])
+      .require(:user)
+      .permit(:login, :firstname, :lastname, :mail, :language)
+    permitted_params.merge(custom_field_values(:user))
   end
 
   def user_create_as_admin(external_authentication,
                            change_password_allowed,
                            additional_params = [])
+
+    additional_params << :auth_source_id unless external_authentication
+
     if current_user.admin?
-      additional_params << :auth_source_id unless external_authentication
       additional_params << :force_password_change if change_password_allowed
-
-      allowed_params = self.class.permitted_attributes[:user] + \
-                       additional_params + \
-                       %i[admin login]
-
-      permitted_params = params.require(:user).permit(*allowed_params)
-      permitted_params = permitted_params.merge(custom_field_values(:user))
-
-      permitted_params
-    else
-      params.require(:user).permit
+      additional_params << :admin
     end
+    
+    additional_params << :login if Users::BaseContract.new(User.new, current_user).writable?(:login)
+
+    user additional_params
   end
 
   def type(args = {})
@@ -242,14 +232,6 @@ class PermittedParams
     params.require(:type).permit(*self.class.permitted_attributes[:move_to])
   end
 
-  def timelog
-    params.permit(:period,
-                  :period_type,
-                  :from,
-                  :to,
-                  criterias: [])
-  end
-
   def search
     params.permit(*self.class.permitted_attributes[:search])
   end
@@ -263,9 +245,7 @@ class PermittedParams
   def wiki_page
     permitted = permitted_attributes(:wiki_page)
 
-    permitted_params = params.require(:content).require(:page).permit(*permitted)
-
-    permitted_params
+    params.require(:content).require(:page).permit(*permitted)
   end
 
   def wiki_content
@@ -273,9 +253,9 @@ class PermittedParams
   end
 
   def pref
-    params.require(:pref).permit(:hide_mail, :time_zone, :theme,
-                                 :comments_sorting, :warn_on_leaving_unsaved,
-                                 :auto_hide_popups)
+    params.fetch(:pref, {}).permit(:hide_mail, :time_zone, :theme,
+                                   :comments_sorting, :warn_on_leaving_unsaved,
+                                   :auto_hide_popups)
   end
 
   def project
@@ -286,6 +266,7 @@ class PermittedParams
                                                 :identifier,
                                                 :project_type_id,
                                                 :parent_id,
+                                                :templated,
                                                 status: %i(code explanation),
                                                 custom_fields: [],
                                                 work_package_custom_field_ids: [],
@@ -297,14 +278,6 @@ class PermittedParams
     end
 
     whitelist.merge(custom_field_values(:project))
-  end
-
-  def time_entry
-    permitted_params = params.fetch(:time_entry, {}).permit(
-      :hours, :comments, :work_package_id, :activity_id, :spent_on
-    )
-
-    permitted_params.merge(custom_field_values(:time_entry, required: false))
   end
 
   def news
@@ -416,7 +389,9 @@ class PermittedParams
 
     # only permit values following the schema
     # 'id as string' => 'value as string'
-    values.reject! { |k, v| k.to_i < 1 || !v.is_a?(String) }
+    values.select! { |k, v| k.to_i > 0 && (v.is_a?(String) || v.is_a?(Array)) }
+    # Reject blank values from include_hidden select fields
+    values.each { |_, v| v.compact_blank! if v.is_a?(Array) }
 
     values.empty? ? {} : { 'custom_field_values' => values.permit! }
   end
@@ -424,13 +399,13 @@ class PermittedParams
   def permitted_attributes(key, additions = {})
     merged_args = { params: params, current_user: current_user }.merge(additions)
 
-    self.class.permitted_attributes[key].map { |permission|
+    self.class.permitted_attributes[key].map do |permission|
       if permission.respond_to?(:call)
         permission.call(merged_args)
       else
         permission
       end
-    }.compact
+    end.compact
   end
 
   def self.permitted_attributes
@@ -449,6 +424,7 @@ class PermittedParams
           account
           account_password
           base_dn
+          filter_string
           onthefly_register
           attr_login
           attr_firstname
@@ -489,7 +465,7 @@ class PermittedParams
           :multi_value,
           :content_right_to_left,
           { custom_options_attributes: %i(id value default_value position) },
-          type_ids: []
+          { type_ids: [] }
         ],
         enumeration: %i(
           active
@@ -503,18 +479,18 @@ class PermittedParams
         ],
         membership: [
           :project_id,
-          role_ids: []
+          { role_ids: [] }
         ],
         group_membership: [
           :membership_id,
-          membership: [
+          { membership: [
             :project_id,
-            role_ids: []
+            { role_ids: [] }
           ],
-          new_membership: [
-            :project_id,
-            role_ids: []
-          ]
+            new_membership: [
+              :project_id,
+              { role_ids: [] }
+            ] }
         ],
         member: [
           role_ids: []
@@ -528,6 +504,7 @@ class PermittedParams
           :due_date,
           :estimated_hours,
           :version_id,
+          :budget_id,
           :parent_id,
           :priority_id,
           :responsible_id,
@@ -544,28 +521,24 @@ class PermittedParams
               { watcher_user_ids: [] }
             end
           end,
-          Proc.new do |args|
-            # avoid costly allowed_to? if the param is not there at all
-            if args[:params]['work_package'] &&
-               args[:params]['work_package'].has_key?('time_entry') &&
-               args[:current_user].allowed_to?(:log_time, args[:project])
-
-              { time_entry: %i[hours activity_id comments] }
-            end
-          end,
           # attributes unique to :new_work_package
           :journal_notes,
-          :lock_version],
+          :lock_version
+        ],
         oauth_application: [
           :name,
           :redirect_uri,
           :confidential,
           :client_credentials_user_id,
-          scopes: []
+          { scopes: [] }
         ],
+        placeholder_user: %i(
+          name
+        ),
         project_type: [
           :name,
-          type_ids: []],
+          { type_ids: [] }
+        ],
         query: %i(
           name
           display_sums
@@ -576,7 +549,8 @@ class PermittedParams
           :name,
           :assignable,
           :move_to,
-          permissions: []],
+          { permissions: [] }
+        ],
         search: %i(
           q
           offset
@@ -607,7 +581,7 @@ class PermittedParams
           :color_id,
           :default,
           :description,
-          project_ids: []
+          { project_ids: [] }
         ],
         user: %i(
           firstname

@@ -1,10 +1,10 @@
 #-- copyright
 #OpenProject is an open source project management software.
-#Copyright (C) 2012-2020 the OpenProject GmbH
+#Copyright (C) 2012-2021 the OpenProject GmbH
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License version 3.
 #OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-#Copyright (C) 2006-2017 Jean-Philippe Lang
+#Copyright (C) 2006-2013 Jean-Philippe Lang
 #Copyright (C) 2010-2013 the ChiliProject Team
 #This program is free software; you can redistribute it and/or
 #modify it under the terms of the GNU General Public License
@@ -33,10 +33,24 @@ pl:
         single: "Wybierz %{name}"
       remove: "Usuń %{name}"
       active: "Aktywne %{label} %{name}"
+    backup:
+      attachments_disabled: Attachments may not be included since they exceed the maximum overall size allowed. You can change this via the configuration (requires a server restart).
+      info: >
+        You can trigger a backup here. The process can take some time depending on the amount of data (especially attachments) you have. You will receive an email once it's ready.
+      note: >
+        A new backup will override any previous one. Only a limited number of backups per day can be requested.
+      last_backup: Last backup
+      last_backup_from: Last backup from
+      title: Backup OpenProject
+      options: Opcje
+      include_attachments: Include attachments
+      download_backup: Download backup
+      request_backup: Request backup
     close_popup_title: "Zamknij okno"
     close_filter_title: "Zamknij filtr"
     close_form_title: "Zamknij formularz"
     button_add_watcher: "Dodaj obserwatora"
+    button_add: "Dodaj"
     button_back: "Wstecz"
     button_back_to_list_view: "Wróć do widoku listy"
     button_cancel: "Anuluj"
@@ -54,6 +68,8 @@ pl:
     button_duplicate: "Duplikat"
     button_edit: "Edycja"
     button_filter: "Filtr"
+    button_collapse_all: "Zwiń wszystko"
+    button_expand_all: "Rozwiń wszystkie"
     button_advanced_filter: "Zaawansowane filtrowanie"
     button_list_view: "Widok listy"
     button_show_view: "Tryb pełnoekranowy"
@@ -71,6 +87,7 @@ pl:
     button_update: "Aktualizacja"
     button_export-pdf: "Pobierz plik PDF"
     button_export-atom: "Pobierz Atom"
+    button_create: "Utwórz"
     calendar:
       title: 'Kalendarz'
       too_many: 'Łącznie pakietów roboczych jest %{count}, ale pokazać można tylko %{max}.'
@@ -115,6 +132,11 @@ pl:
         manual: 'Przełącz na źródło Markdown'
         wysiwyg: 'Przełącz na edytor WYSIWYG'
       macro:
+        error: 'Nie można rozwinąć makra: %{message}'
+        attribute_reference:
+          macro_help_tooltip: 'Ten segment tekstowy jest renderowany dynamicznie przez makro.'
+          not_found: 'Nie można znaleźć żądanego zasobu'
+          invalid_attribute: "Wybrany atrybut „%{name}” nie istnieje."
         child_pages:
           button: 'Łącza do stron podrzędnych'
           include_parent: 'Uwzględnij nadrzędne'
@@ -166,7 +188,8 @@ pl:
       enterprise:
         trial:
           confirmation: "Potwierdzenie adresu e-mail"
-          confirmation_info: "Wysłaliśmy Ci wiadomość e-mail. Sprawdź swoje wiadomości e-mail i kliknij link potwierdzenia, aby rozpocząć 14-dniowy okres próbny."
+          confirmation_info: >
+            Wysłaliśmy Ci wiadomość e-mail %{date} na adres %{email}. Sprawdź swoją skrzynkę odbiorczą i kliknij link potwierdzający, aby rozpocząć 14-dniowy okres próbny.
           form:
             general_consent: >
               Przyjmuję <a target="_blank" href="%{link_terms}">warunki umowy</a> i <a target="_blank" href="%{link_privacy}">politykę prywatności</a>.
@@ -181,9 +204,10 @@ pl:
             label_starts_at: "Data rozpoczęcia"
             label_expires_at: "Wygasa"
             receive_newsletter: Chcę otrzymywać <a target="_blank" href="%{link}">biuletyn </a> OpenProject.
+            taken_domain: W każdej domenie może być aktywna tylko jedna wersja próbna.
+            taken_email: Każdy użytkownik może utworzyć tylko jeden okres próbny.
           email_not_received: "Wiadomość e-mail nie doszła? Możesz ją ponownie wysłać za pomocą linku po prawej stronie."
           try_another_email: "Możesz też spróbować użyć innego adresu e-mail."
-          try_another_email_hint: "Pamiętaj, że jeśli ponowisz próbę przy użyciu nowego adresu, Twój poprzedni adres e-mail stanie się nieprawidłowy."
           next_steps: "Następne kroki"
           resend_link: "Wysłać ponownie"
           resend_success: "Wiadomość e-mail została wysłana ponownie. Sprawdź swoje wiadomości e-mail i kliknij podany link potwierdzenia."
@@ -197,7 +221,7 @@ pl:
         upsale:
           become_hero: "Zostań bohaterem!"
           benefits:
-            description: "Jakie są korzyści?"
+            description: "Jakie są korzyści z rozwiązania lokalnego wersji Enterprise?"
             high_security: "Funkcje zabezpieczeń"
             high_security_text: "Pojedyncze logowanie (SAML, OpenID Connect, CAS), uwierzytelnianie dwuskładnikowe i automatyczna synchronizacja grup LDAP."
             installation: "Pomoc w instalacji"
@@ -248,7 +272,6 @@ pl:
     general_text_yes: "tak"
     general_text_No: "Nie"
     general_text_Yes: "Tak"
-    global_roles: Role ogólne
     hal:
       error:
         update_conflict_refresh: "Kliknij tutaj, aby odświeżyć pakiet roboczy i zaktualizować go do najnowszej wersji."
@@ -262,13 +285,13 @@ pl:
           text_new_features: "Przeczytaj o nowych funkcjach i aktualizacjach produktów."
           learn_about: "Dowiedz się więcej o nowych funkcjach"
           standard:
-            learn_about_link: https://www.openproject.org/openproject-10-4
+            learn_about_link: https://www.openproject.org/openproject-11-3-release
             current_new_feature_html: >
-              Ta wersja zawiera różne nowe funkcje i ulepszenia: <br><br> <ul> <li>Domyślne <b>szablony projektów</b>, umożliwiające wybranie jasnego lub ciemnego motywu (funkcja premium).</li> <li>Nowy <b>widżet śledzenia czasu</b> w obszarze <i>Moja strona</i>, umożliwiające pokazywanie spędzonego czasu na wykresie słupkowym.</li> <li><b>Eksport raportów kosztów do plików XLS</b> i tekst sformatowany w pliku PDF eksportu pakietów roboczych.</li> <li><b>Ulepszony wygląd i cechy użytkowe</b>, tj. karty i inne elementy w obszarach ustawień projektu i administracji.</li> </ul>
+              The release contains various new features and improvements: <br> <ul class="%{list_styling_class}"> <li>New button in header navigation to create projects, users and work packages.</li> <li>A new invite modal for users, groups and placeholder users allows to easily add or invite new users and assign them to work packages.</li> <li>GitHub integration into OpenProject.</li> <li>API v3 extensions for groups and more, i.e. create, read, update and delete groups and group members through the API.</li> <li>Multi-selection for project custom fields of type list.</li> <li>Creation of backup from the web interface.</li> </ul>
           bim:
-            learn_about_link: https://www.openproject.org/openproject-bim-10-4
+            learn_about_link: https://www.openproject.org/openproject-11-3-release
             current_new_feature_html: >
-              OpenProject zawiera <b>nowy moduł IFC do integracji modeli 3D</b> z aplikacją do zarządzania projektami oraz do pracy zespołowej nad tymi plikami z Twoim zespołem bez konieczności instalacji osobnego, kosztownego oprogramowania lub licencji. <br><br> <ul> <li><b>Import plików IFC</b> modeli budynków do aplikacji OpenProject.</li> <li><b>Otwieranie modeli 3D i wizualizowanie modeli budynków</b> w przeglądarce.</li> <li>Łatwa <b>praca nad wieloma plikami IFC</b> z zespołem bezpośrednio w OpenProject bez konieczności instalacji osobnego, kosztownego oprogramowania. </li> </ul>
+              The release contains various new features and improvements: <br> <ul class="%{list_styling_class}"> <li>BIM: Improved performance of the IFC model viewer.</li> <li>BIM: The IFC viewer now supports double precision models, which is great for large construction sites such as bridges, roads etc.</li> <li>BIM: Toggle button for switching between perspective and orthogonal mode.</li> <li>BIM: A menu for editing, deleting or flipping section planes.</li> <li>New button in header navigation to create projects, users and work packages.</li> <li>A new invite modal for users, groups and placeholder users allows to easily add or invite new users and assign them to work packages.</li> <li>API v3 extensions for groups and more, i.e. create, read, update and delete groups and group members through the API.</li> <li>Multi-selection for project custom fields of type list.</li> <li>Creation of backup from the web interface.</li> </ul>
     label_activate: "Aktywuj"
     label_add_column_after: "Dodaj kolumnę po"
     label_add_column_before: "Dodaj kolumnę przed"
@@ -279,7 +302,7 @@ pl:
     label_add_row_before: "Dodaj wiersz przed"
     label_add_selected_columns: "Dodaj wybrane kolumny"
     label_added_by: "dodał"
-    label_added_time_by: "Dodał %{author} %{age}"
+    label_added_time_by: "Dodany przez <a href=%{authorLink}>%{author}</a> o %{age}"
     label_ago: "dni temu"
     label_all: "wszystkie"
     label_all_work_packages: "wszystkie pakiety pracy"
@@ -320,9 +343,11 @@ pl:
     label_expand_all: "Rozwiń wszystkie"
     label_expand_project_menu: "Rozwiń menu projektu"
     label_export: "Eksportuj"
+    label_export_preparing: "Eksport jest przygotowywany i zostanie wkrótce pobrany."
     label_filename: "Plik"
     label_filesize: "Rozmiar"
     label_general: "Ogólne"
+    label_global_roles: "Role ogólne"
     label_greater_or_equal: "≥"
     label_group: 'Grupa'
     label_group_by: "Grupuj według"
@@ -352,7 +377,7 @@ pl:
     label_next: "Następny"
     label_no_color: "Bez koloru"
     label_no_data: "Brak danych do pokazania"
-    label_no_due_date: "brak daty zakończenia"
+    label_no_due_date: "brak daty ukończenia"
     label_no_start_date: "brak daty rozpoczęcia"
     label_no_value: "Brak wartości"
     label_none: "Brak"
@@ -371,6 +396,7 @@ pl:
     label_quote_comment: "Cytuj komentarz"
     label_recent: "Najnowsze"
     label_reset: "Reset"
+    label_remove: "Usuń"
     label_remove_column: "Usuń kolumnę"
     label_remove_columns: "Usuń zaznaczone kolumny"
     label_remove_row: "Usuń wiersz"
@@ -392,9 +418,10 @@ pl:
     label_public_query: "Publiczny"
     label_sum: "Suma"
     label_sum_for: "Suma dla"
+    label_total_sum: "Suma całkowita"
     label_subject: "Temat"
     label_this_week: "ten tydzień"
-    label_today: "dzisiaj"
+    label_today: "Dzisiaj"
     label_time_entry_plural: "Czas pracy"
     label_up: "W górę"
     label_user_plural: "Użytkownicy"
@@ -404,8 +431,10 @@ pl:
     label_total_amount: "Łącznie: %{amount}"
     label_updated_on: "zaktualizowany"
     label_value_derived_from_children: "(wartość wyprowadzana z elementów podrzędnych)"
+    label_children_derived_duration: "Wyprowadzony czas trwania elementów podrzędnych pakietu roboczego"
     label_warning: "Ostrzeżenie"
     label_work_package: "Zadanie"
+    label_work_package_parent: "Nadrzędny pakiet roboczy"
     label_work_package_plural: "Pakiety robocze"
     label_watch: "Obserwuj"
     label_watch_work_package: "Obserwuj zadanie"
@@ -452,6 +481,7 @@ pl:
         help_menu: 'W menu <b>Pomoc</b> znajdziesz przewodnik użytkownika i dodatkowe zasoby pomocy. <br> Życzymy miłej pracy w OpenProject!'
         members: 'Zaproś nowych <b>członków</b> do swojego projektu.'
         project_selection: 'Aby rozpocząć, kliknij jeden z projektów z przydatnymi danymi demonstracyjnymi. <br> <b>Projekt Demo</b> najlepiej nadaje się do klasycznego zarządzania projektami, natomiast <b>projekt Scrum</b> jest lepszy do zwinnego zarządzania projektami.'
+        quick_add_button: 'Create a new project or invite coworkers.'
         sidebar_arrow: "Strzałka umożliwia powrót do <b>menu głównego</b> projektu."
         welcome: "Poświęć trzy minuty na zapoznanie się z <b>najważniejszymi funkcjami</b>. \n <br> Zalecamy wykonanie tych kroków do końca. Zwiedzanie można w każdej chwili zacząć od nowa."
         wiki: 'W <b>wiki</b> możesz dokumentować wiedzę i dzielić się nią z zespołem.'
@@ -467,7 +497,7 @@ pl:
           drag: 'Przeciągaj i upuszczaj karty w obrębie listy, aby zmienić ich kolejność lub przeciągaj je do innej listy. Dwukrotne kliknięcie otwiera widok szczegółów.'
         wp:
           toggler: "Teraz przyjrzyjmy się sekcji <b>Zadania</b>, która zapewnia bardziej szczegółowy widok Twojej pracy."
-          list: 'Jest to lista <b>Zadania</b>, zawierająca ważne zadania w projekcie, takie jak zadania robocze, funkcje, kamienie milowe, usterki i inne. <br> Możesz utworzyć lub edytować zadania bezpośrednio na tej liście. Aby wyświetlić szczegóły listy, można dwukrotnie kliknąć wiersz.'
+          list: 'Jest to lista <b>Zadania</b>, zawierająca ważne zadania w projekcie, takie jak zadania robocze, kamienie milowe, etapy i inne. <br> Pakiety robocze możesz tworzyć lub edytować bezpośrednio na tej liście. Aby wyświetlić szczegóły listy, można dwukrotnie kliknąć żądany wiersz.'
           full_view: 'W okienku <b>Właściwości pakietów roboczych</b> znajdziesz wszystkie istotne informacje, takie jak opis, stan i priorytet, aktywność, zależności lub komentarze.'
           back_button: 'Strzałka umożliwia powrót do listy pakietów roboczych.'
           create_button: 'Przycisk <b>Utwórz</b> doda nowy pakiet roboczy do projektu.'
@@ -492,6 +522,11 @@ pl:
       context: 'Kontekst projektu'
       work_package_belongs_to: 'Ten pakiet roboczy należy do projektu %{projectname}.'
       click_to_switch_context: 'Otwórz ten pakiet roboczy w tym projekcie.'
+      confirm_template_load: 'Przełączenie szablonu spowoduje ponowne załadowanie strony i utracisz wszystkie dane wprowadzone do tego formularza. Kontynuować?'
+      use_template: "Użyj szablonu"
+      no_template_selected: "(None)"
+      copy:
+        copy_options: "Copy options"
       autocompleter:
         label: 'Autouzupełnianie projektu'
     text_are_you_sure: "Jesteś pewien?"
@@ -519,7 +554,7 @@ pl:
       duration: 'Czas trwania'
       spent_on: 'Data'
       hours: 'Godziny'
-      label: 'Wpis czasu'
+      title: 'Rejestruj czas pracy'
     two_factor_authentication:
       label_two_factor_authentication: 'Uwierzytelnianie dwuskładnikowe'
     watchers:
@@ -575,11 +610,18 @@ pl:
     relations_autocomplete:
       placeholder: "Wpisz szukaną frazę"
       parent_placeholder: "Wybierz nowy element nadrzędny albo naciśnij klawisz Escape, aby anulować."
+    autocompleter:
+      placeholder: "Wpisz szukaną frazę"
+      notFoundText: "No items found"
+      typeToSearchText: "Wpisz szukaną frazę"
     repositories:
       select_tag: 'Wybierz tag'
       select_branch: 'Wybierz gałąź'
     field_value_enter_prompt: "Wprowadź wartość dla '%{field}'"
     project_menu_details: "Szczegóły"
+    scheduling:
+      manual: 'Planowanie ręczne'
+      automatic: 'Planowanie automatyczne'
     sort:
       sorted_asc: 'Zastosowano sortowanie rosnące, '
       sorted_dsc: 'Zastosowano sortowanie malejące, '
@@ -745,6 +787,7 @@ pl:
         startDate: "Data rozpoczęcia"
         status: "Status"
         subject: "Temat"
+        subproject: "Podprojekt"
         title: "Tytuł"
         type: "Typ"
         updatedAt: "Aktualizacja"
@@ -790,6 +833,9 @@ pl:
           not_found: "Nie ma takiego widoku"
           duplicate_query_title: "Nazwa tego widoku już istnieje. Zmienić mimo to?"
         text_no_results: "Nie znaleziono żadnych pasujących widoków."
+      scheduling:
+        is_parent: "Daty tego pakietu roboczego są automatycznie odejmowane od jego elementów podrzędnych. Włącz funkcję Planowanie ręczne, aby ustawić daty."
+        is_switched_from_manual_to_automatic: "Po przełączeniu planowania z ręcznego na automatyczne konieczne może być ponowne obliczenie dat tego pakietu roboczego ze względu na jego powiązania z innymi pakietami roboczymi."
       table:
         configure_button: 'Konfiguruj tabelę pakietów roboczych'
         summary: "Tabela, której wiersze zawierają pakiety pracy, a kolumny ich atrybuty."
@@ -823,7 +869,7 @@ pl:
           automatic: 'Automatycznie'
           manually: 'Ręcznie'
           warning: 'Wskutek aktywacji trybu automatycznego sortowania utracisz poprzednie sortowanie.'
-        columns_help_text: "Użyj powyższych danych wejściowych, aby dodać kolumny do widoku tabeli. Możesz przeciągać i upuszczać kolumny, aby zmienić ich kolejność."
+        columns_help_text: "Użyj powyższego pola wprowadzania danych, aby dodać kolumny do widoku tabeli. Możesz przeciągać i upuszczać kolumny, aby zmienić ich kolejność."
         upsale:
           attribute_highlighting: 'Czy określone pakiety robocze trzeba wyróżnić?'
           relation_columns: 'Chcesz zobaczyć relacje w tej liście pakietów roboczych?'
@@ -878,10 +924,14 @@ pl:
         has_children: "Pakiet roboczy zawiera %{childUnits}:"
         confirm_deletion_children: "Potwierdzam, że WSZYSTKIE elementy potomne pakietów roboczych z listy będą rekurencyjnie usuwane."
         deletes_children: "Wszystkie pakiety podrzędne i ich elementy potomne również będą rekursywnie usuwane."
+      destroy_time_entry:
+        title: "Potwierdź usunięcie wpisu"
+        text: "Na pewno chcesz skasować?"
     notice_no_results_to_display: "Brak widocznych wyników do wyświetlenia."
     notice_successful_create: "Tworzenie zakończone sukcesem."
     notice_successful_delete: "Usuwanie zakończone sukcesem."
     notice_successful_update: "Aktualizacja zakończona sukcesem."
+    notice_job_started: "job started."
     notice_bad_request: "Nieprawidłowe żądanie."
     relations:
       empty: Brak relacji
@@ -919,11 +969,9 @@ pl:
         many: "%{count} potomnych pakietów roboczych"
         other: "%{count} potomnych pakietów roboczych"
       hour:
-        zero: "0 h"
         one: "1 h"
-        few: "%{count} h"
-        many: "%{count} h"
         other: "%{count} h"
+        zero: "0 h"
     zen_mode:
       button_activate: 'Włącz tryb zen'
       button_deactivate: 'Wyłącz tryb zen'
@@ -941,3 +989,78 @@ pl:
       card: 'Karty'
       list: 'Tabela'
       timeline: 'Wykres Gantta'
+    invite_user_modal:
+      back: 'Wstecz'
+      invite: 'Invite'
+      title:
+        invite: 'Zaproś użytkownika'
+        invite_to_project: 'Invite %{type} to %{project}'
+        User: 'user'
+        Group: 'group'
+        PlaceholderUser: 'placeholder user'
+        invite_principal_to_project: 'Invite %{principal} to %{project}'
+      project:
+        label: 'Projekt'
+        required: 'Please select a project'
+        lacking_permission: 'Please select a different project since you lack permissions to assign users to the currently selected.'
+        lacking_permission_info: 'You lack the permission to assign users to the project you are currently in. You need to select a different one.'
+        next_button: 'Następny'
+        no_results: 'No projects were found'
+        no_invite_rights: 'You are not allowed to invite members to this project'
+      type:
+        required: 'Please select the type to be invited'
+        user:
+          title: 'Użytkownik'
+          description: 'Permissions based on the assigned role in the selected project'
+        group:
+          title: 'Grupa'
+          description: 'Permissions based on the assigned role in the selected project'
+        placeholder:
+          title: 'Użytkownik zastępczy'
+          title_no_ee: 'Placeholder user (Enterprise Edition only feature)'
+          description: 'Has no access to the project and no emails are sent out.'
+          description_no_ee: 'Has no access to the project and no emails are sent out. <br>Check out the <a href="%{eeHref}" target="_blank">Enterprise Edition</a>'
+      principal:
+        label:
+          name_or_email: 'Name or email address'
+          name: 'Nazwa'
+        already_member_message: 'Already a member of %{project}'
+        no_results_user: 'No users were found'
+        invite_user: 'Invite:'
+        change_user_selection: 'Change e-mail-address or select an existing user'
+        no_results_placeholder: 'No placeholders were found'
+        change_placeholder_selection: 'Change name or select an existing placeholder'
+        create_new_placeholder: 'Create new placeholder:'
+        no_results_group: 'No groups were found'
+        change_group_selection: 'Change name or select an existing group'
+        next_button: 'Następny'
+        required:
+          user: 'Please select a user'
+          placeholder: 'Please select a placeholder'
+          group: 'Please select a group'
+      role:
+        label: 'Role in %{project}'
+        no_roles_found: 'No roles were found'
+        description: 'This is the role that %{principal} will receive when they join your project. The role defines which actions they are allowed to take and which information they are allowed to see. <a href="https://docs.openproject.org/system-admin-guide/users-permissions/roles-permissions/#roles-and-permissions" target="_blank"> Learn more about roles and permissions. </a>'
+        required: 'Please select a role'
+        next_button: 'Następny'
+      message:
+        label: 'Invitation message'
+        description: 'We will send an email to %{principal}, to which you can add a personal message here. An explanation for the invitation could be useful, or perhaps a bit of information regarding the project to help them get started.'
+        next_button: 'Review invitation'
+      summary:
+        next_button: 'Wyślij zaproszenie'
+      success:
+        title: '%{principal} was invited!'
+        description:
+          user: 'The user can now log in to access %{project}. Meanwhile you can already plan with that user and assign work packages for instance.'
+          placeholder: 'The placeholder can now be used in %{project}. Meanwhile you can already plan with that user and assign work packages for instance.'
+          group: 'The group is now a part of %{project}. Meanwhile you can already plan with that group and assign work packages for instance.'
+        next_button: 'Dalej'
+    forms:
+      submit_success_message: 'The form was successfully submitted'
+      load_error_message: 'There was an error loading the form'
+      validation_error_message: 'Please fix the errors present in the form'
+      advanced_settings: 'Zaawansowane ustawienia'
+
+

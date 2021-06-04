@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,16 +26,15 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {Injector} from '@angular/core';
-import {async, TestBed} from '@angular/core/testing';
-import {I18nService} from 'core-app/modules/common/i18n/i18n.service';
-import {TypeDmService} from 'core-app/modules/hal/dm-services/type-dm.service';
-import {HalLink, HalLinkInterface} from 'core-app/modules/hal/hal-link/hal-link';
-import {OpenprojectHalModule} from 'core-app/modules/hal/openproject-hal.module';
-import {HalResource} from 'core-app/modules/hal/resources/hal-resource';
-import {HalResourceService} from 'core-app/modules/hal/services/hal-resource.service';
-import {States} from 'core-components/states.service';
-import {of} from 'rxjs';
+import { Injector } from '@angular/core';
+import { TestBed, waitForAsync } from '@angular/core/testing';
+import { I18nService } from 'core-app/modules/common/i18n/i18n.service';
+import { HalLink, HalLinkInterface } from 'core-app/modules/hal/hal-link/hal-link';
+import { OpenprojectHalModule } from 'core-app/modules/hal/openproject-hal.module';
+import { HalResource } from 'core-app/modules/hal/resources/hal-resource';
+import { HalResourceService } from 'core-app/modules/hal/services/hal-resource.service';
+import { States } from 'core-components/states.service';
+import { of } from 'rxjs';
 import Spy = jasmine.Spy;
 
 describe('HalResource', () => {
@@ -48,7 +47,7 @@ describe('HalResource', () => {
   class OtherResource extends HalResource {
   }
 
-  beforeEach(async(() => {
+  beforeEach(waitForAsync(() => {
     // noinspection JSIgnoredPromiseFromCall
     TestBed.configureTestingModule({
       imports: [
@@ -57,20 +56,19 @@ describe('HalResource', () => {
       providers: [
         HalResourceService,
         States,
-        TypeDmService,
         I18nService,
       ]
     })
       .compileComponents()
       .then(() => {
-        halResourceService = TestBed.get(HalResourceService);
-        injector = TestBed.get(Injector);
+        halResourceService = TestBed.inject(HalResourceService);
+        injector = TestBed.inject(Injector);
       });
   }));
 
   it('should be instantiable using a default object', () => {
-    let resource = halResourceService.createHalResource({}, true);
-    expect(resource.$href).toEqual(null);
+    const resource = halResourceService.createHalResource({}, true);
+    expect(resource.href).toEqual(null);
   });
 
   describe('when updating a loaded resource using `$update()`', () => {
@@ -87,10 +85,9 @@ describe('HalResource', () => {
 
       getStub = spyOn(halResourceService, 'request').and.callFake((verb:string, path:string) => {
         if (verb === 'get' && path === '/api/hello') {
-          return of(halResourceService.createHalResource(source));
-        }
-        else {
-          return false;
+          return of(halResourceService.createHalResource(source)) as any;
+        } else {
+          return false as any;
         }
       });
     });
@@ -105,7 +102,7 @@ describe('HalResource', () => {
   describe('when creating a resource using the create factory method', () => {
     describe('when there is no type configuration', () => {
       beforeEach(() => {
-        source = {_embedded: {}};
+        source = { _embedded: {} };
         resource = halResourceService.createHalResource(source, true);
       });
 
@@ -127,7 +124,7 @@ describe('HalResource', () => {
 
         halResourceService.registerResource(
           'Other',
-          {cls: OtherResource, attrTypes: {someResource: 'Other'}}
+          { cls: OtherResource, attrTypes: { someResource: 'Other' } }
         );
         resource = halResourceService.createHalResource(source, false);
       });
@@ -317,7 +314,7 @@ describe('HalResource', () => {
 
     beforeEach(() => {
       source = {
-        _links: {self: {href: 'bunny'}},
+        _links: { self: { href: 'bunny' } },
         rabbit: 'fluffy'
       };
       plain = halResourceService.createHalResource(source).$plain();
@@ -380,9 +377,9 @@ describe('HalResource', () => {
     it('should have a callable self link', () => {
       spyOn(halResourceService, 'request').and.callFake((verb:string, path:string) => {
         if (verb === 'get' && path === 'unicorn/69') {
-          return of(halResourceService.createHalResource({}));
+          return of(halResourceService.createHalResource({})) as any;
         } else {
-          return null;
+          return null as any;
         }
       });
 
@@ -392,9 +389,9 @@ describe('HalResource', () => {
     it('should have a callable beaver', () => {
       spyOn(halResourceService, 'request').and.callFake((verb:string, path:string) => {
         if (verb === 'get' && path === 'justin/420') {
-          return of(halResourceService.createHalResource({}));
+          return of(halResourceService.createHalResource({})) as any;
         } else {
-          return null;
+          return null as any;
         }
       });
 
@@ -415,7 +412,7 @@ describe('HalResource', () => {
     beforeEach(() => {
       source = {
         _embedded: {
-          resource: {_links: {}},
+          resource: { _links: {} },
         }
       };
 
@@ -570,7 +567,7 @@ describe('HalResource', () => {
     beforeEach(() => {
       source = {
         _embedded: {
-          elements: [{_links: {}}, {_links: {}}]
+          elements: [{ _links: {} }, { _links: {} }]
         }
       };
 
@@ -720,7 +717,7 @@ describe('HalResource', () => {
           let promise:Promise<any>;
 
           beforeEach((done) => {
-            let result = halResourceService.createHalResource({
+            const result = halResourceService.createHalResource({
               _links: {},
               name: 'name',
               foo: 'bar'
@@ -728,10 +725,9 @@ describe('HalResource', () => {
 
             getStub = spyOn(halResourceService, 'request').and.callFake((verb:string, path:string) => {
               if (verb === 'get' && path === '/api/property') {
-                return of(result);
-              }
-              else {
-                return false;
+                return of(result) as any;
+              } else {
+                return false as any;
               }
             });
 

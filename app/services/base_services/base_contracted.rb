@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -29,35 +29,44 @@
 #++
 
 module BaseServices
-  class BaseContracted
+  class BaseContracted < BaseCallable
     include Contracted
     include Shared::ServiceContext
 
     attr_reader :user
 
     def initialize(user:, contract_class: nil, contract_options: {})
+      super()
       @user = user
       self.contract_class = contract_class || default_contract_class
       self.contract_options = contract_options
     end
 
-    def call(params = nil)
-      in_context(model, true) do
-        perform(params)
-      end
+    protected
+
+    ##
+    # Reference to a resource that we're servicing
+    attr_accessor :model
+
+    ##
+    # Determine the type of context
+    # this service is running in
+    # e.g., within a resource lock or just executing as the given user
+    def service_context(&block)
+      in_context(model, true, &block)
     end
 
-    private
+    def perform(params = nil)
+      service_context do
+        service_call = before_perform(params)
 
-    def perform(params)
-      service_call = before_perform(params)
+        service_call = validate_contract(service_call) if service_call.success?
+        service_call = after_validate(params, service_call) if service_call.success?
+        service_call = persist(service_call) if service_call.success?
+        service_call = after_perform(service_call) if service_call.success?
 
-      service_call = validate_contract(service_call) if service_call.success?
-      service_call = after_validate(params, service_call) if service_call.success?
-      service_call = persist(service_call) if service_call.success?
-      service_call = after_perform(service_call) if service_call.success?
-
-      service_call
+        service_call
+      end
     end
 
     def before_perform(_params)

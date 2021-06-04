@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -42,31 +42,39 @@ describe 'OAuth applications management', type: :feature, js: true do
 
     # Create application
     find('.button', text: 'Add').click
+
+    SeleniumHubWaiter.wait
     fill_in 'application_name', with: 'My API application'
     # Fill invalid redirect_uri
     fill_in 'application_redirect_uri', with: "not a url!"
     click_on 'Create'
 
     expect(page).to have_selector('.errorExplanation', text: 'Redirect URI must be an absolute URI.')
-    fill_in 'application_redirect_uri', with: "urn:ietf:wg:oauth:2.0:oob\nhttps://localhost/my/callback"
+
+    # Can create localhost without https (https://community.openproject.com/wp/34025)
+    SeleniumHubWaiter.wait
+    fill_in 'application_redirect_uri', with: "urn:ietf:wg:oauth:2.0:oob\nhttp://localhost/my/callback"
     click_on 'Create'
 
     expect(page).to have_selector('.flash.notice', text: 'Successful creation.')
 
     expect(page).to have_selector('.attributes-key-value--key', text: 'Client ID')
-    expect(page).to have_selector('.attributes-key-value--value', text: "urn:ietf:wg:oauth:2.0:oob\nhttps://localhost/my/callback")
+    expect(page).to have_selector('.attributes-key-value--value', text: "urn:ietf:wg:oauth:2.0:oob\nhttp://localhost/my/callback")
 
     # Should print secret on initial visit
     expect(page).to have_selector('.attributes-key-value--key', text: 'Client secret')
     expect(page.first('.attributes-key-value--value code').text).to match /\w+/
 
     # Edit again
+    SeleniumHubWaiter.wait
     click_on 'Edit'
 
+    SeleniumHubWaiter.wait
     fill_in 'application_redirect_uri', with: "urn:ietf:wg:oauth:2.0:oob"
     click_on 'Save'
 
     # Show application
+    SeleniumHubWaiter.wait
     find('td a', text: 'My API application').click
 
     expect(page).to have_no_selector('.attributes-key-value--key', text: 'Client secret')
@@ -74,6 +82,7 @@ describe 'OAuth applications management', type: :feature, js: true do
     expect(page).to have_selector('.attributes-key-value--key', text: 'Client ID')
     expect(page).to have_selector('.attributes-key-value--value', text: "urn:ietf:wg:oauth:2.0:oob")
 
+    SeleniumHubWaiter.wait
     click_on 'Delete'
     page.driver.browser.switch_to.alert.accept
 

@@ -1,12 +1,12 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
 //
 // OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-// Copyright (C) 2006-2017 Jean-Philippe Lang
+// Copyright (C) 2006-2013 Jean-Philippe Lang
 // Copyright (C) 2010-2013 the ChiliProject Team
 //
 // This program is free software; you can redistribute it and/or
@@ -30,14 +30,6 @@
 //
 // dependencies required by classic (Rails) and Angular application.
 
-// Angular 4 deps. Must be loaded early!
-// require('reflect-metadata');
-// require('zone.js');
-// require('@angular/core');
-
-// ES6 Promise polyfill
-require('expose-loader?Promise!es6-promise');
-
 // Lodash
 require('expose-loader?_!lodash');
 
@@ -54,17 +46,11 @@ require('@uirouter/angular');
 // Jquery UI
 require('jquery-ui/ui/core.js');
 require('jquery-ui/ui/position.js');
-require('jquery-ui/ui/widgets/datepicker.js');
-require('jquery-ui/ui/widgets/dialog.js');
-require('jquery-ui/ui/widgets/autocomplete.js');
+require('jquery-ui/ui/disable-selection.js');
 require('jquery-ui/ui/widgets/sortable.js');
-require('jquery-ui/ui/widgets/tooltip.js');
-require('./misc/datepicker-defaults');
-
-require('jquery-ui/ui/i18n/datepicker-en-GB.js');
-require('jquery-ui/ui/i18n/datepicker-de.js');
-
+require('jquery-ui/ui/widgets/autocomplete.js');
 require('jquery-ui/ui/widgets/dialog.js');
+require('jquery-ui/ui/widgets/tooltip.js');
 
 require('expose-loader?moment!moment');
 require('moment/locale/en-gb.js');
@@ -81,7 +67,8 @@ require('moment-timezone/builds/moment-timezone-with-data.min.js');
 require('expose-loader?URI!urijs');
 require('urijs/src/URITemplate');
 
-require("expose-loader?I18n!../vendor/i18n");
+require("expose-loader?I18n!core-vendor/i18n");
 
 // Localization for fullcalendar
-require("@fullcalendar/core/locales-all.min");
+require("@fullcalendar/core/locales-all");
+

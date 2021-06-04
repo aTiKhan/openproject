@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -29,10 +29,8 @@
 require 'spec_helper'
 
 describe AccountController, type: :controller do
-
-  class UserHook < Redmine::Hook::ViewListener
-    attr_reader :registered_user
-    attr_reader :first_login_user
+  class UserHook < OpenProject::Hook::ViewListener
+    attr_reader :registered_user, :first_login_user
 
     def user_registered(context)
       @registered_user = context[:user]
@@ -101,7 +99,7 @@ describe AccountController, type: :controller do
   end
 
   context 'POST #login' do
-    using_shared_fixtures :admin
+    shared_let(:admin) { FactoryBot.create :admin }
 
     describe 'wrong password' do
       it 'redirects back to login' do
@@ -280,7 +278,7 @@ describe AccountController, type: :controller do
     end
 
     context 'GET #logout' do
-      using_shared_fixtures :admin
+      shared_let(:admin) { FactoryBot.create :admin }
 
       it 'calls reset_session' do
         expect(@controller).to receive(:reset_session).once
@@ -288,6 +286,86 @@ describe AccountController, type: :controller do
         login_as admin
         get :logout
         expect(response).to be_redirect
+      end
+
+      context 'with a user with an SSO provider attached' do
+        let(:user) { FactoryBot.build_stubbed :user, login: 'bob', identity_url: 'saml:foo' }
+        let(:slo_callback) { nil }
+        let(:sso_provider) do
+          { name: 'saml',  single_sign_out_callback: slo_callback }
+        end
+
+        before do
+          allow(::OpenProject::Plugins::AuthPlugin)
+            .to(receive(:login_provider_for))
+            .and_return(sso_provider)
+          login_as user
+        end
+
+        context 'with no provider' do
+          it 'will redirect to default' do
+            get :logout
+            expect(response).to redirect_to home_path
+          end
+        end
+
+        context 'with a redirecting callback' do
+          let(:slo_callback) do
+            Proc.new do |prev_session, prev_user|
+              if prev_session[:foo] && prev_user[:login] = 'bob'
+                redirect_to '/login'
+              end
+            end
+          end
+
+          context 'with direct login and redirecting callback',
+                  with_settings: { login_required?: true },
+                  with_config: { omniauth_direct_login_provider: 'foo' } do
+            it 'will still call the callback' do
+              # Set the previous session
+              session[:foo] = 'bar'
+
+              get :logout
+              expect(response).to redirect_to '/login'
+
+              # Expect session to be cleared
+              expect(session[:foo]).to eq nil
+            end
+          end
+
+          it 'will call the callback' do
+            # Set the previous session
+            session[:foo] = 'bar'
+
+            get :logout
+            expect(response).to redirect_to '/login'
+
+            # Expect session to be cleared
+            expect(session[:foo]).to eq nil
+          end
+        end
+
+        context 'with a no-op callback' do
+          it 'will redirect to default if the callback does nothing' do
+            was_called = false
+            sso_provider[:single_sign_out_callback] = Proc.new do
+              was_called = true
+            end
+
+            get :logout
+            expect(was_called).to eq true
+            expect(response).to redirect_to home_path
+          end
+        end
+
+        context 'with a provider that does not have slo_callback' do
+          let(:slo_callback) { nil }
+
+          it 'will redirect to default if the callback does nothing' do
+            get :logout
+            expect(response).to redirect_to home_path
+          end
+        end
       end
     end
 
@@ -367,8 +445,7 @@ describe AccountController, type: :controller do
   end
 
   describe '#login with omniauth_direct_login enabled',
-            with_config: { omniauth_direct_login_provider: 'some_provider' } do
-
+           with_config: { omniauth_direct_login_provider: 'some_provider' } do
     describe 'GET' do
       it 'redirects to some_provider' do
         get :login
@@ -392,7 +469,6 @@ describe AccountController, type: :controller do
     before do
       allow_any_instance_of(User).to receive(:change_password_allowed?).and_return(false)
     end
-
 
     describe "Missing flash data for user initiated password change" do
       before do
@@ -435,7 +511,7 @@ describe AccountController, type: :controller do
         post 'login', params: { username: admin.login, password: 'adminADMIN!' }
       end
 
-      it 'should redirect ot the login page' do
+      it 'should redirect to the login page' do
         expect(response).to redirect_to '/login'
       end
     end
@@ -561,7 +637,7 @@ describe AccountController, type: :controller do
           it 'set the user status to active' do
             user = User.where(login: 'register').last
             expect(user).not_to be_nil
-            expect(user.status).to eq(User::STATUSES[:active])
+            expect(user).to be_active
           end
 
           it 'calls the user_registered callback' do
@@ -729,7 +805,8 @@ describe AccountController, type: :controller do
 
         it 'preserves the back url' do
           expect(response).to redirect_to(
-            '/login?back_url=https%3A%2F%2Fexample.net%2Fsome_back_url')
+            '/login?back_url=https%3A%2F%2Fexample.net%2Fsome_back_url'
+          )
         end
 
         it 'calls the user_registered callback' do
@@ -798,7 +875,7 @@ describe AccountController, type: :controller do
                    mail: 'foo@bar.com'
                  }
                }
-          expect(response).to redirect_to '/my/account'
+          expect(response).to redirect_to home_path(first_time_user: true)
 
           user = User.find_by_login('foo')
 
@@ -874,13 +951,13 @@ describe AccountController, type: :controller do
     end
 
     context 'registered user' do
-      let(:status) { User::STATUSES[:registered] }
+      let(:status) { User.statuses[:registered] }
 
       it_behaves_like "activation is blocked due to user limit"
     end
 
     context 'invited user' do
-      let(:status) { User::STATUSES[:invited] }
+      let(:status) { User.statuses[:invited] }
 
       it_behaves_like "activation is blocked due to user limit"
     end

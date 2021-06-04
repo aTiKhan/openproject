@@ -1,7 +1,7 @@
-import {Injectable} from "@angular/core";
-import {PathHelperService} from "core-app/modules/common/path-helper/path-helper.service";
-import {GonService} from "core-app/modules/common/gon/gon.service";
-import {CurrentProjectService} from "core-components/projects/current-project.service";
+import { Injectable } from "@angular/core";
+import { PathHelperService } from "core-app/modules/common/path-helper/path-helper.service";
+import { GonService } from "core-app/modules/common/gon/gon.service";
+import { CurrentProjectService } from "core-components/projects/current-project.service";
 
 export interface IFCPermissionMap {
   manage_ifc_models:boolean;
@@ -13,7 +13,6 @@ export interface IFCGonDefinition {
   shown_models:number[];
   projects:IfcProjectDefinition[];
   xkt_attachment_ids:{ [id:number]:number };
-  metadata_attachment_ids:{ [id:number]:number };
   permissions:IFCPermissionMap;
 }
 
@@ -26,7 +25,6 @@ export interface IfcModelDefinition {
   name:string;
   id:number;
   default:boolean;
-  saoEnabled:boolean;
 }
 
 @Injectable()

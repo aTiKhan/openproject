@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -40,6 +40,21 @@ module Components
       tabs.each do |tab|
         expect(page).to have_conditional_selector(visible, selector, text: tab)
       end
+    end
+
+    def expect_model_management_available(visible: true)
+      selector = '.xeokit-btn.xeokit-addModel'
+      expect(page).to have_conditional_selector(visible, selector)
+    end
+
+    def click_add_model
+      selector = '.xeokit-btn.xeokit-addModel'
+      page.find(selector).click
+    end
+
+    def select_model_menu_item(model_name, item_label)
+      page.find('.xeokit-form-check span', text: model_name).right_click
+      page.find('.xeokit-context-menu-item', text: item_label).click
     end
 
     def select_sidebar_tab(tab)
@@ -76,7 +91,6 @@ module Components
         else
           expect(page.find('input', match: :first)).not_to be_checked
         end
-
       end
     end
   end

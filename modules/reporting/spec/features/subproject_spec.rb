@@ -7,8 +7,8 @@ describe 'Cost report in subproject', type: :feature, js: true do
   let!(:role) { FactoryBot.create :role, permissions: %i(view_cost_entries view_own_cost_entries) }
   let!(:user) do
     FactoryBot.create :user,
-                       member_in_project: subproject,
-                       member_through_role: role
+                      member_in_project: subproject,
+                      member_through_role: role
   end
 
   before do
@@ -18,7 +18,7 @@ describe 'Cost report in subproject', type: :feature, js: true do
 
   it 'provides filtering' do
     within '#main-menu' do
-      click_on 'Cost reports'
+      click_on 'Time and costs'
     end
 
     within '#content' do

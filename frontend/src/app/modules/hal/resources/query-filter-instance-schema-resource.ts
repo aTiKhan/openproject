@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,19 +26,20 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {CollectionResource} from 'core-app/modules/hal/resources/collection-resource';
-import {QueryFilterResource} from 'core-app/modules/hal/resources/query-filter-resource';
+import { CollectionResource } from 'core-app/modules/hal/resources/collection-resource';
+import { QueryFilterResource } from 'core-app/modules/hal/resources/query-filter-resource';
 import {
   SchemaAttributeObject,
   SchemaResource
 } from 'core-app/modules/hal/resources/schema-resource';
-import {SchemaDependencyResource} from 'core-app/modules/hal/resources/schema-dependency-resource';
-import {QueryOperatorResource} from 'core-app/modules/hal/resources/query-operator-resource';
-import {QueryFilterInstanceResource} from 'core-app/modules/hal/resources/query-filter-instance-resource';
-import {HalResource} from 'core-app/modules/hal/resources/hal-resource';
-import Collection = api.v3.Collection;
+import { SchemaDependencyResource } from 'core-app/modules/hal/resources/schema-dependency-resource';
+import { QueryOperatorResource } from 'core-app/modules/hal/resources/query-operator-resource';
+import { QueryFilterInstanceResource } from 'core-app/modules/hal/resources/query-filter-instance-resource';
+import { HalResource } from 'core-app/modules/hal/resources/hal-resource';
+import { HalLink } from "core-app/modules/hal/hal-link/hal-link";
 
 export interface QueryFilterInstanceSchemaResourceLinks {
+  self:HalLink;
   filter:QueryFilterResource;
 }
 
@@ -50,10 +51,7 @@ export class QueryFilterInstanceSchemaResource extends SchemaResource {
   public filter:SchemaAttributeObject<QueryFilterResource>;
   public dependency:SchemaDependencyResource;
   public values:SchemaAttributeObject|null;
-
-  public get _type() {
-    return 'QueryFilterInstanceSchema';
-  }
+  public type = 'QueryFilterInstanceSchema';
 
   public get availableOperators():HalResource[] | CollectionResource {
     return this.operator.allowedValues;
@@ -76,16 +74,16 @@ export class QueryFilterInstanceSchemaResource extends SchemaResource {
   }
 
   public getFilter():QueryFilterInstanceResource {
-    let operator = (this.operator.allowedValues as HalResource[])[0];
-    let filter = (this.filter.allowedValues as HalResource[])[0];
-    let source:any = {
+    const operator = (this.operator.allowedValues as HalResource[])[0];
+    const filter = (this.filter.allowedValues as HalResource[])[0];
+    const source:any = {
       name: filter.name,
       _links: {
         filter: filter.$source._links.self,
         schema: this.$source._links.self,
         operator: operator.$source._links.self
       }
-    }
+    };
 
     if (this.definesAllowedValues()) {
       source._links['values'] = [];
@@ -93,11 +91,7 @@ export class QueryFilterInstanceSchemaResource extends SchemaResource {
       source['values'] = [];
     }
 
-    let newFilter = new QueryFilterInstanceResource(this.injector, source, true, this.halInitializer, 'QueryFilterInstance');
-
-    newFilter.schema = this;
-
-    return newFilter;
+    return new QueryFilterInstanceResource(this.injector, source, true, this.halInitializer, 'QueryFilterInstance');
   }
 
   public isValueRequired():boolean {
@@ -109,9 +103,9 @@ export class QueryFilterInstanceSchemaResource extends SchemaResource {
   }
 
   public resultingSchema(operator:QueryOperatorResource):QueryFilterInstanceSchemaResource {
-    let staticSchema = this.$source;
-    let dependentSchema = this.dependency.forValue(operator.href!.toString());
-    let resultingSchema = {};
+    const staticSchema = this.$source;
+    const dependentSchema = this.dependency.forValue(operator.href!.toString());
+    const resultingSchema = {};
 
     _.merge(resultingSchema, staticSchema, dependentSchema);
 

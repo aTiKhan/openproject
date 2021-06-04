@@ -108,7 +108,7 @@ describe 'inline create work package', js: true do
         sleep(0.3)
 
         columns.open_modal
-        columns.add(cf_list.name, save_changes: true)
+        columns.add(cf_list.name, save_changes: true, finicky: true)
 
         wp_table.click_inline_create
 
@@ -116,6 +116,7 @@ describe 'inline create work package', js: true do
 
         type_field = wp_table.edit_field(nil, :type)
         type_field.activate!
+        sleep(0.1)
         type_field.openSelectField
         type_field.set_value cf_type.name
 
@@ -150,7 +151,7 @@ describe 'inline create work package', js: true do
 
     it_behaves_like 'inline create work package' do
       let(:callback) do
-        ->() {
+        -> {
           # Set project
           project_field = wp_table.edit_field(nil, :project)
           project_field.expect_active!
@@ -178,7 +179,7 @@ describe 'inline create work package', js: true do
 
     it_behaves_like 'inline create work package' do
       let(:callback) do
-        ->() {}
+        -> {}
       end
     end
 

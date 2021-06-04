@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -32,7 +32,7 @@ en:
         projects:
           demo-project:
             project-overview:
-              row_count: 5
+              row_count: 6
               column_count: 2
               widgets:
                 - identifier: 'custom_text'
@@ -64,7 +64,7 @@ en:
                       3. *Create a new work package*: &rightarrow; Go to [Work packages &rightarrow; Create](%{base_url}/projects/demo-project/work_packages/new).
                       4. *Create and update a project plan*: &rightarrow; Go to [Project plan](%{base_url}/projects/demo-project/work_packages?query_id=##query.id:"Project plan") in the project navigation.
                       5. *Activate further modules*: &rightarrow; Go to [Project settings &rightarrow; Modules](%{base_url}/projects/demo-project/settings/modules).
-                      6. *Complete your tasks in the project*: &rightarrow; Go to [Work packages &rightarrow; Tasks](%{base_url}/projects/demo-project/work_packages/details/##wp.id:"Edit a work package"/overview?query_id=##query.id:"Tasks").
+                      6. *Complete your tasks in the project*: &rightarrow; Go to [Work packages &rightarrow; Tasks](%{base_url}/projects/demo-project/work_packages/details/##wp.id:"Set date and location of conference"/overview?query_id=##query.id:"Tasks").
 
                       Here you will find our [User Guides](https://docs.openproject.org/user-guide/).
                       Please let us know if you have any questions or need support. Contact us: [support[at]openproject.com](mailto:support@openproject.com).
@@ -102,7 +102,7 @@ en:
                     queryId: '##query.id:"Milestones"'
           scrum-project:
             project-overview:
-              row_count: 5
+              row_count: 6
               column_count: 2
               widgets:
                 - identifier: 'custom_text'

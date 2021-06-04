@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -32,9 +32,9 @@ class ProjectsController < ApplicationController
   menu_item :overview
   menu_item :roadmap, only: :roadmap
 
-  before_action :find_project, except: %i[index level_list new create]
-  before_action :authorize, only: %i[update modules types custom_fields]
-  before_action :authorize_global, only: %i[new create]
+  before_action :find_project, except: %i[index level_list new]
+  before_action :authorize, only: %i[modules types custom_fields copy]
+  before_action :authorize_global, only: %i[new]
   before_action :require_admin, only: %i[archive unarchive destroy destroy_info]
 
   include SortHelper
@@ -47,14 +47,13 @@ class ProjectsController < ApplicationController
   # Lists visible projects
   def index
     query = load_query
-    set_sorting(query)
 
     unless query.valid?
       flash[:error] = query.errors.full_messages
     end
 
     @projects = load_projects query
-    @custom_fields = ProjectCustomField.visible(User.current)
+    @orders = set_sorting query
 
     render layout: 'no_menu'
   end
@@ -64,58 +63,35 @@ class ProjectsController < ApplicationController
   end
 
   def new
-    assign_default_create_variables
-
-    @project = Project.new
-
-    Projects::SetAttributesService
-      .new(user: current_user, model: @project, contract_class: EmptyContract)
-      .call(params.permit(:parent_id))
-
     render layout: 'no_menu'
-  end
-
-  current_menu_item :new do
-    :new_project
-  end
-
-  def create
-    call_result = Projects::CreateService
-                  .new(user: current_user)
-                  .call(permitted_params.project)
-
-    @project = call_result.result
-
-    if call_result.success?
-      flash[:notice] = t(:notice_successful_create)
-      redirect_work_packages_or_overview
-    else
-      @errors = call_result.errors
-      assign_default_create_variables
-
-      render action: 'new', layout: 'no_menu'
-    end
   end
 
   def update
     @altered_project = Project.find(@project.id)
 
     service_call = Projects::UpdateService
-                   .new(user: current_user,
-                        model: @altered_project)
-                   .call(permitted_params.project)
+      .new(user: current_user,
+           model: @altered_project)
+      .call(permitted_params.project)
 
-    @errors = service_call.errors
+    if service_call.success?
+      flash[:notice] = t(:notice_successful_update)
+      redirect_to settings_generic_project_path(@altered_project)
+    else
+      @errors = service_call.errors
+      render template: 'project_settings/generic'
+    end
+  end
 
-    flash[:notice] = t(:notice_successful_update) if service_call.success?
-    redirect_to settings_generic_project_path(@altered_project)
+  def copy
+    render
   end
 
   def update_identifier
     service_call = Projects::UpdateService
-                   .new(user: current_user,
-                        model: @project)
-                   .call(permitted_params.project)
+      .new(user: current_user,
+           model: @project)
+      .call(permitted_params.project)
 
     if service_call.success?
       flash[:notice] = I18n.t(:notice_successful_update)
@@ -127,7 +103,7 @@ class ProjectsController < ApplicationController
 
   def types
     if UpdateProjectsTypesService.new(@project).call(permitted_params.projects_type_ids)
-      flash[:notice] = l('notice_successful_update')
+      flash[:notice] = I18n.t('notice_successful_update')
     else
       flash[:error] = @project.errors.full_messages
     end
@@ -136,11 +112,18 @@ class ProjectsController < ApplicationController
   end
 
   def modules
-    @project.enabled_module_names = permitted_params.project[:enabled_module_names]
-    # Ensure the project is touched to update its cache key
-    @project.touch
-    flash[:notice] = I18n.t(:notice_successful_update)
-    redirect_to settings_modules_project_path(@project)
+    call = Projects::EnabledModulesService
+           .new(model: @project, user: current_user)
+           .call(enabled_modules: permitted_params.project[:enabled_module_names])
+
+    if call.success?
+      flash[:notice] = I18n.t(:notice_successful_update)
+
+      redirect_to settings_modules_project_path(@project)
+    else
+      @errors = call.errors
+      render 'project_settings/modules'
+    end
   end
 
   def custom_fields
@@ -168,8 +151,8 @@ class ProjectsController < ApplicationController
   # Delete @project
   def destroy
     service_call = ::Projects::ScheduleDeletionService
-                   .new(user: current_user, model: @project)
-                   .call
+      .new(user: current_user, model: @project)
+      .call
 
     if service_call.success?
       flash[:notice] = I18n.t('projects.delete.scheduled')
@@ -193,6 +176,12 @@ class ProjectsController < ApplicationController
     respond_to do |format|
       format.json { render json: projects_level_list_json(projects) }
     end
+  end
+
+  ##
+  # Redirect as action as routes can only redirect by full path
+  def settings
+    redirect_to settings_generic_project_path(@project)
   end
 
   private
@@ -254,20 +243,7 @@ class ProjectsController < ApplicationController
     @query
   end
 
-  def assign_default_create_variables
-    @wp_custom_fields = WorkPackageCustomField.order("#{CustomField.table_name}.position")
-    @types = ::Type.all
-  end
-
   protected
-
-  def set_sorting(query)
-    orders = query.orders.select(&:valid?).map { |o| [o.attribute.to_s, o.direction.to_s] }
-
-    sort_clear
-    sort_init orders
-    sort_update orders.map(&:first)
-  end
 
   def load_projects(query)
     query
@@ -276,6 +252,10 @@ class ProjectsController < ApplicationController
       .with_latest_activity
       .includes(:custom_values, :enabled_modules)
       .paginate(page: page_param, per_page: per_page_param)
+  end
+
+  def set_sorting(query)
+    query.orders.select(&:valid?).map { |o| [o.attribute.to_s, o.direction.to_s] }
   end
 
   def update_demo_project_settings(project, value)

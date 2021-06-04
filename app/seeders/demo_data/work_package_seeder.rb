@@ -1,4 +1,5 @@
 #-- encoding: UTF-8
+
 #-- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) 2012-2020 the OpenProject GmbH
@@ -42,12 +43,10 @@ module DemoData
     end
 
     def seed_data!
-      print '    ↳ Creating work_packages'
-
-      seed_demo_work_packages
-      set_workpackage_relations
-
-      puts
+      print_status '    ↳ Creating work_packages' do
+        seed_demo_work_packages
+        set_workpackage_relations
+      end
     end
 
     private
@@ -56,7 +55,7 @@ module DemoData
       work_packages_data = project_data_for(key, 'work_packages')
 
       work_packages_data.each do |attributes|
-        print '.'
+        print_status '.'
         create_or_update_work_package(attributes)
       end
     end
@@ -93,7 +92,7 @@ module DemoData
 
     def create_children!(work_package, attributes)
       Array(attributes[:children]).each do |child_attributes|
-        print '.'
+        print_status '.'
         child = create_work_package child_attributes
 
         child.parent = work_package
@@ -103,21 +102,21 @@ module DemoData
 
     def base_work_package_attributes(attributes)
       {
-        project:       project,
-        author:        user,
-        assigned_to:   find_principal(attributes[:assignee]),
-        subject:       attributes[:subject],
-        description:   attributes[:description],
-        status:        find_status(attributes),
-        type:          find_type(attributes),
-        priority:      find_priority(attributes) || IssuePriority.default,
-        parent:        WorkPackage.find_by(subject: attributes[:parent])
+        project: project,
+        author: user,
+        assigned_to: find_principal(attributes[:assignee]),
+        subject: attributes[:subject],
+        description: attributes[:description],
+        status: find_status(attributes),
+        type: find_type(attributes),
+        priority: find_priority(attributes) || IssuePriority.default,
+        parent: WorkPackage.find_by(subject: attributes[:parent])
       }
     end
 
     def find_principal(name)
       if name
-        group_assignee =  Group.find_by(lastname: name)
+        group_assignee = Group.find_by(lastname: name)
         return group_assignee unless group_assignee.nil?
       end
 
@@ -175,7 +174,7 @@ module DemoData
     end
 
     def set_workpackage_relations
-      work_packages_data =  project_data_for(key, 'work_packages')
+      work_packages_data = project_data_for(key, 'work_packages')
 
       work_packages_data.each do |attributes|
         create_relations attributes

@@ -1,6 +1,6 @@
 //-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -26,21 +26,20 @@
 // See docs/COPYRIGHT.rdoc for more details.
 //++
 
-import {StateService} from '@uirouter/core';
-import {OPContextMenuService} from "core-components/op-context-menu/op-context-menu.service";
-import {Directive, ElementRef, Inject, Input} from "@angular/core";
-import {OpContextMenuTrigger} from "core-components/op-context-menu/handlers/op-context-menu-trigger.directive";
+import { StateService } from '@uirouter/core';
+import { OPContextMenuService } from "core-components/op-context-menu/op-context-menu.service";
+import { Directive, ElementRef, Input } from "@angular/core";
+import { OpContextMenuTrigger } from "core-components/op-context-menu/handlers/op-context-menu-trigger.directive";
 
-import {HalResourceEditingService} from "core-app/modules/fields/edit/services/hal-resource-editing.service";
-import {HalResourceNotificationService} from "core-app/modules/hal/services/hal-resource-notification.service";
-import {WorkPackageResource} from "core-app/modules/hal/resources/work-package-resource";
-import {HalResource} from 'core-app/modules/hal/resources/hal-resource';
-import {CollectionResource} from 'core-app/modules/hal/resources/collection-resource';
-import {Highlighting} from "core-components/wp-fast-table/builders/highlighting/highlighting.functions";
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
-import {NotificationsService} from "core-app/modules/common/notifications/notifications.service";
-import {HalEventsService} from "core-app/modules/hal/services/hal-events.service";
-import {WorkPackageNotificationService} from "core-app/modules/work_packages/notifications/work-package-notification.service";
+import { HalResourceEditingService } from "core-app/modules/fields/edit/services/hal-resource-editing.service";
+import { WorkPackageResource } from "core-app/modules/hal/resources/work-package-resource";
+import { HalResource } from 'core-app/modules/hal/resources/hal-resource';
+import { CollectionResource } from 'core-app/modules/hal/resources/collection-resource';
+import { Highlighting } from "core-components/wp-fast-table/builders/highlighting/highlighting.functions";
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
+import { NotificationsService } from "core-app/modules/common/notifications/notifications.service";
+import { HalEventsService } from "core-app/modules/hal/services/hal-events.service";
+import { WorkPackageNotificationService } from "core-app/modules/work_packages/notifications/work-package-notification.service";
 
 @Directive({
   selector: '[wpStatusDropdown]'
@@ -92,7 +91,6 @@ export class WorkPackageStatusDropdownDirective extends OpContextMenuTrigger {
         .save(change)
         .then(() => {
           this.workPackageNotificationService.showSave(this.workPackage);
-          this.halEvents.push(this.workPackage, { eventType: 'updated' });
         });
     }
   }

@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -57,23 +57,28 @@ describe 'Meetings close', type: :feature do
       click_link meeting.title
 
       # Go to minutes, expect uneditable
-      find('.tabrow a', text: 'MINUTES').click
+      SeleniumHubWaiter.wait
+      find('.op-tab-row--link', text: 'MINUTES').click
 
       expect(page).to have_selector('.button', text: 'Close the agenda to begin the Minutes')
 
       # Close the meeting
-      find('.tabrow a', text: 'AGENDA').click
+      SeleniumHubWaiter.wait
+      find('.op-tab-row--link', text: 'AGENDA').click
+      SeleniumHubWaiter.wait
       find('.button', text: 'Close').click
       page.accept_confirm
 
       # Expect to be on minutes
-      expect(page).to have_selector('.tabrow li.selected', text: 'MINUTES')
+      expect(page).to have_selector('.op-tab-row--link_selected', text: 'MINUTES')
 
       # Copies the text
       expect(page).to have_selector('#meeting_minutes-text', text: 'asdf')
 
       # Go back to agenda, expect we can open it again
-      find('.tabrow a', text: 'AGENDA').click
+      SeleniumHubWaiter.wait
+      find('.op-tab-row--link', text: 'AGENDA').click
+      SeleniumHubWaiter.wait
       find('.button', text: 'Open').click
       page.accept_confirm
       expect(page).to have_selector('.button', text: 'Close')

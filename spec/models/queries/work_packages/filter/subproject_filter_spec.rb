@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -30,7 +30,7 @@ require 'spec_helper'
 
 describe Queries::WorkPackages::Filter::SubprojectFilter, type: :model do
   it_behaves_like 'basic query filter' do
-    let(:type) { :list }
+    let(:type) { :list_optional }
     let(:class_key) { :subproject_id }
     let(:name) { I18n.t('query_fields.subproject_id') }
     let(:project) { FactoryBot.build_stubbed :project }
@@ -123,6 +123,59 @@ describe Queries::WorkPackages::Filter::SubprojectFilter, type: :model do
       it 'is true' do
         expect(instance)
           .to be_ar_object_filter
+      end
+    end
+
+    describe '#default_operator' do
+      it 'is the `all` operator' do
+        expect(instance.default_operator)
+          .to eql(::Queries::Operators::All)
+      end
+    end
+
+    describe '#where' do
+      let(:subproject1) { FactoryBot.build_stubbed(:project) }
+      let(:subproject2) { FactoryBot.build_stubbed(:project) }
+      let(:projects) { [subproject1, subproject2] }
+
+      context 'for the equals operator' do
+        let(:operator) { '=' }
+        let(:values) { [subproject1.id.to_s] }
+
+        it 'returns an sql filtering for project id eql self or specified values' do
+          expect(instance.where)
+            .to eql("projects.id IN (#{project.id},#{subproject1.id})")
+        end
+      end
+
+      context 'for the not equals operator' do
+        let(:operator) { '!' }
+        let(:values) { [subproject1.id.to_s] }
+
+        it 'returns an sql filtering for project id eql self and all subprojects excluding specified values' do
+          expect(instance.where)
+            .to eql("projects.id IN (#{project.id},#{subproject2.id})")
+        end
+      end
+
+      context 'for the all operator' do
+        let(:operator) { '*' }
+        let(:values) { [] }
+
+        it 'returns an sql filtering for project id eql self and all subprojects' do
+          expect(instance.where)
+            .to eql("projects.id IN (#{project.id},#{subproject1.id},#{subproject2.id})")
+        end
+      end
+
+      context 'for the none operator' do
+        let(:operator) { '!*' }
+        let(:values) { [] }
+
+        it 'returns an sql filtering for only the project id (and by that excluding all subprojects)' do
+          expect(instance.where)
+            .to eql("projects.id IN (#{project.id})")
+        end
       end
     end
   end

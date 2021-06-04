@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -28,19 +28,19 @@
 
 FactoryBot.define do
   factory :type do
-    sequence(:position) { |p| p }
+    sequence(:position)
     name { |a| "Type No. #{a.position}" }
     description { nil }
     created_at { Time.now }
     updated_at { Time.now }
 
-    factory :type_with_workflow, class: Type do
+    factory :type_with_workflow, class: 'Type' do
       callback(:after_build) do |t|
         t.workflows = [FactoryBot.build(:workflow_with_default_status)]
       end
     end
 
-    factory :type_with_relation_query_group, class: Type do
+    factory :type_with_relation_query_group, class: 'Type' do
       transient do
         relation_filter { 'parent' }
       end
@@ -49,12 +49,13 @@ FactoryBot.define do
         query = FactoryBot.create(:query)
         query.add_filter(evaluator.relation_filter.to_s, '=', [::Queries::Filters::TemplatedValue::KEY])
         query.save
-        t.attribute_groups = t.default_attribute_groups + [["Embedded table for #{evaluator.relation_filter.to_s}", ["query_#{query.id}".to_sym]]]
+        t.attribute_groups = t.default_attribute_groups + [["Embedded table for #{evaluator.relation_filter}",
+                                                            ["query_#{query.id}".to_sym]]]
       end
     end
   end
 
-  factory :type_standard, class: ::Type do
+  factory :type_standard, class: '::Type' do
     name { 'None' }
     is_standard { true }
     is_default { true }
@@ -62,7 +63,7 @@ FactoryBot.define do
     updated_at { Time.now }
   end
 
-  factory :type_bug, class: ::Type do
+  factory :type_bug, class: '::Type' do
     name { 'Bug' }
     position { 1 }
     created_at { Time.now }

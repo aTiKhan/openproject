@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -64,14 +64,20 @@ describe WorkPackagesController, type: :controller do
         allow(service_instance)
           .to receive(:call)
           .with(query: query, mime_type: mime_type.to_sym, params: anything)
-          .and_return(ServiceResult.new(result: export_storage))
+          .and_return(ServiceResult.new(result: 'uuid of the export job'))
       end
 
       it 'redirects to the export' do
         get 'index', params: { format: 'bcf' }
+        expect(response).to redirect_to job_status_path('uuid of the export job')
+      end
 
-        expect(response)
-          .to redirect_to work_packages_export_path(export_storage.id)
+      context 'with json accept' do
+        it 'should fulfill the defined should_receives' do
+          request.headers['Accept'] = 'application/json'
+          get 'index', params: { format: 'bcf' }
+          expect(response.body).to eq({ job_id: 'uuid of the export job' }.to_json)
+        end
       end
     end
   end

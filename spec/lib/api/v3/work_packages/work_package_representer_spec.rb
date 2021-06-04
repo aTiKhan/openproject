@@ -1,12 +1,12 @@
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -41,14 +41,19 @@ describe ::API::V3::WorkPackages::WorkPackageRepresenter do
   let(:priority) { FactoryBot.build_stubbed(:priority, updated_at: Time.now) }
   let(:assignee) { nil }
   let(:responsible) { nil }
+  let(:schedule_manually) { nil }
   let(:start_date) { Date.today.to_datetime }
   let(:due_date) { Date.today.to_datetime }
   let(:type_milestone) { false }
   let(:estimated_hours) { nil }
   let(:derived_estimated_hours) { nil }
   let(:spent_hours) { 0 }
+  let(:derived_start_date) { Date.today - 4.days }
+  let(:derived_due_date) { Date.today - 5.days }
+  let(:budget) { FactoryBot.build_stubbed(:budget, project: project) }
   let(:work_package) do
     FactoryBot.build_stubbed(:stubbed_work_package,
+                             schedule_manually: schedule_manually,
                              start_date: start_date,
                              due_date: due_date,
                              done_ratio: 50,
@@ -60,6 +65,7 @@ describe ::API::V3::WorkPackages::WorkPackageRepresenter do
                              responsible: responsible,
                              estimated_hours: estimated_hours,
                              derived_estimated_hours: derived_estimated_hours,
+                             budget: budget,
                              status: status) do |wp|
       allow(wp)
         .to receive(:available_custom_fields)
@@ -68,6 +74,14 @@ describe ::API::V3::WorkPackages::WorkPackageRepresenter do
       allow(wp)
         .to receive(:spent_hours)
         .and_return(spent_hours)
+
+      allow(wp)
+        .to receive(:derived_start_date)
+        .and_return(derived_start_date)
+
+      allow(wp)
+        .to receive(:derived_due_date)
+        .and_return(derived_due_date)
     end
   end
   let(:all_permissions) do
@@ -119,7 +133,31 @@ describe ::API::V3::WorkPackages::WorkPackageRepresenter do
       it_behaves_like 'API V3 formattable', 'description' do
         let(:format) { 'markdown' }
         let(:raw) { work_package.description }
-        let(:html) { '<p>' + work_package.description + '</p>' }
+        let(:html) { '<p class="op-uc-p">' + work_package.description + '</p>' }
+      end
+
+      describe 'scheduleManually' do
+        context 'no value' do
+          it 'renders as false (default value)' do
+            is_expected.to be_json_eql(false.to_json).at_path('scheduleManually')
+          end
+        end
+
+        context 'false' do
+          let(:schedule_manually) { false }
+
+          it 'renders as false' do
+            is_expected.to be_json_eql(false.to_json).at_path('scheduleManually')
+          end
+        end
+
+        context 'true' do
+          let(:schedule_manually) { true }
+
+          it 'renders as true' do
+            is_expected.to be_json_eql(true.to_json).at_path('scheduleManually')
+          end
+        end
       end
 
       describe 'startDate' do
@@ -191,6 +229,58 @@ describe ::API::V3::WorkPackages::WorkPackageRepresenter do
         context 'with a milestone type' do
           it 'has no date' do
             is_expected.to_not have_json_path('date')
+          end
+        end
+      end
+
+      describe 'derivedStartDate' do
+        it_behaves_like 'has ISO 8601 date only' do
+          let(:date) { derived_start_date }
+          let(:json_path) { 'derivedStartDate' }
+        end
+
+        context 'no derived start date' do
+          let(:derived_start_date) { nil }
+
+          it 'renders as null' do
+            is_expected
+              .to be_json_eql(nil.to_json)
+              .at_path('derivedStartDate')
+          end
+        end
+
+        context 'when the work package has a milestone type' do
+          let(:type_milestone) { true }
+
+          it 'has no derivedStartDate' do
+            is_expected
+              .to_not have_json_path('derivedStartDate')
+          end
+        end
+      end
+
+      describe 'derivedDueDate' do
+        it_behaves_like 'has ISO 8601 date only' do
+          let(:date) { derived_due_date }
+          let(:json_path) { 'derivedDueDate' }
+        end
+
+        context 'no derived due date' do
+          let(:derived_due_date) { nil }
+
+          it 'renders as null' do
+            is_expected
+              .to be_json_eql(nil.to_json)
+                    .at_path('derivedDueDate')
+          end
+        end
+
+        context 'when the work package has a milestone type' do
+          let(:type_milestone) { true }
+
+          it 'has no derivedDueDate' do
+            is_expected
+              .to_not have_json_path('derivedDueDate')
           end
         end
       end
@@ -366,6 +456,26 @@ describe ::API::V3::WorkPackages::WorkPackageRepresenter do
           end
         end
 
+        context 'is placeholder user' do
+          let(:assignee) { FactoryBot.build_stubbed(:placeholder_user) }
+
+          it_behaves_like 'has a titled link' do
+            let(:link) { 'assignee' }
+            let(:href) { "/api/v3/placeholder_users/#{work_package.assigned_to.id}" }
+            let(:title) { work_package.assigned_to.name }
+          end
+        end
+
+        context 'is deleted user' do
+          let(:assignee) { FactoryBot.build_stubbed(:deleted_user) }
+
+          it_behaves_like 'has a titled link' do
+            let(:link) { 'assignee' }
+            let(:href) { "/api/v3/users/#{work_package.assigned_to.id}" }
+            let(:title) { work_package.assigned_to.name }
+          end
+        end
+
         context 'is not set' do
           it_behaves_like 'has an empty link' do
             let(:link) { 'assignee' }
@@ -390,6 +500,26 @@ describe ::API::V3::WorkPackages::WorkPackageRepresenter do
           it_behaves_like 'has a titled link' do
             let(:link) { 'responsible' }
             let(:href) { "/api/v3/groups/#{work_package.responsible.id}" }
+            let(:title) { work_package.responsible.name }
+          end
+        end
+
+        context 'is placeholder user' do
+          let(:responsible) { FactoryBot.build_stubbed(:placeholder_user) }
+
+          it_behaves_like 'has a titled link' do
+            let(:link) { 'responsible' }
+            let(:href) { "/api/v3/placeholder_users/#{work_package.responsible.id}" }
+            let(:title) { work_package.responsible.name }
+          end
+        end
+
+        context 'is deleted user' do
+          let(:responsible) { FactoryBot.build_stubbed(:deleted_user) }
+
+          it_behaves_like 'has a titled link' do
+            let(:link) { 'responsible' }
+            let(:href) { "/api/v3/users/#{work_package.responsible.id}" }
             let(:title) { work_package.responsible.name }
           end
         end
@@ -500,6 +630,36 @@ describe ::API::V3::WorkPackages::WorkPackageRepresenter do
         end
       end
 
+      describe 'budget' do
+        context 'with the user having the view_budgets permission' do
+          let(:permissions) { [:view_budgets] }
+
+          it_behaves_like 'has a titled link' do
+            let(:link) { 'budget' }
+            let(:href) { "/api/v3/budgets/#{budget.id}" }
+            let(:title) { budget.subject }
+          end
+
+          it 'has the budget embedded' do
+            is_expected
+              .to be_json_eql(budget.subject.to_json)
+              .at_path('_embedded/budget/subject')
+          end
+        end
+
+        context 'with the user lacking the view_budgets permission' do
+          it 'has no link to the budget' do
+            is_expected
+              .not_to have_json_path('_links/budget')
+          end
+
+          it 'has no budget embedded' do
+            is_expected
+              .not_to have_json_path('_embedded/budget')
+          end
+        end
+      end
+
       describe 'schema' do
         it_behaves_like 'has an untitled link' do
           let(:link) { 'schema' }
@@ -596,13 +756,15 @@ describe ::API::V3::WorkPackages::WorkPackageRepresenter do
       context 'when the user has the permission to add and remove watchers' do
         it 'should have a link to add watcher' do
           expect(subject).to be_json_eql(
-                               api_v3_paths.work_package_watchers(work_package.id).to_json)
+            api_v3_paths.work_package_watchers(work_package.id).to_json
+          )
             .at_path('_links/addWatcher/href')
         end
 
         it 'should have a link to remove watcher' do
           expect(subject).to be_json_eql(
-                               api_v3_paths.watcher('{user_id}', work_package.id).to_json)
+            api_v3_paths.watcher('{user_id}', work_package.id).to_json
+          )
             .at_path('_links/removeWatcher/href')
         end
       end
@@ -628,10 +790,6 @@ describe ::API::V3::WorkPackages::WorkPackageRepresenter do
           it_behaves_like 'has an untitled link' do
             let(:link) { 'watchers' }
             let(:href) { api_v3_paths.work_package_watchers work_package.id }
-          end
-
-          it 'embeds the watchers as collection' do
-            is_expected.to be_json_eql('Collection'.to_json).at_path('_embedded/watchers/_type')
           end
         end
 
@@ -680,17 +838,24 @@ describe ::API::V3::WorkPackages::WorkPackageRepresenter do
         end
       end
 
-      context 'when the user has the permission to view time entries' do
-        it 'should have a link to add child' do
-          expect(subject).to have_json_path('_links/timeEntries/href')
+      context 'timeEntries' do
+        context 'when the user has the permission to view time entries' do
+          it_behaves_like 'has a titled link' do
+            let(:link) { 'timeEntries' }
+            let(:href) do
+              api_v3_paths.path_for(:time_entries,
+                                    filters: [{ work_package_id: { operator: "=", values: [work_package.id.to_s] } }])
+            end
+            let(:title) { 'Time entries' }
+          end
         end
-      end
 
-      context 'when the user does not have the permission to view time entries' do
-        let(:permissions) { all_permissions - [:view_time_entries] }
+        context 'when the user does not have the permission to view time entries' do
+          let(:permissions) { all_permissions - [:view_time_entries] }
 
-        it 'should not have a link to timeEntries' do
-          expect(subject).not_to have_json_path('_links/timeEntries/href')
+          it 'should not have a link to timeEntries' do
+            expect(subject).not_to have_json_path('_links/timeEntries/href')
+          end
         end
       end
 
@@ -815,6 +980,7 @@ describe ::API::V3::WorkPackages::WorkPackageRepresenter do
         it_behaves_like 'action link' do
           let(:action) { 'logTime' }
           let(:permission) { :log_time }
+          let(:href) { api_v3_paths.time_entries }
         end
       end
 
@@ -950,7 +1116,7 @@ describe ::API::V3::WorkPackages::WorkPackageRepresenter do
 
         before do
           allow(work_package)
-            .to receive_message_chain(:visible_relations, :non_hierarchy, :includes)
+            .to receive_message_chain(:visible_relations, :direct, :non_hierarchy, :includes)
             .and_return([relation])
         end
 
@@ -997,7 +1163,7 @@ describe ::API::V3::WorkPackages::WorkPackageRepresenter do
       it 'is based on the representer\'s cache_key' do
         allow(OpenProject::Cache)
           .to receive(:fetch)
-          .and_return({_links: {}}.to_json)
+          .and_return({ _links: {} }.to_json)
         expect(OpenProject::Cache)
           .to receive(:fetch)
           .with(representer.json_cache_key)

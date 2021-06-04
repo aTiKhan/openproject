@@ -2,13 +2,13 @@
 
 #-- copyright
 # OpenProject is an open source project management software.
-# Copyright (C) 2012-2020 the OpenProject GmbH
+# Copyright (C) 2012-2021 the OpenProject GmbH
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 3.
 #
 # OpenProject is a fork of ChiliProject, which is a fork of Redmine. The copyright follows:
-# Copyright (C) 2006-2017 Jean-Philippe Lang
+# Copyright (C) 2006-2013 Jean-Philippe Lang
 # Copyright (C) 2010-2013 the ChiliProject Team
 #
 # This program is free software; you can redistribute it and/or
@@ -32,14 +32,6 @@ module API
   module V3
     module WorkPackages
       class FormRepresenter < ::API::Decorators::Form
-        def initialize(model, current_user: nil, errors: [], action: :update)
-          self.action = action
-
-          super(model, current_user: current_user, errors: errors)
-        end
-
-        attr_accessor :action
-
         def payload_representer
           WorkPackagePayloadRepresenter
             .create_class(represented, current_user)
@@ -51,7 +43,7 @@ module API
           schema_link = api_v3_paths.work_package_schema(represented.project_id,
                                                          represented.type_id)
           Schema::WorkPackageSchemaRepresenter.create(schema,
-                                                      nil,
+                                                      self_link: nil,
                                                       form_embedded: true,
                                                       base_schema_link: schema_link,
                                                       current_user: current_user)

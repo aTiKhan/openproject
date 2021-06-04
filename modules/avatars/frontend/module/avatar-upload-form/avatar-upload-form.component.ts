@@ -1,6 +1,6 @@
-// -- copyright
+//-- copyright
 // OpenProject is an open source project management software.
-// Copyright (C) 2012-2020 the OpenProject GmbH
+// Copyright (C) 2012-2021 the OpenProject GmbH
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License version 3.
@@ -24,13 +24,13 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 //
 // See docs/COPYRIGHT.rdoc for more details.
-// ++
-import {Component, ElementRef, OnInit, ViewChild} from "@angular/core";
-import {I18nService} from "core-app/modules/common/i18n/i18n.service";
-import {OpenProjectFileUploadService, UploadBlob} from "core-components/api/op-file-upload/op-file-upload.service";
-import {NotificationsService} from "core-app/modules/common/notifications/notifications.service";
-import {UploadFile} from "core-components/api/op-file-upload/op-file-upload.service";
-import {ImageHelpers} from "core-app/helpers/images/resizer";
+//++
+import { Component, ElementRef, OnInit, ViewChild } from "@angular/core";
+import { I18nService } from "core-app/modules/common/i18n/i18n.service";
+import { OpenProjectFileUploadService , UploadFile } from "core-components/api/op-file-upload/op-file-upload.service";
+import { NotificationsService } from "core-app/modules/common/notifications/notifications.service";
+
+import { ImageHelpers } from "core-app/helpers/images/resizer";
 
 @Component({
   selector: 'avatar-upload-form',
@@ -45,7 +45,7 @@ export class AvatarUploadFormComponent implements OnInit {
   // File
   public avatarFile:any;
   public avatarPreviewUrl:any;
-  public busy:boolean = false;
+  public busy = false;
   public fileInvalid = false;
 
   @ViewChild('avatarFilePicker', { static: true }) public avatarFilePicker:ElementRef;
@@ -102,18 +102,18 @@ export class AvatarUploadFormComponent implements OnInit {
     upload[1].subscribe(
       (evt:any) => {
         switch (evt.type) {
-          case 0: // Sent
-            return;
+        case 0: // Sent
+          return;
 
-          case 4:
-            this.avatarFile.progress = 100;
-            this.busy = false;
-            window.location.reload();
-            return;
+        case 4:
+          this.avatarFile.progress = 100;
+          this.busy = false;
+          window.location.reload();
+          return;
 
-          default:
-            // Sent or unknown event
-            return;
+        default:
+          // Sent or unknown event
+          return;
         }
       },
       (error:any) => {
